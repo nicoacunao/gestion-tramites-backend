@@ -1,0 +1,54 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: '0'
+      - run: npm run types:bindings
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run boundaries
+      - run: npm run format
+      - run: npm test
+      - run: npm run build
+      - run: npm run openapi:generate
+      - name: Verify generated OpenAPI is committed
+        run: git diff --exit-code -- openapi/openapi.json
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    needs: quality
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: '0'
+      - name: Deploy production Worker
+        run: npm run deploy -- --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

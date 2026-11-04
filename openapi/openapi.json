@@ -1,0 +1,265 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API Gestión de Trámites",
+    "version": "0.1.0",
+    "description": "Contrato inicial. Solo contiene health checks por módulo."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8787",
+      "description": "Desarrollo local"
+    },
+    {
+      "url": "https://replace-with-staging-domain.invalid",
+      "description": "Staging"
+    },
+    {
+      "url": "https://replace-with-production-domain.invalid",
+      "description": "Producción"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ModuleHealthResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ModuleHealthData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "ModuleHealthData": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string",
+            "example": "gestiones"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ok"]
+          }
+        },
+        "required": ["module", "status"]
+      },
+      "ApiMeta": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "example": "4b118c2e-f0f6-4be9-9713-9ed923f44a68"
+          }
+        },
+        "required": ["requestId"]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "RESOURCE_NOT_FOUND"
+              },
+              "message": {
+                "type": "string",
+                "example": "El recurso solicitado no existe."
+              },
+              "details": {
+                "nullable": true
+              }
+            },
+            "required": ["code", "message"]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["error", "meta"]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/api/v1/identidad/health": {
+      "get": {
+        "operationId": "identidadHealth",
+        "tags": ["identidad"],
+        "summary": "Health check del módulo identidad",
+        "responses": {
+          "200": {
+            "description": "El módulo está disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleHealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalogos/health": {
+      "get": {
+        "operationId": "catalogosHealth",
+        "tags": ["catalogos"],
+        "summary": "Health check del módulo catalogos",
+        "responses": {
+          "200": {
+            "description": "El módulo está disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleHealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/health": {
+      "get": {
+        "operationId": "gestionesHealth",
+        "tags": ["gestiones"],
+        "summary": "Health check del módulo gestiones",
+        "responses": {
+          "200": {
+            "description": "El módulo está disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleHealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/archivos/health": {
+      "get": {
+        "operationId": "archivosHealth",
+        "tags": ["archivos"],
+        "summary": "Health check del módulo archivos",
+        "responses": {
+          "200": {
+            "description": "El módulo está disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleHealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bitacora/health": {
+      "get": {
+        "operationId": "bitacoraHealth",
+        "tags": ["bitacora"],
+        "summary": "Health check del módulo bitacora",
+        "responses": {
+          "200": {
+            "description": "El módulo está disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleHealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consultas/health": {
+      "get": {
+        "operationId": "consultasHealth",
+        "tags": ["consultas"],
+        "summary": "Health check del módulo consultas",
+        "responses": {
+          "200": {
+            "description": "El módulo está disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleHealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

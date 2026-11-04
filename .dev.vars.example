@@ -1,0 +1,4 @@
+# Copiar como .dev.vars para desarrollo local. .dev.vars está ignorado por Git.
+AUTH_TOKEN_SECRET=replace-locally
+GRAPH_CLIENT_SECRET=replace-locally-if-delegated-oauth-is-approved
+GRAPH_REFRESH_TOKEN=replace-locally-if-delegated-oauth-is-approved
