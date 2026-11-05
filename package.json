@@ -15,7 +15,7 @@
     "format:write": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "openapi:generate": "tsx scripts/generate-openapi.ts && prettier --write openapi/openapi.json",
     "check": "npm run typecheck && npm run lint && npm run boundaries && npm run format && npm test && npm run build",
     "prepare": "husky"
   },
