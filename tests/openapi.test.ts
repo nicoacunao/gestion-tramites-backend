@@ -21,6 +21,8 @@ describe('contrato OpenAPI', () => {
         '/api/v1/catalogos/type-relations',
         '/api/v1/consultas/health',
         '/api/v1/gestiones/health',
+        '/api/v1/gestiones/items',
+        '/api/v1/gestiones/items/{id}',
         '/api/v1/identidad/health',
         '/api/v1/identidad/login',
       ].sort(),

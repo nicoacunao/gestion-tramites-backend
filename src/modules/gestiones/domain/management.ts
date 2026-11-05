@@ -1,4 +1,15 @@
 export type ManagementLevel = 'N1' | 'N2' | 'N3' | 'N4';
+export type ManagementPriority = 'Alta' | 'Media' | 'Baja';
+export type ManagementStatus =
+  | 'Borrador'
+  | 'Pendiente'
+  | 'Ingresado'
+  | 'En tramitación'
+  | 'Observado'
+  | 'Reingresado'
+  | 'Rechazado'
+  | 'Terminado aprobado'
+  | 'Terminado desfavorable';
 
 export interface Management {
   id: string;
@@ -11,9 +22,9 @@ export interface Management {
   openedOn: string;
   estimatedCompletionOn: string | null;
   lastReviewedOn: string | null;
-  priority: string;
+  priority: ManagementPriority;
   requesterName: string;
-  status: string | null;
+  status: ManagementStatus | null;
   version: number;
 }
 

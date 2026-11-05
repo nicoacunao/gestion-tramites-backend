@@ -370,6 +370,242 @@
           }
         },
         "required": ["data", "meta"]
+      },
+      "ManagementListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Management"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "Management": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "stationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "managementTypeId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "scopeCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "responsibleUserId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "level": {
+            "type": "string",
+            "enum": ["N1", "N2", "N3", "N4"]
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "openedOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "estimatedCompletionOn": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "lastReviewedOn": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["Alta", "Media", "Baja"]
+          },
+          "requesterName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "status": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "Borrador",
+              "Pendiente",
+              "Ingresado",
+              "En tramitación",
+              "Observado",
+              "Reingresado",
+              "Rechazado",
+              "Terminado aprobado",
+              "Terminado desfavorable",
+              null
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "stationId",
+          "managementTypeId",
+          "scopeCode",
+          "responsibleUserId",
+          "level",
+          "sequence",
+          "openedOn",
+          "estimatedCompletionOn",
+          "lastReviewedOn",
+          "priority",
+          "requesterName",
+          "status",
+          "version"
+        ]
+      },
+      "ManagementResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Management"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "ManagementWrite": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "stationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "managementTypeId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "scopeCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "responsibleUserId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "level": {
+            "type": "string",
+            "enum": ["N1", "N2", "N3", "N4"]
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "openedOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "estimatedCompletionOn": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "lastReviewedOn": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["Alta", "Media", "Baja"]
+          },
+          "requesterName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "status": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "Borrador",
+              "Pendiente",
+              "Ingresado",
+              "En tramitación",
+              "Observado",
+              "Reingresado",
+              "Rechazado",
+              "Terminado aprobado",
+              "Terminado desfavorable",
+              null
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "stationId",
+          "managementTypeId",
+          "scopeCode",
+          "responsibleUserId",
+          "level",
+          "sequence",
+          "openedOn",
+          "estimatedCompletionOn",
+          "lastReviewedOn",
+          "priority",
+          "requesterName",
+          "status"
+        ]
+      },
+      "ManagementUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ManagementWrite"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+              }
+            },
+            "required": ["version"]
+          }
+        ]
       }
     },
     "parameters": {}
@@ -970,6 +1206,214 @@
           },
           "500": {
             "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/items": {
+      "get": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesList",
+        "responses": {
+          "200": {
+            "description": "Gestiones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesCreate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Gestión creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/items/{id}": {
+      "get": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesGet",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesUpdate",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gestión actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de versión.",
             "content": {
               "application/json": {
                 "schema": {

@@ -4,7 +4,7 @@ import { archivosModule } from './modules/archivos';
 import { bitacoraModule } from './modules/bitacora';
 import { createCatalogosModule, excelCatalogosDependencies } from './modules/catalogos';
 import { consultasModule } from './modules/consultas';
-import { gestionesModule } from './modules/gestiones';
+import { createGestionesModule, excelGestionesDependencies } from './modules/gestiones';
 import { createIdentidadModule, excelIdentityDependencies } from './modules/identidad';
 import { AppError } from './shared/errors/app-error';
 import type { AppEnv } from './shared/config/bindings';
@@ -21,7 +21,7 @@ export function createApp(): OpenAPIHono<AppEnv> {
 
   app.route('/api/v1/identidad', createIdentidadModule(excelIdentityDependencies));
   app.route('/api/v1/catalogos', createCatalogosModule(excelCatalogosDependencies));
-  app.route('/api/v1/gestiones', gestionesModule);
+  app.route('/api/v1/gestiones', createGestionesModule(excelGestionesDependencies));
   app.route('/api/v1/archivos', archivosModule);
   app.route('/api/v1/bitacora', bitacoraModule);
   app.route('/api/v1/consultas', consultasModule);
