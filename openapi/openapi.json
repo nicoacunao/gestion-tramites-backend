@@ -150,6 +150,226 @@
           }
         },
         "required": ["rut", "password"]
+      },
+      "StationListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Station"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "Station": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 150
+          },
+          "address": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 250
+          },
+          "commune": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "legalName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "zoneManager": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "commercialManager": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "companyRut": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 12
+          },
+          "legalRepresentative": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "legalRepresentativeRut": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 12
+          },
+          "status": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "address",
+          "commune",
+          "legalName",
+          "zoneManager",
+          "commercialManager",
+          "companyRut",
+          "legalRepresentative",
+          "status",
+          "version"
+        ]
+      },
+      "StationResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Station"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "StationWrite": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 150
+          },
+          "address": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 250
+          },
+          "commune": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "legalName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "zoneManager": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "commercialManager": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "companyRut": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 12
+          },
+          "legalRepresentative": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "legalRepresentativeRut": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 12
+          },
+          "status": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          }
+        },
+        "required": [
+          "id",
+          "address",
+          "commune",
+          "legalName",
+          "zoneManager",
+          "commercialManager",
+          "companyRut",
+          "legalRepresentative",
+          "status"
+        ]
+      },
+      "StationUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/StationWrite"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+              }
+            },
+            "required": ["version"]
+          }
+        ]
+      },
+      "CatalogListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "nullable": true
+                  }
+                ]
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
       }
     },
     "parameters": {}
@@ -249,6 +469,478 @@
           },
           "500": {
             "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalogos/items": {
+      "get": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosListStations",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "eds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "commune",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "legalName",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estaciones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosCreateStation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Estación creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalogos/items/{id}": {
+      "get": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosGetStation",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosUpdateStation",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estación actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de versión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalogos/scopes": {
+      "get": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosListScopes",
+        "responses": {
+          "200": {
+            "description": "Ámbitos de gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalogos/management-types": {
+      "get": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosListManagementTypes",
+        "responses": {
+          "200": {
+            "description": "Tipos de gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalogos/type-relations": {
+      "get": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosListTypeRelations",
+        "responses": {
+          "200": {
+            "description": "Relaciones entre tipos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalogos/backgrounds": {
+      "get": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosListBackgrounds",
+        "responses": {
+          "200": {
+            "description": "Biblioteca de antecedentes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalogos/stages": {
+      "get": {
+        "tags": ["catalogos"],
+        "operationId": "catalogosListStages",
+        "responses": {
+          "200": {
+            "description": "Etapas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
             "content": {
               "application/json": {
                 "schema": {

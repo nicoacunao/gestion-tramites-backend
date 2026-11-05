@@ -2,7 +2,7 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 
 import { archivosModule } from './modules/archivos';
 import { bitacoraModule } from './modules/bitacora';
-import { catalogosModule } from './modules/catalogos';
+import { createCatalogosModule, excelCatalogosDependencies } from './modules/catalogos';
 import { consultasModule } from './modules/consultas';
 import { gestionesModule } from './modules/gestiones';
 import { createIdentidadModule, excelIdentityDependencies } from './modules/identidad';
@@ -20,7 +20,7 @@ export function createApp(): OpenAPIHono<AppEnv> {
   app.use('*', structuredLoggerMiddleware);
 
   app.route('/api/v1/identidad', createIdentidadModule(excelIdentityDependencies));
-  app.route('/api/v1/catalogos', catalogosModule);
+  app.route('/api/v1/catalogos', createCatalogosModule(excelCatalogosDependencies));
   app.route('/api/v1/gestiones', gestionesModule);
   app.route('/api/v1/archivos', archivosModule);
   app.route('/api/v1/bitacora', bitacoraModule);

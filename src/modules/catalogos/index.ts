@@ -7,4 +7,5 @@ export type {
   StageCatalogItem,
   Station,
 } from './domain/catalog';
-export { catalogosModule } from './health/router';
+export { createCatalogosModule } from './module';
+export { excelCatalogosDependencies } from './factory';
