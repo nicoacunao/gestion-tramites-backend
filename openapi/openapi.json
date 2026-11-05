@@ -606,6 +606,135 @@
             "required": ["version"]
           }
         ]
+      },
+      "LogEntryListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogEntry"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "LogEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "managementId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "registeredOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "registeredAt": {
+            "type": "string",
+            "pattern": "^\\d{2}:\\d{2}(:\\d{2})?$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          }
+        },
+        "required": [
+          "id",
+          "managementId",
+          "userId",
+          "registeredOn",
+          "registeredAt",
+          "title",
+          "comment",
+          "version"
+        ]
+      },
+      "LogEntryResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LogEntry"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "LogEntryWrite": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "managementId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "registeredOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "registeredAt": {
+            "type": "string",
+            "pattern": "^\\d{2}:\\d{2}(:\\d{2})?$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "id",
+          "managementId",
+          "userId",
+          "registeredOn",
+          "registeredAt",
+          "title",
+          "comment"
+        ]
       }
     },
     "parameters": {}
@@ -1472,6 +1601,121 @@
           },
           "500": {
             "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bitacora/items": {
+      "get": {
+        "tags": ["bitacora"],
+        "operationId": "bitacoraListEntries",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "required": true,
+            "name": "managementId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entradas de bitácora de una gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogEntryListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["bitacora"],
+        "operationId": "bitacoraCreateEntry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogEntryWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Entrada creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogEntryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe una entrada con ese identificador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bitacora/items/{id}": {
+      "get": {
+        "tags": ["bitacora"],
+        "operationId": "bitacoraGetEntry",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entrada de bitácora.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogEntryResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
             "content": {
               "application/json": {
                 "schema": {

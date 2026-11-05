@@ -1,7 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 
 import { archivosModule } from './modules/archivos';
-import { bitacoraModule } from './modules/bitacora';
+import { createBitacoraModule, excelBitacoraDependencies } from './modules/bitacora';
 import { createCatalogosModule, excelCatalogosDependencies } from './modules/catalogos';
 import { consultasModule } from './modules/consultas';
 import { createGestionesModule, excelGestionesDependencies } from './modules/gestiones';
@@ -23,7 +23,7 @@ export function createApp(): OpenAPIHono<AppEnv> {
   app.route('/api/v1/catalogos', createCatalogosModule(excelCatalogosDependencies));
   app.route('/api/v1/gestiones', createGestionesModule(excelGestionesDependencies));
   app.route('/api/v1/archivos', archivosModule);
-  app.route('/api/v1/bitacora', bitacoraModule);
+  app.route('/api/v1/bitacora', createBitacoraModule(excelBitacoraDependencies));
   app.route('/api/v1/consultas', consultasModule);
 
   app.doc('/openapi.json', {

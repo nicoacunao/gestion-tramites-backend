@@ -1,13 +1,10 @@
 export interface LogEntry {
   id: string;
   managementId: string;
-  userId: string;
-  occurredAt: string;
-  authorName: string;
-  authorInitials: string;
-  type: 'inicio' | 'novedad' | 'seguimiento' | 'contacto' | null;
+  userId: string | null;
+  registeredOn: string;
+  registeredAt: string;
   title: string;
   comment: string;
-  automatic: boolean;
   version: number;
 }
