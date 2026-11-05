@@ -82,6 +82,74 @@
           }
         },
         "required": ["error", "meta"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "rut": {
+                    "type": "string"
+                  },
+                  "names": {
+                    "type": "string"
+                  },
+                  "firstSurname": {
+                    "type": "string"
+                  },
+                  "secondSurname": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string"
+                  }
+                },
+                "required": ["id", "rut", "names", "firstSurname", "secondSurname", "email", "role"]
+              }
+            },
+            "required": ["accessToken", "expiresAt", "user"]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "rut": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "example": "12.345.678-9"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "••••••••"
+          }
+        },
+        "required": ["rut", "password"]
       }
     },
     "parameters": {}
@@ -105,6 +173,53 @@
           },
           "500": {
             "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identidad/login": {
+      "post": {
+        "tags": ["identidad"],
+        "operationId": "identidadLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticación exitosa.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas.",
             "content": {
               "application/json": {
                 "schema": {

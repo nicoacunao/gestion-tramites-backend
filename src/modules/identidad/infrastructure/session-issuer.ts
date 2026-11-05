@@ -1,0 +1,34 @@
+import type { AuthSession } from '../domain/user';
+import type { SessionIssuer } from '../application/ports';
+
+const SESSION_TTL_SECONDS = 8 * 60 * 60;
+
+function encode(value: string): string {
+  return btoa(value).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+}
+
+export class HmacSessionIssuer implements SessionIssuer {
+  constructor(
+    private readonly secret: string,
+    private readonly now = () => Date.now(),
+  ) {}
+
+  async issue(userId: string): Promise<AuthSession> {
+    if (!this.secret) throw new Error('AUTH_TOKEN_SECRET no está configurado.');
+    const expiresAt = new Date(this.now() + SESSION_TTL_SECONDS * 1000).toISOString();
+    const payload = encode(JSON.stringify({ sub: userId, exp: expiresAt }));
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(this.secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign'],
+    );
+    const signature = encode(
+      String.fromCharCode(
+        ...new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))),
+      ),
+    );
+    return { userId, token: `${payload}.${signature}`, expiresAt };
+  }
+}

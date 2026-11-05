@@ -2,7 +2,7 @@ import { exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 
 describe('contrato OpenAPI', () => {
-  it('publica exclusivamente health checks en esta fase', async () => {
+  it('publica las rutas declaradas por los módulos', async () => {
     const response = await exports.default.fetch('http://localhost/openapi.json');
     const document = (await response.json()) as { paths: Record<string, unknown> };
 
@@ -15,6 +15,7 @@ describe('contrato OpenAPI', () => {
         '/api/v1/consultas/health',
         '/api/v1/gestiones/health',
         '/api/v1/identidad/health',
+        '/api/v1/identidad/login',
       ].sort(),
     );
   });

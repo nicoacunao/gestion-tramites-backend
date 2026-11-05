@@ -5,9 +5,9 @@ import { bitacoraModule } from './modules/bitacora';
 import { catalogosModule } from './modules/catalogos';
 import { consultasModule } from './modules/consultas';
 import { gestionesModule } from './modules/gestiones';
-import { identidadModule } from './modules/identidad';
-import type { AppEnv } from './shared/config/bindings';
+import { createIdentidadModule, excelIdentityDependencies } from './modules/identidad';
 import { AppError } from './shared/errors/app-error';
+import type { AppEnv } from './shared/config/bindings';
 import { corsMiddleware } from './shared/middleware/cors';
 import { requestContextMiddleware } from './shared/middleware/request-context';
 import { structuredLoggerMiddleware } from './shared/middleware/structured-logger';
@@ -19,7 +19,7 @@ export function createApp(): OpenAPIHono<AppEnv> {
   app.use('*', corsMiddleware);
   app.use('*', structuredLoggerMiddleware);
 
-  app.route('/api/v1/identidad', identidadModule);
+  app.route('/api/v1/identidad', createIdentidadModule(excelIdentityDependencies));
   app.route('/api/v1/catalogos', catalogosModule);
   app.route('/api/v1/gestiones', gestionesModule);
   app.route('/api/v1/archivos', archivosModule);
