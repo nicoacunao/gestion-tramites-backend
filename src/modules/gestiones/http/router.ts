@@ -236,33 +236,110 @@ export function createGestionesRouter(
     await deps.repository.save(item, current.version);
     return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
   });
-  router.openapi(createRoute({
-    method: 'put', path: '/backgrounds/{id}', tags: ['gestiones'], operationId: 'gestionesUpdateBackground',
-    request: { params: z.object({ id: z.string().min(1) }), body: { content: { 'application/json': { schema: BackgroundUpdateSchema } } } },
-    responses: { 200: { content: { 'application/json': { schema: z.object({ data: z.any(), meta: ApiMetaSchema }) } }, description: 'Antecedente actualizado.' }, 403: { content: { 'application/json': { schema: ApiErrorSchema } }, description: 'Sin permiso.' }, 409: { content: { 'application/json': { schema: ApiErrorSchema } }, description: 'Conflicto de versión.' } },
-  }), async (context) => {
-    const deps = resolve(context.env); await ensureAuthorized(deps, context.req.raw);
-    if (!deps.repository.updateBackground) throw new AppError('NOT_IMPLEMENTED', 'La edición de antecedentes no está disponible.', 503);
-    const body = context.req.valid('json');
-    const item = await deps.repository.updateBackground(context.req.valid('param').id, {
-      managementId: '', parentManagementBackgroundId: null, managementTypeId: '', backgroundId: '', level: 'N2', required: false,
-      responsibleUserId: body.responsibleUserId, status: body.status, fileReference: body.fileReference, uploadedAt: null,
-    }, body.version);
-    return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
-  });
-  router.openapi(createRoute({
-    method: 'put', path: '/stages/{id}', tags: ['gestiones'], operationId: 'gestionesUpdateStage',
-    request: { params: z.object({ id: z.string().min(1) }), body: { content: { 'application/json': { schema: StageUpdateSchema } } } },
-    responses: { 200: { content: { 'application/json': { schema: z.object({ data: z.any(), meta: ApiMetaSchema }) } }, description: 'Etapa actualizada.' }, 403: { content: { 'application/json': { schema: ApiErrorSchema } }, description: 'Sin permiso.' }, 409: { content: { 'application/json': { schema: ApiErrorSchema } }, description: 'Conflicto de versión.' } },
-  }), async (context) => {
-    const deps = resolve(context.env); await ensureAuthorized(deps, context.req.raw);
-    if (!deps.repository.updateStage) throw new AppError('NOT_IMPLEMENTED', 'La edición de etapas no está disponible.', 503);
-    const body = context.req.valid('json');
-    const item = await deps.repository.updateStage(context.req.valid('param').id, {
-      managementId: '', stageId: '', status: body.status, estimatedOn: body.estimatedOn, completedOn: body.completedOn,
-      responsible: body.responsible, notes: body.notes,
-    }, body.version);
-    return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
-  });
+  router.openapi(
+    createRoute({
+      method: 'put',
+      path: '/backgrounds/{id}',
+      tags: ['gestiones'],
+      operationId: 'gestionesUpdateBackground',
+      request: {
+        params: z.object({ id: z.string().min(1) }),
+        body: { content: { 'application/json': { schema: BackgroundUpdateSchema } } },
+      },
+      responses: {
+        200: {
+          content: {
+            'application/json': { schema: z.object({ data: z.any(), meta: ApiMetaSchema }) },
+          },
+          description: 'Antecedente actualizado.',
+        },
+        403: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Sin permiso.',
+        },
+        409: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Conflicto de versión.',
+        },
+      },
+    }),
+    async (context) => {
+      const deps = resolve(context.env);
+      await ensureAuthorized(deps, context.req.raw);
+      if (!deps.repository.updateBackground)
+        throw new AppError(
+          'NOT_IMPLEMENTED',
+          'La edición de antecedentes no está disponible.',
+          503,
+        );
+      const body = context.req.valid('json');
+      const item = await deps.repository.updateBackground(
+        context.req.valid('param').id,
+        {
+          managementId: '',
+          parentManagementBackgroundId: null,
+          managementTypeId: '',
+          backgroundId: '',
+          level: 'N2',
+          required: false,
+          responsibleUserId: body.responsibleUserId,
+          status: body.status,
+          fileReference: body.fileReference,
+          uploadedAt: null,
+        },
+        body.version,
+      );
+      return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
+    },
+  );
+  router.openapi(
+    createRoute({
+      method: 'put',
+      path: '/stages/{id}',
+      tags: ['gestiones'],
+      operationId: 'gestionesUpdateStage',
+      request: {
+        params: z.object({ id: z.string().min(1) }),
+        body: { content: { 'application/json': { schema: StageUpdateSchema } } },
+      },
+      responses: {
+        200: {
+          content: {
+            'application/json': { schema: z.object({ data: z.any(), meta: ApiMetaSchema }) },
+          },
+          description: 'Etapa actualizada.',
+        },
+        403: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Sin permiso.',
+        },
+        409: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Conflicto de versión.',
+        },
+      },
+    }),
+    async (context) => {
+      const deps = resolve(context.env);
+      await ensureAuthorized(deps, context.req.raw);
+      if (!deps.repository.updateStage)
+        throw new AppError('NOT_IMPLEMENTED', 'La edición de etapas no está disponible.', 503);
+      const body = context.req.valid('json');
+      const item = await deps.repository.updateStage(
+        context.req.valid('param').id,
+        {
+          managementId: '',
+          stageId: '',
+          status: body.status,
+          estimatedOn: body.estimatedOn,
+          completedOn: body.completedOn,
+          responsible: body.responsible,
+          notes: body.notes,
+        },
+        body.version,
+      );
+      return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
+    },
+  );
   return router;
 }

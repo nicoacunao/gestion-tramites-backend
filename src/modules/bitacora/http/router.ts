@@ -124,7 +124,11 @@ export function createBitacoraRouter(
     const entryInput = { ...input };
     delete entryInput.authorName;
     delete entryInput.authorInitials;
-    const entry = await controller.create(context.env, { ...entryInput, type: input.type ?? null, automatic: input.automatic ?? false });
+    const entry = await controller.create(context.env, {
+      ...entryInput,
+      type: input.type ?? null,
+      automatic: input.automatic ?? false,
+    });
     return context.json({ data: entry, meta: { requestId: context.get('requestId') } }, 201);
   });
 

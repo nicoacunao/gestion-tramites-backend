@@ -129,7 +129,11 @@ export class PostgresManagementRepository implements ManagementRepository {
     return result.rows.map((row) => ({ ...row, version: Number(row.version) }));
   }
 
-  async updateBackground(id: string, input: Omit<ManagementBackground, 'id' | 'version'>, expectedVersion: number): Promise<ManagementBackground> {
+  async updateBackground(
+    id: string,
+    input: Omit<ManagementBackground, 'id' | 'version'>,
+    expectedVersion: number,
+  ): Promise<ManagementBackground> {
     const result = await this.database.query<ManagementBackground & { version: string }>(
       `UPDATE antecedente_gestion a SET id_usuario_responsable = NULLIF($2, '')::bigint,
          estado = $3, observaciones = $4
@@ -143,11 +147,20 @@ export class PostgresManagementRepository implements ManagementRepository {
       [id, input.responsibleUserId, input.status, input.fileReference, expectedVersion],
     );
     const row = result.rows[0];
-    if (!row) throw new AppError('VERSION_CONFLICT', 'El antecedente cambió; recarga antes de guardar.', 409);
+    if (!row)
+      throw new AppError(
+        'VERSION_CONFLICT',
+        'El antecedente cambió; recarga antes de guardar.',
+        409,
+      );
     return { ...row, version: Number(row.version) };
   }
 
-  async updateStage(id: string, input: Omit<ManagementStage, 'id' | 'version'>, expectedVersion: number): Promise<ManagementStage> {
+  async updateStage(
+    id: string,
+    input: Omit<ManagementStage, 'id' | 'version'>,
+    expectedVersion: number,
+  ): Promise<ManagementStage> {
     const result = await this.database.query<ManagementStage & { version: string }>(
       `UPDATE etapa_gestion e SET estado = $2, fecha_estimada = $3::date, fecha_real = $4::date,
          id_usuario_responsable = NULLIF($5, '')::bigint, responsable_nombre = $6, observaciones = $7
@@ -156,10 +169,20 @@ export class PostgresManagementRepository implements ManagementRepository {
        RETURNING e.id_etapa_gestion::text AS id, g.codigo AS "managementId", e.id_etapa::text AS "stageId",
          e.estado AS status, e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
          e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version`,
-      [id, input.status, input.estimatedOn, input.completedOn, input.responsible, input.responsible, input.notes, expectedVersion],
+      [
+        id,
+        input.status,
+        input.estimatedOn,
+        input.completedOn,
+        input.responsible,
+        input.responsible,
+        input.notes,
+        expectedVersion,
+      ],
     );
     const row = result.rows[0];
-    if (!row) throw new AppError('VERSION_CONFLICT', 'La etapa cambió; recarga antes de guardar.', 409);
+    if (!row)
+      throw new AppError('VERSION_CONFLICT', 'La etapa cambió; recarga antes de guardar.', 409);
     return { ...row, version: Number(row.version) };
   }
 }

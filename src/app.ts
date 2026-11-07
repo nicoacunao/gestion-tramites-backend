@@ -1,6 +1,10 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 
-import { archivosModule, createArchivosRouter, postgresArchivosDependencies } from './modules/archivos';
+import {
+  archivosModule,
+  createArchivosRouter,
+  postgresArchivosDependencies,
+} from './modules/archivos';
 import { createBitacoraModule, postgresBitacoraDependencies } from './modules/bitacora';
 import { createCatalogosModule, postgresCatalogosDependencies } from './modules/catalogos';
 import { createConsultasModule, postgresConsultasDependencies } from './modules/consultas';

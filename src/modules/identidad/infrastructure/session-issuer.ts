@@ -34,23 +34,38 @@ export class HmacSessionIssuer implements SessionIssuer {
 }
 
 export class HmacSessionVerifier {
-  constructor(private readonly secret: string, private readonly now = () => Date.now()) {}
+  constructor(
+    private readonly secret: string,
+    private readonly now = () => Date.now(),
+  ) {}
 
   async verify(token: string): Promise<string | null> {
     const [payload, suppliedSignature] = token.split('.');
     if (!payload || !suppliedSignature || !this.secret) return null;
     const key = await crypto.subtle.importKey(
-      'raw', new TextEncoder().encode(this.secret),
-      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
+      'raw',
+      new TextEncoder().encode(this.secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign'],
     );
-    const expected = encode(String.fromCharCode(...new Uint8Array(
-      await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload)),
-    )));
+    const expected = encode(
+      String.fromCharCode(
+        ...new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))),
+      ),
+    );
     if (expected !== suppliedSignature) return null;
     try {
-      const decoded = JSON.parse(atob(payload.replaceAll('-', '+').replaceAll('_', '/') + '='.repeat((4 - payload.length % 4) % 4))) as { sub?: string; exp?: string };
+      const decoded = JSON.parse(
+        atob(
+          payload.replaceAll('-', '+').replaceAll('_', '/') +
+            '='.repeat((4 - (payload.length % 4)) % 4),
+        ),
+      ) as { sub?: string; exp?: string };
       if (!decoded.sub || !decoded.exp || Date.parse(decoded.exp) <= this.now()) return null;
       return decoded.sub;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }
 }

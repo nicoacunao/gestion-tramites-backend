@@ -126,7 +126,7 @@ export class PostgresLogRepository implements LogRepository {
         entry.registeredOn,
         entry.registeredAt,
         TIME_ZONE,
-         author.autor_nombre,
+        author.autor_nombre,
         author.autor_iniciales,
         entry.title,
         entry.comment,
