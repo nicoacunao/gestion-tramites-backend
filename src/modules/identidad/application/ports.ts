@@ -4,6 +4,7 @@ export interface UserRepository {
   findById(id: string): Promise<User | null>;
   findByRut(rut: string): Promise<User | null>;
   save(user: User, expectedVersion?: number): Promise<void>;
+  list?(): Promise<readonly User[]>;
 }
 
 export interface PasswordHasher {

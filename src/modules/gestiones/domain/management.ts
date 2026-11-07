@@ -26,6 +26,11 @@ export interface Management {
   requesterName: string;
   status: ManagementStatus | null;
   version: number;
+  stationName?: string | null | undefined;
+  legalName?: string | null | undefined;
+  responsibleName?: string | null | undefined;
+  managementTypeName?: string | null | undefined;
+  managementTypeCode?: string | null | undefined;
 }
 
 export interface ManagementBackground {

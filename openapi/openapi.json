@@ -151,6 +151,62 @@
         },
         "required": ["rut", "password"]
       },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rut": {
+            "type": "string"
+          },
+          "names": {
+            "type": "string"
+          },
+          "firstSurname": {
+            "type": "string"
+          },
+          "secondSurname": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "rut",
+          "names",
+          "firstSurname",
+          "secondSurname",
+          "email",
+          "phone",
+          "description",
+          "role",
+          "organization",
+          "version"
+        ]
+      },
       "StationListResponse": {
         "type": "object",
         "properties": {
@@ -511,6 +567,26 @@
           "version": {
             "type": "integer",
             "minimum": 0
+          },
+          "stationName": {
+            "type": "string",
+            "nullable": true
+          },
+          "legalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "responsibleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "managementTypeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "managementTypeCode": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
@@ -617,6 +693,26 @@
               "Terminado desfavorable",
               null
             ]
+          },
+          "stationName": {
+            "type": "string",
+            "nullable": true
+          },
+          "legalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "responsibleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "managementTypeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "managementTypeCode": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
@@ -954,6 +1050,182 @@
           },
           "401": {
             "description": "Credenciales inválidas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identidad/profile": {
+      "get": {
+        "tags": ["identidad"],
+        "operationId": "identidadGetProfile",
+        "responses": {
+          "200": {
+            "description": "Perfil.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserProfile"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["identidad"],
+        "operationId": "identidadUpdateProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "names": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "firstSurname": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "secondSurname": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 80
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 30
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 500
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "names",
+                  "firstSurname",
+                  "secondSurname",
+                  "email",
+                  "phone",
+                  "description",
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserProfile"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de versión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identidad/users": {
+      "get": {
+        "tags": ["identidad"],
+        "operationId": "identidadListUsers",
+        "responses": {
+          "200": {
+            "description": "Responsables disponibles.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserProfile"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1662,6 +1934,232 @@
           },
           "409": {
             "description": "Conflicto de versión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/items/{id}/backgrounds": {
+      "get": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesListBackgrounds",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Antecedentes de la gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "managementId": {
+                            "type": "string"
+                          },
+                          "parentManagementBackgroundId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "managementTypeId": {
+                            "type": "string"
+                          },
+                          "backgroundId": {
+                            "type": "string"
+                          },
+                          "level": {
+                            "type": "string",
+                            "enum": ["N2", "N3", "N4"]
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "responsibleUserId": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "fileReference": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "uploadedAt": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "managementId",
+                          "parentManagementBackgroundId",
+                          "managementTypeId",
+                          "backgroundId",
+                          "level",
+                          "required",
+                          "responsibleUserId",
+                          "status",
+                          "fileReference",
+                          "uploadedAt",
+                          "version"
+                        ]
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/items/{id}/stages": {
+      "get": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesListStages",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Etapas de la gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "managementId": {
+                            "type": "string"
+                          },
+                          "stageId": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "estimatedOn": {
+                            "type": "string",
+                            "nullable": true,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "completedOn": {
+                            "type": "string",
+                            "nullable": true,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "responsible": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "notes": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "managementId",
+                          "stageId",
+                          "status",
+                          "estimatedOn",
+                          "completedOn",
+                          "responsible",
+                          "notes",
+                          "version"
+                        ]
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
             "content": {
               "application/json": {
                 "schema": {

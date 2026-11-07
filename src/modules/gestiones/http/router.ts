@@ -34,6 +34,11 @@ const ManagementSchema = z
       ])
       .nullable(),
     version: z.number().int().nonnegative(),
+    stationName: z.string().nullable().optional(),
+    legalName: z.string().nullable().optional(),
+    responsibleName: z.string().nullable().optional(),
+    managementTypeName: z.string().nullable().optional(),
+    managementTypeCode: z.string().nullable().optional(),
   })
   .openapi('Management');
 const ManagementWriteSchema = ManagementSchema.omit({ version: true }).openapi('ManagementWrite');
@@ -146,6 +151,31 @@ const updateRoute = createRoute({
 });
 
 const ROLE = 'gestiones';
+const BackgroundSchema = z.object({
+  id: z.string(),
+  managementId: z.string(),
+  parentManagementBackgroundId: z.string().nullable(),
+  managementTypeId: z.string(),
+  backgroundId: z.string(),
+  level: z.enum(['N2', 'N3', 'N4']),
+  required: z.boolean(),
+  responsibleUserId: z.string(),
+  status: z.string(),
+  fileReference: z.string().nullable(),
+  uploadedAt: z.string().nullable(),
+  version: z.number().int().nonnegative(),
+});
+const StageSchema = z.object({
+  id: z.string(),
+  managementId: z.string(),
+  stageId: z.string(),
+  status: z.string(),
+  estimatedOn: DateSchema.nullable(),
+  completedOn: DateSchema.nullable(),
+  responsible: z.string().nullable(),
+  notes: z.string().nullable(),
+  version: z.number().int().nonnegative(),
+});
 const BackgroundUpdateSchema = z.object({
   responsibleUserId: z.string().trim().max(50),
   status: z.enum(['Pendiente', 'Recibido', 'Recibido conforme']),
@@ -209,6 +239,88 @@ export function createGestionesRouter(
     if (!item) throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
     return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
   });
+  router.openapi(
+    createRoute({
+      method: 'get',
+      path: '/items/{id}/backgrounds',
+      tags: ['gestiones'],
+      operationId: 'gestionesListBackgrounds',
+      request: { params: z.object({ id: z.string().min(1) }) },
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({ data: z.array(BackgroundSchema), meta: ApiMetaSchema }),
+            },
+          },
+          description: 'Antecedentes de la gestión.',
+        },
+        403: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Sin permiso.',
+        },
+        404: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'No encontrada.',
+        },
+      },
+    }),
+    async (context) => {
+      const deps = resolve(context.env);
+      await ensureAuthorized(deps, context.req.raw);
+      const id = context.req.valid('param').id;
+      if (!(await deps.repository.findById(id)))
+        throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
+      return context.json(
+        {
+          data: Array.from(await deps.repository.listBackgrounds(id)),
+          meta: { requestId: context.get('requestId') },
+        },
+        200,
+      );
+    },
+  );
+  router.openapi(
+    createRoute({
+      method: 'get',
+      path: '/items/{id}/stages',
+      tags: ['gestiones'],
+      operationId: 'gestionesListStages',
+      request: { params: z.object({ id: z.string().min(1) }) },
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({ data: z.array(StageSchema), meta: ApiMetaSchema }),
+            },
+          },
+          description: 'Etapas de la gestión.',
+        },
+        403: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Sin permiso.',
+        },
+        404: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'No encontrada.',
+        },
+      },
+    }),
+    async (context) => {
+      const deps = resolve(context.env);
+      await ensureAuthorized(deps, context.req.raw);
+      const id = context.req.valid('param').id;
+      if (!(await deps.repository.findById(id)))
+        throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
+      return context.json(
+        {
+          data: Array.from(await deps.repository.listStages(id)),
+          meta: { requestId: context.get('requestId') },
+        },
+        200,
+      );
+    },
+  );
   router.openapi(createRouteDefinition, async (context) => {
     const deps = resolve(context.env);
     await ensureAuthorized(deps, context.req.raw);

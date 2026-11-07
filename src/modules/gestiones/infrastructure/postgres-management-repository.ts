@@ -7,7 +7,9 @@ const projection = `codigo AS id, id_estacion AS "stationId", id_tipo_gestion AS
   codigo_ambito AS "scopeCode", id_usuario_responsable::text AS "responsibleUserId",
   nivel AS level, correlativo AS sequence, fecha_apertura::text AS "openedOn",
   fecha_estimada_termino::text AS "estimatedCompletionOn", fecha_ultima_revision::text AS "lastReviewedOn",
-  prioridad AS priority, nombre_solicitante AS "requesterName", estado AS status, xmin::text AS version`;
+  prioridad AS priority, nombre_solicitante AS "requesterName", estado AS status, xmin::text AS version,
+  id_estacion AS "stationName", razon_social AS "legalName", responsable_nombre AS "responsibleName",
+  id_tipo_gestion AS "managementTypeCode"`;
 type ManagementRow = Omit<Management, 'version' | 'responsibleUserId'> & {
   version: string;
   responsibleUserId: string | null;
