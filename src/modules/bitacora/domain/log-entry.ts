@@ -13,4 +13,10 @@ export interface LogEntry {
   version: number;
 }
 
-export type LogEntryInput = Omit<LogEntry, 'version'>;
+export type LogEntryInput = Omit<
+  LogEntry,
+  'version' | 'authorName' | 'authorInitials' | 'type' | 'automatic'
+> & {
+  type: 'inicio' | 'novedad' | 'seguimiento' | 'contacto' | null;
+  automatic: boolean;
+};
