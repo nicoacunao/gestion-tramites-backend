@@ -21,9 +21,12 @@ describe('configuración PostgreSQL', () => {
   it('normaliza sslmode equivalente sin perder el certificado CA explícito', () => {
     const config = readDatabaseConfig({
       DATABASE_URL: `${env.DATABASE_URL}?sslmode=verify-full`,
-      DATABASE_SSL_CA: 'certificate\\nnext-line',
+      DATABASE_SSL_CA: '-----BEGIN CERTIFICATE-----\\ncertificate\\n-----END CERTIFICATE-----',
     });
-    expect(config.ssl).toEqual({ rejectUnauthorized: true, ca: 'certificate\nnext-line' });
+    expect(config.ssl).toEqual({
+      rejectUnauthorized: true,
+      ca: '-----BEGIN CERTIFICATE-----\ncertificate\n-----END CERTIFICATE-----',
+    });
     expect(config.connectionString).not.toContain('sslmode');
   });
 
