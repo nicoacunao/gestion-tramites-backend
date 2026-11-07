@@ -8,3 +8,5 @@ export interface LogEntry {
   comment: string;
   version: number;
 }
+
+export type LogEntryInput = Omit<LogEntry, 'version'>;

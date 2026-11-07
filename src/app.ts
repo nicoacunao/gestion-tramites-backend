@@ -1,16 +1,34 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 
 import { archivosModule } from './modules/archivos';
-import { createBitacoraModule, excelBitacoraDependencies } from './modules/bitacora';
-import { createCatalogosModule, excelCatalogosDependencies } from './modules/catalogos';
+import { createBitacoraModule, postgresBitacoraDependencies } from './modules/bitacora';
+import { createCatalogosModule, postgresCatalogosDependencies } from './modules/catalogos';
 import { consultasModule } from './modules/consultas';
-import { createGestionesModule, excelGestionesDependencies } from './modules/gestiones';
-import { createIdentidadModule, excelIdentityDependencies } from './modules/identidad';
+import { createGestionesModule, postgresGestionesDependencies } from './modules/gestiones';
+import { createIdentidadModule, postgresIdentityDependencies } from './modules/identidad';
+import { createEstacionesModule, postgresEstacionesDependencies } from './modules/estaciones';
+import { createAmbitosModule, postgresAmbitosDependencies } from './modules/ambitos';
+import {
+  createTiposGestionModule,
+  postgresTiposGestionDependencies,
+} from './modules/tipos-gestion';
+import { createAntecedentesModule, postgresAntecedentesDependencies } from './modules/antecedentes';
+import { createEtapasModule, postgresEtapasDependencies } from './modules/etapas';
+import {
+  createGestionesEspecificasModule,
+  postgresGestionesEspecificasDependencies,
+} from './modules/gestiones-especificas';
+import {
+  createCamposAdicionalesModule,
+  postgresCamposAdicionalesDependencies,
+} from './modules/campos-adicionales';
 import { AppError } from './shared/errors/app-error';
 import type { AppEnv } from './shared/config/bindings';
 import { corsMiddleware } from './shared/middleware/cors';
 import { requestContextMiddleware } from './shared/middleware/request-context';
 import { structuredLoggerMiddleware } from './shared/middleware/structured-logger';
+import { databaseMiddleware } from './shared/middleware/database';
+import { translateDatabaseError } from './infrastructure/persistence/postgres/errors';
 
 export function createApp(): OpenAPIHono<AppEnv> {
   const app = new OpenAPIHono<AppEnv>();
@@ -18,12 +36,26 @@ export function createApp(): OpenAPIHono<AppEnv> {
   app.use('*', requestContextMiddleware);
   app.use('*', corsMiddleware);
   app.use('*', structuredLoggerMiddleware);
+  app.use('*', databaseMiddleware);
 
-  app.route('/api/v1/identidad', createIdentidadModule(excelIdentityDependencies));
-  app.route('/api/v1/catalogos', createCatalogosModule(excelCatalogosDependencies));
-  app.route('/api/v1/gestiones', createGestionesModule(excelGestionesDependencies));
+  app.route('/api/v1/identidad', createIdentidadModule(postgresIdentityDependencies));
+  app.route('/api/v1/catalogos', createCatalogosModule(postgresCatalogosDependencies));
+  app.route('/api/v1/gestiones', createGestionesModule(postgresGestionesDependencies));
+  app.route('/api/v1/estaciones', createEstacionesModule(postgresEstacionesDependencies));
+  app.route('/api/v1/ambitos', createAmbitosModule(postgresAmbitosDependencies));
+  app.route('/api/v1/tipos-gestion', createTiposGestionModule(postgresTiposGestionDependencies));
+  app.route('/api/v1/antecedentes', createAntecedentesModule(postgresAntecedentesDependencies));
+  app.route('/api/v1/etapas', createEtapasModule(postgresEtapasDependencies));
+  app.route(
+    '/api/v1/gestiones-especificas',
+    createGestionesEspecificasModule(postgresGestionesEspecificasDependencies),
+  );
+  app.route(
+    '/api/v1/campos-adicionales',
+    createCamposAdicionalesModule(postgresCamposAdicionalesDependencies),
+  );
   app.route('/api/v1/archivos', archivosModule);
-  app.route('/api/v1/bitacora', createBitacoraModule(excelBitacoraDependencies));
+  app.route('/api/v1/bitacora', createBitacoraModule(postgresBitacoraDependencies));
   app.route('/api/v1/consultas', consultasModule);
 
   app.doc('/openapi.json', {
@@ -57,7 +89,8 @@ export function createApp(): OpenAPIHono<AppEnv> {
     const appError =
       error instanceof AppError
         ? error
-        : new AppError('INTERNAL_ERROR', 'Ocurrió un error inesperado.', 500);
+        : (translateDatabaseError(error) ??
+          new AppError('INTERNAL_ERROR', 'Ocurrió un error inesperado.', 500));
 
     console.error(
       JSON.stringify({
@@ -65,7 +98,7 @@ export function createApp(): OpenAPIHono<AppEnv> {
         event: 'http_request_failed',
         requestId: context.get('requestId'),
         code: appError.code,
-        message: error.message,
+        message: appError.message,
       }),
     );
 

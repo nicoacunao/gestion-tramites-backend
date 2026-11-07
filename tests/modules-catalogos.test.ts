@@ -33,7 +33,6 @@ function repository(initial: Station[] = [station]): CatalogRepository {
     },
     listScopes: async () => [],
     listManagementTypes: async () => [],
-    listTypeRelations: async () => [],
     listBackgrounds: async () => [],
     listStages: async () => [],
   };

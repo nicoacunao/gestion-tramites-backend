@@ -1,4 +1,14 @@
+import type { DatabaseSession } from '../../infrastructure/persistence/postgres/connection';
+
 export interface SecretBindings {
+  DATABASE_URL?: string;
+  DATABASE_SSL_MODE?: string;
+  DATABASE_SSL_CA?: string;
+  DATABASE_POOL_MAX?: string;
+  DATABASE_CONNECTION_TIMEOUT_MS?: string;
+  DATABASE_IDLE_TIMEOUT_MS?: string;
+  /** Sesión de pool inyectada por request; nunca es un secret de despliegue. */
+  database?: DatabaseSession;
   AUTH_TOKEN_SECRET?: string;
   GRAPH_CLIENT_SECRET?: string;
   GRAPH_REFRESH_TOKEN?: string;

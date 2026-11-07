@@ -55,7 +55,8 @@ export class ExcelLogRepository implements LogRepository {
     return row ? fromRow(row) : null;
   }
 
-  async append(entry: LogEntry): Promise<void> {
+  async append(input: LogEntry): Promise<void> {
+    const entry = { ...input, version: 1 };
     await this.source.upsertRow('tbl_entradas_bitacora', toRow(entry));
   }
 }

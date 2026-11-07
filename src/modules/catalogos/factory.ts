@@ -1,35 +1,28 @@
 import type { AppBindings } from '../../shared/config/bindings';
-import { AppError } from '../../shared/errors/app-error';
-import { MicrosoftGraphWorkbookDataSource } from '../../infrastructure/persistence/excel-graph/microsoft-graph-workbook-data-source';
-import { ExcelCatalogRepository } from './infrastructure/excel-catalog-repository';
+import { postgresEstacionesDependencies } from '../estaciones';
+import { postgresAmbitosDependencies } from '../ambitos';
+import { postgresTiposGestionDependencies } from '../tipos-gestion';
+import { postgresAntecedentesDependencies } from '../antecedentes';
+import { postgresEtapasDependencies } from '../etapas';
 import type { CatalogosDependencies } from './http/router';
 
-export function excelCatalogosDependencies(env: AppBindings): CatalogosDependencies {
-  const required = [
-    'GRAPH_TENANT_ID',
-    'GRAPH_CLIENT_ID',
-    'GRAPH_CLIENT_SECRET',
-    'GRAPH_REFRESH_TOKEN',
-    'GRAPH_DRIVE_ID',
-    'GRAPH_WORKBOOK_ITEM_ID',
-  ] as const;
-  if (required.some((key) => !env[key]))
-    throw new AppError(
-      'CATALOGS_NOT_CONFIGURED',
-      'La persistencia de catálogos no está configurada.',
-      503,
-    );
-  const source = new MicrosoftGraphWorkbookDataSource({
-    tenantId: env.GRAPH_TENANT_ID!,
-    clientId: env.GRAPH_CLIENT_ID!,
-    clientSecret: env.GRAPH_CLIENT_SECRET!,
-    refreshToken: env.GRAPH_REFRESH_TOKEN!,
-    driveId: env.GRAPH_DRIVE_ID!,
-    workbookItemId: env.GRAPH_WORKBOOK_ITEM_ID!,
-    authMode: 'delegated-refresh-token',
-  });
+/** Sólo compone adaptadores para las rutas antiguas; no contiene SQL ni lógica de catálogo. */
+export function postgresCatalogosDependencies(env: AppBindings): CatalogosDependencies {
+  const stations = postgresEstacionesDependencies(env);
+  const scopes = postgresAmbitosDependencies(env).repository;
+  const types = postgresTiposGestionDependencies(env).repository;
+  const backgrounds = postgresAntecedentesDependencies(env).repository;
+  const stages = postgresEtapasDependencies(env).repository;
   return {
-    repository: new ExcelCatalogRepository(source),
-    authorize: (request, role) => request.headers.get('x-role') === role,
+    authorize: stations.authorize,
+    repository: {
+      listStations: () => stations.repository.listStations(),
+      findStationById: (id) => stations.repository.findStationById(id),
+      saveStation: (station, version) => stations.repository.saveStation(station, version),
+      listScopes: () => scopes.listScopes(),
+      listManagementTypes: () => types.listManagementTypes(),
+      listBackgrounds: () => backgrounds.listBackgrounds(),
+      listStages: () => stages.listStages(),
+    },
   };
 }

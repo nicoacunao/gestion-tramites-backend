@@ -343,33 +343,79 @@
           }
         ]
       },
-      "CatalogListResponse": {
+      "ManagementScope": {
         "type": "object",
         "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "nullable": true
-                  }
-                ]
-              }
-            }
+          "code": {
+            "type": "string"
           },
-          "meta": {
-            "$ref": "#/components/schemas/ApiMeta"
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
           }
         },
-        "required": ["data", "meta"]
+        "required": ["code", "name", "version"]
+      },
+      "ManagementType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": ["id", "name", "version"]
+      },
+      "BackgroundCatalogItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": ["id", "name", "version"]
+      },
+      "StageCatalogItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "percentage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": ["id", "name", "percentage", "order", "version"]
       },
       "ManagementListResponse": {
         "type": "object",
@@ -605,6 +651,77 @@
             },
             "required": ["version"]
           }
+        ]
+      },
+      "SpecificManagement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "managementTypeId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "managementTypeId", "code", "name", "active"]
+      },
+      "AdditionalField": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "managementTypeId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "controlType": {
+            "type": "string",
+            "enum": ["text", "select"]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "order": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true
+                }
+              },
+              "required": ["value", "order"]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "managementTypeId",
+          "code",
+          "label",
+          "controlType",
+          "required",
+          "options"
         ]
       },
       "LogEntryListResponse": {
@@ -847,7 +964,7 @@
     },
     "/api/v1/catalogos/items": {
       "get": {
-        "tags": ["catalogos"],
+        "tags": ["estaciones"],
         "operationId": "catalogosListStations",
         "parameters": [
           {
@@ -917,7 +1034,7 @@
         }
       },
       "post": {
-        "tags": ["catalogos"],
+        "tags": ["estaciones"],
         "operationId": "catalogosCreateStation",
         "requestBody": {
           "content": {
@@ -984,7 +1101,7 @@
     },
     "/api/v1/catalogos/items/{id}": {
       "get": {
-        "tags": ["catalogos"],
+        "tags": ["estaciones"],
         "operationId": "catalogosGetStation",
         "parameters": [
           {
@@ -1041,7 +1158,7 @@
         }
       },
       "put": {
-        "tags": ["catalogos"],
+        "tags": ["estaciones"],
         "operationId": "catalogosUpdateStation",
         "parameters": [
           {
@@ -1129,25 +1246,27 @@
     },
     "/api/v1/catalogos/scopes": {
       "get": {
-        "tags": ["catalogos"],
+        "tags": ["ambitos"],
         "operationId": "catalogosListScopes",
         "responses": {
           "200": {
-            "description": "Ámbitos de gestión.",
+            "description": "Catálogo.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CatalogListResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autenticado.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementScope"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }
@@ -1167,63 +1286,27 @@
     },
     "/api/v1/catalogos/management-types": {
       "get": {
-        "tags": ["catalogos"],
+        "tags": ["tipos-gestion"],
         "operationId": "catalogosListManagementTypes",
         "responses": {
           "200": {
-            "description": "Tipos de gestión.",
+            "description": "Catálogo.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CatalogListResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autenticado.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin permiso.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/catalogos/type-relations": {
-      "get": {
-        "tags": ["catalogos"],
-        "operationId": "catalogosListTypeRelations",
-        "responses": {
-          "200": {
-            "description": "Relaciones entre tipos.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CatalogListResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autenticado.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementType"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }
@@ -1243,25 +1326,27 @@
     },
     "/api/v1/catalogos/backgrounds": {
       "get": {
-        "tags": ["catalogos"],
+        "tags": ["antecedentes"],
         "operationId": "catalogosListBackgrounds",
         "responses": {
           "200": {
-            "description": "Biblioteca de antecedentes.",
+            "description": "Catálogo.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CatalogListResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autenticado.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BackgroundCatalogItem"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }
@@ -1281,25 +1366,27 @@
     },
     "/api/v1/catalogos/stages": {
       "get": {
-        "tags": ["catalogos"],
+        "tags": ["etapas"],
         "operationId": "catalogosListStages",
         "responses": {
           "200": {
-            "description": "Etapas.",
+            "description": "Catálogo.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CatalogListResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autenticado.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StageCatalogItem"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }
@@ -1554,6 +1641,572 @@
         }
       }
     },
+    "/api/v1/estaciones/items": {
+      "get": {
+        "tags": ["estaciones"],
+        "operationId": "estacionesListStations",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "eds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "commune",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "legalName",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estaciones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["estaciones"],
+        "operationId": "estacionesCreateStation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Estación creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/estaciones/items/{id}": {
+      "get": {
+        "tags": ["estaciones"],
+        "operationId": "estacionesGetStation",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["estaciones"],
+        "operationId": "estacionesUpdateStation",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estación actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de versión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ambitos/items": {
+      "get": {
+        "tags": ["ambitos"],
+        "operationId": "ambitosList",
+        "responses": {
+          "200": {
+            "description": "Catálogo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementScope"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tipos-gestion/items": {
+      "get": {
+        "tags": ["tipos-gestion"],
+        "operationId": "tiposgestionList",
+        "responses": {
+          "200": {
+            "description": "Catálogo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementType"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/antecedentes/items": {
+      "get": {
+        "tags": ["antecedentes"],
+        "operationId": "antecedentesList",
+        "responses": {
+          "200": {
+            "description": "Catálogo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BackgroundCatalogItem"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/etapas/items": {
+      "get": {
+        "tags": ["etapas"],
+        "operationId": "etapasList",
+        "responses": {
+          "200": {
+            "description": "Catálogo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StageCatalogItem"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones-especificas/items": {
+      "get": {
+        "tags": ["gestiones-especificas"],
+        "operationId": "gestionesespecificasList",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "required": false,
+            "name": "managementTypeId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catálogo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SpecificManagement"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtro inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/campos-adicionales/items": {
+      "get": {
+        "tags": ["campos-adicionales"],
+        "operationId": "camposadicionalesList",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "required": false,
+            "name": "managementTypeId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catálogo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AdditionalField"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtro inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/archivos/health": {
       "get": {
         "operationId": "archivosHealth",
@@ -1638,6 +2291,26 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Una entrada no tiene código externo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Código de gestión inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -1676,6 +2349,16 @@
           },
           "409": {
             "description": "Ya existe una entrada con ese identificador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Usuario, gestión, fecha u hora inválidos.",
             "content": {
               "application/json": {
                 "schema": {

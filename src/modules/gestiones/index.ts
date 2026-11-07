@@ -9,4 +9,4 @@ export type {
 } from './domain/management';
 export { gestionesModule } from './health/router';
 export { createGestionesModule } from './module';
-export { excelGestionesDependencies } from './factory';
+export { postgresGestionesDependencies } from './factory';

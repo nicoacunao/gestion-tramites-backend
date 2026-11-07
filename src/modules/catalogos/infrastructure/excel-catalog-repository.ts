@@ -3,7 +3,6 @@ import type {
   BackgroundCatalogItem,
   ManagementScope,
   ManagementType,
-  ManagementTypeRelation,
   StageCatalogItem,
   Station,
 } from '../domain/catalog';
@@ -79,14 +78,6 @@ export class ExcelCatalogRepository implements CatalogRepository {
     return (await this.source.readTable('tbl_tipos_gestion')).map((row) => ({
       id: text(row, 'id_tipo_gestion'),
       name: text(row, 'nombre'),
-      version: numberValue(row, 'version'),
-    }));
-  }
-  async listTypeRelations(): Promise<readonly ManagementTypeRelation[]> {
-    return (await this.source.readTable('tbl_tipos_gestion_relacion')).map((row) => ({
-      parentTypeId: text(row, 'id_tipo_gestion_padre'),
-      childTypeId: text(row, 'id_tipo_gestion_hijo'),
-      order: numberValue(row, 'orden'),
       version: numberValue(row, 'version'),
     }));
   }

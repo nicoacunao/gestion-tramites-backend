@@ -2,9 +2,12 @@ import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { z } from '@hono/zod-openapi';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
-import { AppError } from '../../../shared/errors/app-error';
-import type { LogRepository } from '../application/ports';
-import type { LogEntry } from '../domain/log-entry';
+import {
+  BitacoraController,
+  type BitacoraDependencies,
+  type BitacoraDependenciesFactory,
+} from './controller';
+export type { BitacoraDependencies, BitacoraDependenciesFactory } from './controller';
 
 const LogEntrySchema = z
   .object({
@@ -37,6 +40,14 @@ const listRoute = createRoute({
     200: {
       content: { 'application/json': { schema: LogEntryListResponseSchema } },
       description: 'Entradas de bitácora de una gestión.',
+    },
+    409: {
+      content: { 'application/json': { schema: ApiErrorSchema } },
+      description: 'Una entrada no tiene código externo.',
+    },
+    422: {
+      content: { 'application/json': { schema: ApiErrorSchema } },
+      description: 'Código de gestión inválido.',
     },
   },
 });
@@ -78,27 +89,21 @@ const createRouteDefinition = createRoute({
       content: { 'application/json': { schema: ApiErrorSchema } },
       description: 'Ya existe una entrada con ese identificador.',
     },
+    422: {
+      content: { 'application/json': { schema: ApiErrorSchema } },
+      description: 'Usuario, gestión, fecha u hora inválidos.',
+    },
   },
 });
-
-export interface BitacoraDependencies {
-  repository: LogRepository;
-}
-export type BitacoraDependenciesFactory = (env: AppEnv['Bindings']) => BitacoraDependencies;
 
 export function createBitacoraRouter(
   dependenciesOrFactory: BitacoraDependencies | BitacoraDependenciesFactory,
 ): OpenAPIHono<AppEnv> {
   const router = new OpenAPIHono<AppEnv>();
-  const resolve = (env: AppEnv['Bindings']) =>
-    typeof dependenciesOrFactory === 'function'
-      ? dependenciesOrFactory(env)
-      : dependenciesOrFactory;
+  const controller = new BitacoraController(dependenciesOrFactory);
 
   router.openapi(listRoute, async (context) => {
-    const entries = await resolve(context.env).repository.listByManagement(
-      context.req.valid('query').managementId,
-    );
+    const entries = await controller.list(context.env, context.req.valid('query').managementId);
     return context.json(
       { data: Array.from(entries), meta: { requestId: context.get('requestId') } },
       200,
@@ -106,18 +111,12 @@ export function createBitacoraRouter(
   });
 
   router.openapi(detailRoute, async (context) => {
-    const entry = await resolve(context.env).repository.findById(context.req.valid('param').id);
-    if (!entry) throw new AppError('RESOURCE_NOT_FOUND', 'La entrada solicitada no existe.', 404);
+    const entry = await controller.get(context.env, context.req.valid('param').id);
     return context.json({ data: entry, meta: { requestId: context.get('requestId') } }, 200);
   });
 
   router.openapi(createRouteDefinition, async (context) => {
-    const dependencies = resolve(context.env);
-    const input = context.req.valid('json');
-    if (await dependencies.repository.findById(input.id))
-      throw new AppError('RESOURCE_CONFLICT', 'Ya existe una entrada con ese identificador.', 409);
-    const entry: LogEntry = { ...input, version: 1 };
-    await dependencies.repository.append(entry);
+    const entry = await controller.create(context.env, context.req.valid('json'));
     return context.json({ data: entry, meta: { requestId: context.get('requestId') } }, 201);
   });
 

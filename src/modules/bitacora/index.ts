@@ -1,4 +1,4 @@
 export type { LogRepository } from './application/ports';
-export type { LogEntry } from './domain/log-entry';
+export type { LogEntry, LogEntryInput } from './domain/log-entry';
 export { createBitacoraModule } from './module';
-export { excelBitacoraDependencies } from './factory';
+export { postgresBitacoraDependencies } from './factory';

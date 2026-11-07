@@ -1,35 +1,13 @@
 import { AppError } from '../../shared/errors/app-error';
 import type { AppBindings } from '../../shared/config/bindings';
-import { MicrosoftGraphWorkbookDataSource } from '../../infrastructure/persistence/excel-graph/microsoft-graph-workbook-data-source';
-import { ExcelManagementRepository } from './infrastructure/excel-management-repository';
+import { PostgresManagementRepository } from './infrastructure/postgres-management-repository';
 import type { GestionesDependencies } from './http/router';
 
-export function excelGestionesDependencies(env: AppBindings): GestionesDependencies {
-  const required = [
-    'GRAPH_TENANT_ID',
-    'GRAPH_CLIENT_ID',
-    'GRAPH_CLIENT_SECRET',
-    'GRAPH_REFRESH_TOKEN',
-    'GRAPH_DRIVE_ID',
-    'GRAPH_WORKBOOK_ITEM_ID',
-  ] as const;
-  if (required.some((key) => !env[key]))
-    throw new AppError(
-      'GESTIONES_NOT_CONFIGURED',
-      'La persistencia de gestiones no está configurada.',
-      503,
-    );
-  const source = new MicrosoftGraphWorkbookDataSource({
-    tenantId: env.GRAPH_TENANT_ID!,
-    clientId: env.GRAPH_CLIENT_ID!,
-    clientSecret: env.GRAPH_CLIENT_SECRET!,
-    refreshToken: env.GRAPH_REFRESH_TOKEN!,
-    driveId: env.GRAPH_DRIVE_ID!,
-    workbookItemId: env.GRAPH_WORKBOOK_ITEM_ID!,
-    authMode: 'delegated-refresh-token',
-  });
+export function postgresGestionesDependencies(env: AppBindings): GestionesDependencies {
+  if (!env.database)
+    throw new AppError('DATABASE_NOT_CONFIGURED', 'No hay sesión de base de datos.', 503);
   return {
-    repository: new ExcelManagementRepository(source),
+    repository: new PostgresManagementRepository(env.database.getPool()),
     authorize: (request, role) => request.headers.get('x-role') === role,
   };
 }

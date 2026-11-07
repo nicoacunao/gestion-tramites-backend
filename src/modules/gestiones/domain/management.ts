@@ -54,3 +54,5 @@ export interface ManagementStage {
   notes: string | null;
   version: number;
 }
+
+export type ManagementInput = Omit<Management, 'version'> & { version?: number };

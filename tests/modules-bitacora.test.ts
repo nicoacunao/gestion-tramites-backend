@@ -7,7 +7,7 @@ import { AppError } from '../src/shared/errors/app-error';
 const entry: LogEntry = {
   id: 'BIT-001',
   managementId: '1001',
-  userId: 'u-1',
+  userId: '1',
   registeredOn: '2026-11-05',
   registeredAt: '10:30:00',
   title: 'Documento recibido',

@@ -65,7 +65,11 @@ export class ExcelManagementRepository implements ManagementRepository {
     return row ? managementFromRow(row) : null;
   }
 
-  async save(management: Management, expectedVersion?: number): Promise<void> {
+  async save(input: Management, expectedVersion?: number): Promise<void> {
+    const management = {
+      ...input,
+      version: expectedVersion === undefined ? 1 : expectedVersion + 1,
+    };
     await this.source.upsertRow('tbl_gestiones', managementToRow(management), expectedVersion);
   }
 

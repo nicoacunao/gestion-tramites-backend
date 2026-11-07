@@ -1,32 +1,14 @@
-import { MicrosoftGraphWorkbookDataSource } from '../../infrastructure/persistence/excel-graph/microsoft-graph-workbook-data-source';
 import { AppError } from '../../shared/errors/app-error';
 import type { AppBindings } from '../../shared/config/bindings';
-import { ExcelLogRepository } from './infrastructure/excel-log-repository';
-import type { BitacoraDependencies } from './http/router';
+import { PostgresLogRepository } from './infrastructure/postgres-log-repository';
+import type { BitacoraDependencies } from './http/controller';
 
-export function excelBitacoraDependencies(env: AppBindings): BitacoraDependencies {
-  const required = [
-    'GRAPH_TENANT_ID',
-    'GRAPH_CLIENT_ID',
-    'GRAPH_CLIENT_SECRET',
-    'GRAPH_REFRESH_TOKEN',
-    'GRAPH_DRIVE_ID',
-    'GRAPH_WORKBOOK_ITEM_ID',
-  ] as const;
-  if (required.some((key) => !env[key]))
+export function postgresBitacoraDependencies(env: AppBindings): BitacoraDependencies {
+  if (!env.database)
     throw new AppError(
-      'BITACORA_NOT_CONFIGURED',
-      'La persistencia de bitácora no está configurada.',
+      'DATABASE_NOT_CONFIGURED',
+      'La sesión de base de datos no está configurada.',
       503,
     );
-  const source = new MicrosoftGraphWorkbookDataSource({
-    tenantId: env.GRAPH_TENANT_ID!,
-    clientId: env.GRAPH_CLIENT_ID!,
-    clientSecret: env.GRAPH_CLIENT_SECRET!,
-    refreshToken: env.GRAPH_REFRESH_TOKEN!,
-    driveId: env.GRAPH_DRIVE_ID!,
-    workbookItemId: env.GRAPH_WORKBOOK_ITEM_ID!,
-    authMode: 'delegated-refresh-token',
-  });
-  return { repository: new ExcelLogRepository(source) };
+  return { repository: new PostgresLogRepository(env.database.getPool()) };
 }
