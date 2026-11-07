@@ -2,6 +2,7 @@ import type { AppBindings } from '../../shared/config/bindings';
 import { AppError } from '../../shared/errors/app-error';
 import type { EstacionesDependencies } from './http/controller';
 import { PostgresStationRepository } from './infrastructure/postgres-station-repository';
+import { authorizeRequest } from '../../shared/auth/request-auth';
 
 export function postgresEstacionesDependencies(env: AppBindings): EstacionesDependencies {
   if (!env.database)
@@ -12,6 +13,6 @@ export function postgresEstacionesDependencies(env: AppBindings): EstacionesDepe
     );
   return {
     repository: new PostgresStationRepository(env.database.getPool()),
-    authorize: (request, role) => request.headers.get('x-role') === role,
+    authorize: (request, role) => authorizeRequest(request, env, role),
   };
 }

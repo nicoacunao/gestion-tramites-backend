@@ -776,6 +776,22 @@
             "minLength": 1,
             "maxLength": 1000
           },
+          "authorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "authorInitials": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["inicio", "novedad", "seguimiento", "contacto", null]
+          },
+          "automatic": {
+            "type": "boolean"
+          },
           "version": {
             "type": "integer",
             "minimum": 0,
@@ -841,6 +857,22 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 1000
+          },
+          "authorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "authorInitials": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["inicio", "novedad", "seguimiento", "contacto", null]
+          },
+          "automatic": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -1620,6 +1652,200 @@
           },
           "404": {
             "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de versión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/backgrounds/{id}": {
+      "put": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesUpdateBackground",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "responsibleUserId": {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["Pendiente", "Recibido", "Recibido conforme"]
+                  },
+                  "fileReference": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 500
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                  }
+                },
+                "required": ["responsibleUserId", "status", "fileReference", "version"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Antecedente actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "nullable": true
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de versión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/stages/{id}": {
+      "put": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesUpdateStage",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["Pendiente", "En curso", "Completado"]
+                  },
+                  "estimatedOn": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "completedOn": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "responsible": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 150
+                  },
+                  "notes": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 300
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                  }
+                },
+                "required": [
+                  "status",
+                  "estimatedOn",
+                  "completedOn",
+                  "responsible",
+                  "notes",
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Etapa actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "nullable": true
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2428,6 +2654,70 @@
           },
           "500": {
             "description": "Error inesperado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consultas/stations/summary": {
+      "get": {
+        "tags": ["consultas"],
+        "operationId": "consultasStationSummary",
+        "responses": {
+          "200": {
+            "description": "Resumen de estaciones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "stationId": {
+                            "type": "string"
+                          },
+                          "activeCount": {
+                            "type": "number"
+                          },
+                          "pendingCount": {
+                            "type": "number"
+                          },
+                          "daysWithoutProgress": {
+                            "type": "number"
+                          },
+                          "overallStatus": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "stationId",
+                          "activeCount",
+                          "pendingCount",
+                          "daysWithoutProgress",
+                          "overallStatus"
+                        ]
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
             "content": {
               "application/json": {
                 "schema": {

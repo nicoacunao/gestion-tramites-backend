@@ -1,9 +1,9 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 
-import { archivosModule } from './modules/archivos';
+import { archivosModule, createArchivosRouter } from './modules/archivos';
 import { createBitacoraModule, postgresBitacoraDependencies } from './modules/bitacora';
 import { createCatalogosModule, postgresCatalogosDependencies } from './modules/catalogos';
-import { consultasModule } from './modules/consultas';
+import { createConsultasModule, postgresConsultasDependencies } from './modules/consultas';
 import { createGestionesModule, postgresGestionesDependencies } from './modules/gestiones';
 import { createIdentidadModule, postgresIdentityDependencies } from './modules/identidad';
 import { createEstacionesModule, postgresEstacionesDependencies } from './modules/estaciones';
@@ -55,8 +55,9 @@ export function createApp(): OpenAPIHono<AppEnv> {
     createCamposAdicionalesModule(postgresCamposAdicionalesDependencies),
   );
   app.route('/api/v1/archivos', archivosModule);
+  app.route('/api/v1/archivos', createArchivosRouter());
   app.route('/api/v1/bitacora', createBitacoraModule(postgresBitacoraDependencies));
-  app.route('/api/v1/consultas', consultasModule);
+  app.route('/api/v1/consultas', createConsultasModule(postgresConsultasDependencies));
 
   app.doc('/openapi.json', {
     openapi: '3.0.3',

@@ -466,3 +466,16 @@ CREATE TABLE entrada_bitacora (
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
+
+CREATE TABLE archivo_gestion (
+    id_archivo VARCHAR(100) PRIMARY KEY,
+    id_gestion BIGINT NOT NULL REFERENCES gestion (id_gestion) ON DELETE RESTRICT,
+    id_antecedente_gestion BIGINT REFERENCES antecedente_gestion (id_antecedente_gestion) ON DELETE RESTRICT,
+    proveedor VARCHAR(30) NOT NULL,
+    referencia_almacenamiento VARCHAR(500) NOT NULL UNIQUE,
+    nombre_archivo VARCHAR(255) NOT NULL,
+    tipo_mime VARCHAR(150) NOT NULL,
+    tamano_bytes BIGINT NOT NULL CHECK (tamano_bytes >= 0),
+    id_usuario_carga BIGINT NOT NULL REFERENCES usuario (id_usuario),
+    fecha_carga TIMESTAMPTZ NOT NULL DEFAULT now()
+);

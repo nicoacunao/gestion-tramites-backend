@@ -14,6 +14,10 @@ interface LogRow {
   registered_at: string;
   titulo: string;
   comentario: string;
+  autor_nombre: string;
+  autor_iniciales: string;
+  tipo: 'inicio' | 'novedad' | 'seguimiento' | 'contacto' | null;
+  automatica: boolean;
   version: string;
 }
 
@@ -22,7 +26,7 @@ const SELECT_ENTRY = `
          g.codigo AS management_code, e.id_usuario::text AS user_id,
          to_char(e.fecha_hora AT TIME ZONE $1, 'YYYY-MM-DD') AS registered_on,
          to_char(e.fecha_hora AT TIME ZONE $1, 'HH24:MI:SS') AS registered_at,
-         e.titulo, e.comentario, e.xmin::text AS version
+         e.titulo, e.comentario, e.autor_nombre, e.autor_iniciales, e.tipo, e.automatica, e.xmin::text AS version
   FROM entrada_bitacora e
   JOIN gestion g ON g.id_gestion = e.id_gestion`;
 
@@ -42,6 +46,10 @@ function fromRow(row: LogRow): LogEntry {
     registeredAt: row.registered_at,
     title: row.titulo,
     comment: row.comentario,
+    authorName: row.autor_nombre,
+    authorInitials: row.autor_iniciales,
+    type: row.tipo,
+    automatic: row.automatica,
     version: Number(row.version),
   };
 }
@@ -110,7 +118,7 @@ export class PostgresLogRepository implements LogRepository {
                  $11::text AS management_code, id_usuario::text AS user_id,
                  to_char(fecha_hora AT TIME ZONE $6, 'YYYY-MM-DD') AS registered_on,
                  to_char(fecha_hora AT TIME ZONE $6, 'HH24:MI:SS') AS registered_at,
-                 titulo, comentario, xmin::text AS version`,
+                 titulo, comentario, autor_nombre, autor_iniciales, tipo, automatica, xmin::text AS version`,
       [
         entry.id,
         author.id_gestion,
@@ -118,7 +126,7 @@ export class PostgresLogRepository implements LogRepository {
         entry.registeredOn,
         entry.registeredAt,
         TIME_ZONE,
-        author.autor_nombre,
+         author.autor_nombre,
         author.autor_iniciales,
         entry.title,
         entry.comment,

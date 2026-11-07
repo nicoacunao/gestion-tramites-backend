@@ -16,6 +16,8 @@ export interface SecretBindings {
   GRAPH_CLIENT_ID?: string;
   GRAPH_DRIVE_ID?: string;
   GRAPH_WORKBOOK_ITEM_ID?: string;
+  ONEDRIVE_ROOT_PATH?: string;
+  ONEDRIVE_DRIVE_ID?: string;
 }
 
 export type AppBindings = CloudflareBindings & SecretBindings;

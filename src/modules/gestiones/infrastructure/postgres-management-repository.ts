@@ -128,4 +128,38 @@ export class PostgresManagementRepository implements ManagementRepository {
     );
     return result.rows.map((row) => ({ ...row, version: Number(row.version) }));
   }
+
+  async updateBackground(id: string, input: Omit<ManagementBackground, 'id' | 'version'>, expectedVersion: number): Promise<ManagementBackground> {
+    const result = await this.database.query<ManagementBackground & { version: string }>(
+      `UPDATE antecedente_gestion a SET id_usuario_responsable = NULLIF($2, '')::bigint,
+         estado = $3, observaciones = $4
+       FROM gestion g WHERE a.id_antecedente_gestion = $1::bigint AND g.id_gestion = a.id_gestion
+         AND a.xmin = $5::text::xid
+       RETURNING a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
+         a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
+         COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
+         COALESCE(a.id_usuario_responsable::text, '') AS "responsibleUserId", a.estado AS status,
+         a.archivo_referencia AS "fileReference", a.fecha_carga AS "uploadedAt", a.xmin::text AS version`,
+      [id, input.responsibleUserId, input.status, input.fileReference, expectedVersion],
+    );
+    const row = result.rows[0];
+    if (!row) throw new AppError('VERSION_CONFLICT', 'El antecedente cambió; recarga antes de guardar.', 409);
+    return { ...row, version: Number(row.version) };
+  }
+
+  async updateStage(id: string, input: Omit<ManagementStage, 'id' | 'version'>, expectedVersion: number): Promise<ManagementStage> {
+    const result = await this.database.query<ManagementStage & { version: string }>(
+      `UPDATE etapa_gestion e SET estado = $2, fecha_estimada = $3::date, fecha_real = $4::date,
+         id_usuario_responsable = NULLIF($5, '')::bigint, responsable_nombre = $6, observaciones = $7
+       FROM gestion g WHERE e.id_etapa_gestion = $1::bigint AND g.id_gestion = e.id_gestion
+         AND e.xmin = $8::text::xid
+       RETURNING e.id_etapa_gestion::text AS id, g.codigo AS "managementId", e.id_etapa::text AS "stageId",
+         e.estado AS status, e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
+         e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version`,
+      [id, input.status, input.estimatedOn, input.completedOn, input.responsible, input.responsible, input.notes, expectedVersion],
+    );
+    const row = result.rows[0];
+    if (!row) throw new AppError('VERSION_CONFLICT', 'La etapa cambió; recarga antes de guardar.', 409);
+    return { ...row, version: Number(row.version) };
+  }
 }

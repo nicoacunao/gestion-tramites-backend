@@ -1,6 +1,7 @@
 import type { AppBindings } from '../../shared/config/bindings';
 import { AppError } from '../../shared/errors/app-error';
 import type { AmbitosDependencies } from './http/controller';
+import { authorizeRequest } from '../../shared/auth/request-auth';
 import { PostgresAmbitosRepository } from './infrastructure/postgres-repository';
 
 export function postgresAmbitosDependencies(env: AppBindings): AmbitosDependencies {
@@ -12,6 +13,6 @@ export function postgresAmbitosDependencies(env: AppBindings): AmbitosDependenci
     );
   return {
     repository: new PostgresAmbitosRepository(env.database.getPool()),
-    authorize: (request, role) => request.headers.get('x-role') === role,
+    authorize: (request, role) => authorizeRequest(request, env, role),
   };
 }

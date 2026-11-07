@@ -1,6 +1,7 @@
 import type { AppBindings } from '../../shared/config/bindings';
 import { AppError } from '../../shared/errors/app-error';
 import type { CamposAdicionalesDependencies } from './http/controller';
+import { authorizeRequest } from '../../shared/auth/request-auth';
 import { PostgresCamposAdicionalesRepository } from './infrastructure/postgres-repository';
 export function postgresCamposAdicionalesDependencies(
   env: AppBindings,
@@ -13,6 +14,6 @@ export function postgresCamposAdicionalesDependencies(
     );
   return {
     repository: new PostgresCamposAdicionalesRepository(env.database.getPool()),
-    authorize: (request, role) => request.headers.get('x-role') === role,
+    authorize: (request, role) => authorizeRequest(request, env, role),
   };
 }

@@ -6,6 +6,10 @@ export interface LogEntry {
   registeredAt: string;
   title: string;
   comment: string;
+  authorName?: string | null;
+  authorInitials?: string | null;
+  type?: 'inicio' | 'novedad' | 'seguimiento' | 'contacto' | null;
+  automatic?: boolean;
   version: number;
 }
 

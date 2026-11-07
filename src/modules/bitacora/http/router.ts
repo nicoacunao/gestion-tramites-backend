@@ -18,6 +18,10 @@ const LogEntrySchema = z
     registeredAt: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
     title: z.string().trim().min(1).max(80),
     comment: z.string().trim().min(1).max(1000),
+    authorName: z.string().nullable().optional(),
+    authorInitials: z.string().nullable().optional(),
+    type: z.enum(['inicio', 'novedad', 'seguimiento', 'contacto']).nullable().optional(),
+    automatic: z.boolean().optional(),
     version: z.number().int().positive(),
   })
   .openapi('LogEntry');
@@ -116,7 +120,11 @@ export function createBitacoraRouter(
   });
 
   router.openapi(createRouteDefinition, async (context) => {
-    const entry = await controller.create(context.env, context.req.valid('json'));
+    const input = context.req.valid('json');
+    const entryInput = { ...input };
+    delete entryInput.authorName;
+    delete entryInput.authorInitials;
+    const entry = await controller.create(context.env, { ...entryInput, type: input.type ?? null, automatic: input.automatic ?? false });
     return context.json({ data: entry, meta: { requestId: context.get('requestId') } }, 201);
   });
 

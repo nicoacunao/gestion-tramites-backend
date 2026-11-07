@@ -1,6 +1,7 @@
 import type { AppBindings } from '../../shared/config/bindings';
 import { AppError } from '../../shared/errors/app-error';
 import type { EtapasDependencies } from './http/controller';
+import { authorizeRequest } from '../../shared/auth/request-auth';
 import { PostgresEtapasRepository } from './infrastructure/postgres-repository';
 
 export function postgresEtapasDependencies(env: AppBindings): EtapasDependencies {
@@ -12,6 +13,6 @@ export function postgresEtapasDependencies(env: AppBindings): EtapasDependencies
     );
   return {
     repository: new PostgresEtapasRepository(env.database.getPool()),
-    authorize: (request, role) => request.headers.get('x-role') === role,
+    authorize: (request, role) => authorizeRequest(request, env, role),
   };
 }

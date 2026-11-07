@@ -1,6 +1,7 @@
 import type { AppBindings } from '../../shared/config/bindings';
 import { AppError } from '../../shared/errors/app-error';
 import type { AntecedentesDependencies } from './http/controller';
+import { authorizeRequest } from '../../shared/auth/request-auth';
 import { PostgresAntecedentesRepository } from './infrastructure/postgres-repository';
 
 export function postgresAntecedentesDependencies(env: AppBindings): AntecedentesDependencies {
@@ -12,6 +13,6 @@ export function postgresAntecedentesDependencies(env: AppBindings): Antecedentes
     );
   return {
     repository: new PostgresAntecedentesRepository(env.database.getPool()),
-    authorize: (request, role) => request.headers.get('x-role') === role,
+    authorize: (request, role) => authorizeRequest(request, env, role),
   };
 }
