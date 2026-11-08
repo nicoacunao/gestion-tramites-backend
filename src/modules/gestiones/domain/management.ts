@@ -102,6 +102,12 @@ export interface CompleteManagementInput extends ManagementInput {
   complementaryBackgrounds?: ManagementBackgroundCreateInput[];
   stages?: ManagementStageCreateInput[];
   additionalData?: ManagementAdditionalDataCreateInput[];
+  /** Payload legado del formulario TramiteNuevo mientras migra a la API tipada. */
+  datosAdicionales?: Record<string, string>;
+  subtramitesAsociados?: string[];
+  antecedentesConfigurados?: string[];
+  antecedentesComplementariosConfigurados?: string[];
+  etapasConfiguradas?: string[];
 }
 
 export type ManagementInput = Omit<Management, 'version'> & { version?: number };

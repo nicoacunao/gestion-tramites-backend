@@ -222,7 +222,9 @@ export class PostgresManagementRepository implements ManagementRepository {
       for (const specificId of input.associatedSpecificManagementIds ?? [])
         await client.query(
           `INSERT INTO gestion_subtramite (id_gestion, id_gestion_especifica)
-           VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), $2::bigint)`,
+           VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
+             (SELECT id_gestion_especifica FROM gestion_especifica
+               WHERE id_gestion_especifica::text = $2 OR nombre = $2))`,
           [management.id, specificId],
         );
       await client.query('COMMIT');
@@ -284,7 +286,10 @@ export class PostgresManagementRepository implements ManagementRepository {
         id_usuario_responsable, nivel, correlativo, modalidad_creacion, estado, prioridad,
         responsable_nombre, nombre_solicitante, razon_social, rut_razon_social, representante_legal,
         rut_representante_legal, fecha_apertura, fecha_estimada_termino, fecha_ultima_revision)
-       VALUES ($1, $2, $3, NULLIF($4, '')::bigint, $5, $6::bigint, $7, $8, $9, $10, $11,
+       VALUES ($1, $2, $3,
+        (SELECT id_gestion_especifica FROM gestion_especifica
+          WHERE id_gestion_especifica::text = NULLIF($4, '') OR nombre = NULLIF($4, '')),
+        $5, $6::bigint, $7, $8, $9, $10, $11,
         (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido) FROM usuario WHERE id_usuario = $6::bigint),
         $12, (SELECT razon_social FROM estacion WHERE id_estacion = $2),
         (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2),

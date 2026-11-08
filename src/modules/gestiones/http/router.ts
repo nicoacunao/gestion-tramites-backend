@@ -111,6 +111,11 @@ const ManagementWriteSchema = ManagementSchema.omit({ version: true })
         }),
       )
       .optional(),
+    datosAdicionales: z.record(z.string(), z.string()).optional(),
+    subtramitesAsociados: z.array(z.string().trim().min(1)).optional(),
+    antecedentesConfigurados: z.array(z.string().trim().min(1)).optional(),
+    antecedentesComplementariosConfigurados: z.array(z.string().trim().min(1)).optional(),
+    etapasConfiguradas: z.array(z.string().trim().min(1)).optional(),
   })
   .openapi('ManagementWrite');
 const ManagementUpdateSchema = ManagementWriteSchema.extend({
@@ -406,15 +411,49 @@ export function createGestionesRouter(
       input.requiredBackgrounds ||
       input.complementaryBackgrounds ||
       input.stages ||
-      input.additionalData,
+      input.additionalData ||
+      input.datosAdicionales ||
+      input.subtramitesAsociados ||
+      input.antecedentesConfigurados ||
+      input.antecedentesComplementariosConfigurados ||
+      input.etapasConfiguradas,
     );
     if (hasRelations) {
       if (!deps.repository.createComplete)
         throw new AppError('NOT_IMPLEMENTED', 'La creación completa no está disponible.', 503);
-      const item = await deps.repository.createComplete({
+      const completeInput = {
         ...input,
         creationMode: input.creationMode ?? 'principal',
-      } as CompleteManagementInput);
+        associatedSpecificManagementIds:
+          input.associatedSpecificManagementIds ?? input.subtramitesAsociados,
+        requiredBackgrounds:
+          input.requiredBackgrounds ??
+          input.antecedentesConfigurados?.map((name) => ({
+            name,
+            category: 'requerido' as const,
+            required: true,
+          })),
+        complementaryBackgrounds:
+          input.complementaryBackgrounds ??
+          input.antecedentesComplementariosConfigurados?.map((name) => ({
+            name,
+            category: 'complementario' as const,
+            required: false,
+          })),
+        stages:
+          input.stages ??
+          input.etapasConfiguradas?.map((name) => ({
+            name,
+            status: 'Pendiente' as const,
+          })),
+        additionalData:
+          input.additionalData ??
+          Object.entries(input.datosAdicionales ?? {}).map(([fieldCode, value]) => ({
+            fieldCode,
+            value,
+          })),
+      } as CompleteManagementInput;
+      const item = await deps.repository.createComplete(completeInput);
       return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
     }
     const item: Management = { ...input, version: 1 };

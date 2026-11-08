@@ -81,6 +81,39 @@ describe('gestiones', () => {
     expect(await response.json()).toMatchObject({ data: { id: '1001', version: 1 } });
   });
 
+  it('normaliza el payload legado de TramiteNuevo dentro del alta transaccional', async () => {
+    const repo = repository([]);
+    let completeInput: Record<string, unknown> | undefined;
+    repo.createComplete = async (input) => {
+      completeInput = input as unknown as Record<string, unknown>;
+      return { ...management, id: input.id, version: 1 };
+    };
+    const input = { ...management, id: '1002' };
+    delete (input as Partial<Management>).version;
+
+    const response = await app(repo).request('/items', {
+      method: 'POST',
+      headers: { ...auth, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        ...input,
+        datosAdicionales: { nombreConcesionario: 'Acme' },
+        subtramitesAsociados: ['Recepción definitiva'],
+        antecedentesConfigurados: ['Certificado de dominio vigente'],
+        antecedentesComplementariosConfigurados: ['Fotografías'],
+        etapasConfiguradas: ['Consulta y definición de antecedentes'],
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    expect(completeInput).toMatchObject({
+      associatedSpecificManagementIds: ['Recepción definitiva'],
+      requiredBackgrounds: [{ name: 'Certificado de dominio vigente', required: true }],
+      complementaryBackgrounds: [{ name: 'Fotografías', required: false }],
+      stages: [{ name: 'Consulta y definición de antecedentes', status: 'Pendiente' }],
+      additionalData: [{ fieldCode: 'nombreConcesionario', value: 'Acme' }],
+    });
+  });
+
   it('actualiza con control de concurrencia optimista', async () => {
     const response = await app(repository()).request('/items/1001', {
       method: 'PUT',
