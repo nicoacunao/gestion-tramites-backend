@@ -33,6 +33,7 @@ describe('contrato OpenAPI', () => {
         '/api/v1/gestiones/health',
         '/api/v1/gestiones/items',
         '/api/v1/gestiones/items/{id}',
+        '/api/v1/gestiones/items/{id}/additional-data',
         '/api/v1/gestiones/items/{id}/backgrounds',
         '/api/v1/gestiones/items/{id}/stages',
         '/api/v1/gestiones/stages/{id}',

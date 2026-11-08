@@ -299,6 +299,17 @@ CREATE TABLE gestion_dato_adicional (
         ON DELETE RESTRICT
 );
 
+CREATE TABLE gestion_subtramite (
+    id_gestion BIGINT NOT NULL,
+    id_gestion_especifica BIGINT NOT NULL,
+
+    CONSTRAINT pk_gestion_subtramite PRIMARY KEY (id_gestion, id_gestion_especifica),
+    CONSTRAINT fk_gestion_subtramite_gestion FOREIGN KEY (id_gestion)
+        REFERENCES gestion (id_gestion) ON DELETE RESTRICT,
+    CONSTRAINT fk_gestion_subtramite_especifica FOREIGN KEY (id_gestion_especifica)
+        REFERENCES gestion_especifica (id_gestion_especifica) ON DELETE RESTRICT
+);
+
 CREATE TABLE antecedente_gestion (
     id_antecedente_gestion BIGINT GENERATED ALWAYS AS IDENTITY,
 

@@ -31,6 +31,8 @@ export interface Management {
   responsibleName?: string | null | undefined;
   managementTypeName?: string | null | undefined;
   managementTypeCode?: string | null | undefined;
+  creationMode?: 'principal' | 'subtramite' | undefined;
+  specificManagementId?: string | null | undefined;
 }
 
 export interface ManagementBackground {
@@ -58,6 +60,48 @@ export interface ManagementStage {
   responsible: string | null;
   notes: string | null;
   version: number;
+}
+
+export interface ManagementBackgroundCreateInput {
+  backgroundId?: string | null;
+  parentBackgroundId?: string | null;
+  name: string;
+  category: 'requerido' | 'complementario' | 'adicional';
+  required: boolean;
+  requestedBy?: string | null;
+  responsibleUserId?: string | null;
+  responsibleName?: string | null;
+  status?: 'Pendiente' | 'Recibido' | 'Recibido conforme';
+  observations?: string | null;
+  fileName?: string | null;
+  fileReference?: string | null;
+}
+
+export interface ManagementStageCreateInput {
+  stageId?: string | null;
+  name: string;
+  status?: 'Pendiente' | 'En curso' | 'Completado';
+  estimatedOn?: string | null;
+  completedOn?: string | null;
+  responsibleUserId?: string | null;
+  responsibleName?: string | null;
+  notes?: string | null;
+}
+
+export interface ManagementAdditionalDataCreateInput {
+  fieldId?: string | null;
+  fieldCode?: string | null;
+  value: string;
+}
+
+export interface CompleteManagementInput extends ManagementInput {
+  creationMode: 'principal' | 'subtramite';
+  specificManagementId?: string | null;
+  associatedSpecificManagementIds?: string[];
+  requiredBackgrounds?: ManagementBackgroundCreateInput[];
+  complementaryBackgrounds?: ManagementBackgroundCreateInput[];
+  stages?: ManagementStageCreateInput[];
+  additionalData?: ManagementAdditionalDataCreateInput[];
 }
 
 export type ManagementInput = Omit<Management, 'version'> & { version?: number };

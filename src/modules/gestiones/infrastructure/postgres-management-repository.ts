@@ -1,13 +1,23 @@
+import type { Pool, PoolClient } from 'pg';
 import type { SqlExecutor } from '../../../infrastructure/persistence/postgres/connection';
 import { AppError } from '../../../shared/errors/app-error';
 import type { ManagementRepository } from '../application/ports';
-import type { Management, ManagementBackground, ManagementStage } from '../domain/management';
+import type {
+  CompleteManagementInput,
+  Management,
+  ManagementAdditionalDataCreateInput,
+  ManagementBackground,
+  ManagementBackgroundCreateInput,
+  ManagementStage,
+  ManagementStageCreateInput,
+} from '../domain/management';
 
 const projection = `codigo AS id, id_estacion AS "stationId", id_tipo_gestion AS "managementTypeId",
   codigo_ambito AS "scopeCode", id_usuario_responsable::text AS "responsibleUserId",
   nivel AS level, correlativo AS sequence, fecha_apertura::text AS "openedOn",
   fecha_estimada_termino::text AS "estimatedCompletionOn", fecha_ultima_revision::text AS "lastReviewedOn",
   prioridad AS priority, nombre_solicitante AS "requesterName", estado AS status, xmin::text AS version,
+  modalidad_creacion AS "creationMode", id_gestion_especifica::text AS "specificManagementId",
   id_estacion AS "stationName", razon_social AS "legalName", responsable_nombre AS "responsibleName",
   id_tipo_gestion AS "managementTypeCode"`;
 type ManagementRow = Omit<Management, 'version' | 'responsibleUserId'> & {
@@ -27,6 +37,10 @@ function fromRow(row: ManagementRow): Management {
 
 export class PostgresManagementRepository implements ManagementRepository {
   constructor(private readonly database: SqlExecutor) {}
+
+  private get pool(): Pool {
+    return this.database as Pool;
+  }
 
   async list(): Promise<readonly Management[]> {
     const result = await this.database.query<ManagementRow>(
@@ -186,5 +200,207 @@ export class PostgresManagementRepository implements ManagementRepository {
     if (!row)
       throw new AppError('VERSION_CONFLICT', 'La etapa cambió; recarga antes de guardar.', 409);
     return { ...row, version: Number(row.version) };
+  }
+
+  async createComplete(input: CompleteManagementInput): Promise<Management> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const management = await this.insertManagement(client, input);
+      const parentIds = new Map<string, string>();
+      for (const background of [
+        ...(input.requiredBackgrounds ?? []),
+        ...(input.complementaryBackgrounds ?? []),
+      ]) {
+        const created = await this.insertBackground(client, management.id, background, parentIds);
+        parentIds.set(background.backgroundId ?? background.name, created.id);
+        parentIds.set(background.name, created.id);
+      }
+      for (const stage of input.stages ?? []) await this.insertStage(client, management.id, stage);
+      for (const data of input.additionalData ?? [])
+        await this.insertAdditionalData(client, management.id, data);
+      for (const specificId of input.associatedSpecificManagementIds ?? [])
+        await client.query(
+          `INSERT INTO gestion_subtramite (id_gestion, id_gestion_especifica)
+           VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), $2::bigint)`,
+          [management.id, specificId],
+        );
+      await client.query('COMMIT');
+      return management;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async createBackground(
+    managementId: string,
+    input: ManagementBackgroundCreateInput,
+  ): Promise<ManagementBackground> {
+    return this.inTransaction(async (client) =>
+      this.insertBackground(client, managementId, input, new Map()),
+    );
+  }
+
+  async createStage(
+    managementId: string,
+    input: ManagementStageCreateInput,
+  ): Promise<ManagementStage> {
+    return this.inTransaction(async (client) => this.insertStage(client, managementId, input));
+  }
+
+  async createAdditionalData(
+    managementId: string,
+    input: ManagementAdditionalDataCreateInput,
+  ): Promise<void> {
+    await this.inTransaction(async (client) =>
+      this.insertAdditionalData(client, managementId, input),
+    );
+  }
+
+  private async inTransaction<T>(operation: (client: PoolClient) => Promise<T>): Promise<T> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await operation(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  private async insertManagement(
+    client: PoolClient,
+    input: CompleteManagementInput,
+  ): Promise<Management> {
+    const result = await client.query<ManagementRow>(
+      `INSERT INTO gestion (codigo, id_estacion, id_tipo_gestion, id_gestion_especifica, codigo_ambito,
+        id_usuario_responsable, nivel, correlativo, modalidad_creacion, estado, prioridad,
+        responsable_nombre, nombre_solicitante, razon_social, rut_razon_social, representante_legal,
+        rut_representante_legal, fecha_apertura, fecha_estimada_termino, fecha_ultima_revision)
+       VALUES ($1, $2, $3, NULLIF($4, '')::bigint, $5, $6::bigint, $7, $8, $9, $10, $11,
+        (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido) FROM usuario WHERE id_usuario = $6::bigint),
+        $12, (SELECT razon_social FROM estacion WHERE id_estacion = $2),
+        (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2),
+        (SELECT nombre_representante_legal FROM estacion WHERE id_estacion = $2),
+        (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2), $13::date, $14::date, $15::date)
+       RETURNING ${projection}`,
+      [
+        input.id,
+        input.stationId,
+        input.managementTypeId,
+        input.specificManagementId ?? '',
+        input.scopeCode,
+        input.responsibleUserId,
+        input.level,
+        input.sequence,
+        input.creationMode,
+        input.status,
+        input.priority,
+        input.requesterName,
+        input.openedOn,
+        input.estimatedCompletionOn,
+        input.lastReviewedOn,
+      ],
+    );
+    if (!result.rows[0]) throw new Error('La gestión no pudo ser creada.');
+    return fromRow(result.rows[0]);
+  }
+
+  private async insertBackground(
+    client: PoolClient,
+    managementId: string,
+    input: ManagementBackgroundCreateInput,
+    parentIds: Map<string, string>,
+  ): Promise<ManagementBackground> {
+    const parentId = input.parentBackgroundId
+      ? (parentIds.get(input.parentBackgroundId) ?? null)
+      : null;
+    const result = await client.query<ManagementBackground & { version: string }>(
+      `INSERT INTO antecedente_gestion (id_gestion, id_antecedente_padre, id_antecedente, nivel, categoria,
+        nombre_mostrado, flag_obligatorio, solicitado_por, id_usuario_responsable, responsable_nombre,
+        estado, observaciones, archivo_nombre, archivo_referencia, fecha_carga)
+       VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), $2::bigint,
+        (SELECT id_antecedente FROM antecedente WHERE id_antecedente::text = NULLIF($3, '') OR nombre = $4),
+        'N2', $5, $4, $6, $7, NULLIF($8, '')::bigint,
+        COALESCE(NULLIF($9, ''), (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
+          FROM usuario WHERE id_usuario = NULLIF($8, '')::bigint), ''), $10, $11, $12, $13,
+        CASE WHEN $13 IS NULL THEN NULL ELSE now() END)
+       RETURNING id_antecedente_gestion::text AS id, $1 AS "managementId",
+        id_antecedente_padre::text AS "parentManagementBackgroundId",
+        (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1) AS "managementTypeId",
+        COALESCE(id_antecedente::text, '') AS "backgroundId", nivel AS level,
+        flag_obligatorio AS required, COALESCE(id_usuario_responsable::text, '') AS "responsibleUserId",
+        estado AS status, archivo_referencia AS "fileReference", fecha_carga AS "uploadedAt", xmin::text AS version`,
+      [
+        managementId,
+        parentId,
+        input.backgroundId ?? '',
+        input.name,
+        input.category,
+        input.required,
+        input.requestedBy ?? null,
+        input.responsibleUserId ?? '',
+        input.responsibleName ?? '',
+        input.status ?? 'Pendiente',
+        input.observations ?? null,
+        input.fileName ?? null,
+        input.fileReference ?? null,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('El antecedente no pudo ser creado.');
+    return { ...row, version: Number(row.version) };
+  }
+
+  private async insertStage(
+    client: PoolClient,
+    managementId: string,
+    input: ManagementStageCreateInput,
+  ): Promise<ManagementStage> {
+    const result = await client.query<ManagementStage & { version: string }>(
+      `INSERT INTO etapa_gestion (id_gestion, id_etapa, estado, fecha_estimada, fecha_real,
+        id_usuario_responsable, responsable_nombre, observaciones)
+       VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
+        (SELECT id_etapa FROM etapa WHERE id_etapa::text = NULLIF($2, '') OR nombre = $3),
+        $4, $5::date, $6::date, NULLIF($7, '')::bigint, $8, $9)
+       RETURNING id_etapa_gestion::text AS id, $1 AS "managementId", id_etapa::text AS "stageId",
+        estado AS status, fecha_estimada::text AS "estimatedOn", fecha_real::text AS "completedOn",
+        responsable_nombre AS responsible, observaciones AS notes, xmin::text AS version`,
+      [
+        managementId,
+        input.stageId ?? '',
+        input.name,
+        input.status ?? 'Pendiente',
+        input.estimatedOn ?? null,
+        input.completedOn ?? null,
+        input.responsibleUserId ?? '',
+        input.responsibleName ?? null,
+        input.notes ?? null,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error('La etapa no pudo ser creada.');
+    return { ...row, version: Number(row.version) };
+  }
+
+  private async insertAdditionalData(
+    client: PoolClient,
+    managementId: string,
+    input: ManagementAdditionalDataCreateInput,
+  ): Promise<void> {
+    await client.query(
+      `INSERT INTO gestion_dato_adicional (id_gestion, id_campo_adicional, valor)
+       VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
+        (SELECT id_campo_adicional FROM campo_adicional_tipo
+          WHERE id_campo_adicional::text = NULLIF($2, '') OR codigo = $3), $4)`,
+      [managementId, input.fieldId ?? '', input.fieldCode ?? '', input.value],
+    );
   }
 }

@@ -3,7 +3,13 @@ import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { AppError } from '../../../shared/errors/app-error';
 import type { ManagementRepository } from '../application/ports';
-import type { Management } from '../domain/management';
+import type {
+  CompleteManagementInput,
+  Management,
+  ManagementAdditionalDataCreateInput,
+  ManagementBackgroundCreateInput,
+  ManagementStageCreateInput,
+} from '../domain/management';
 
 const DateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Debe usar YYYY-MM-DD');
 const ManagementSchema = z
@@ -41,7 +47,72 @@ const ManagementSchema = z
     managementTypeCode: z.string().nullable().optional(),
   })
   .openapi('Management');
-const ManagementWriteSchema = ManagementSchema.omit({ version: true }).openapi('ManagementWrite');
+const ManagementWriteSchema = ManagementSchema.omit({ version: true })
+  .extend({
+    creationMode: z.enum(['principal', 'subtramite']).optional(),
+    specificManagementId: z.string().nullable().optional(),
+    associatedSpecificManagementIds: z.array(z.string()).optional(),
+    requiredBackgrounds: z
+      .array(
+        z.object({
+          backgroundId: z.string().nullable().optional(),
+          parentBackgroundId: z.string().nullable().optional(),
+          name: z.string().trim().min(1).max(300),
+          category: z.literal('requerido').default('requerido'),
+          required: z.boolean().default(true),
+          requestedBy: z.string().nullable().optional(),
+          responsibleUserId: z.string().nullable().optional(),
+          responsibleName: z.string().nullable().optional(),
+          status: z.enum(['Pendiente', 'Recibido', 'Recibido conforme']).optional(),
+          observations: z.string().nullable().optional(),
+          fileName: z.string().nullable().optional(),
+          fileReference: z.string().nullable().optional(),
+        }),
+      )
+      .optional(),
+    complementaryBackgrounds: z
+      .array(
+        z.object({
+          backgroundId: z.string().nullable().optional(),
+          parentBackgroundId: z.string().nullable().optional(),
+          name: z.string().trim().min(1).max(300),
+          category: z.literal('complementario').default('complementario'),
+          required: z.boolean().default(false),
+          requestedBy: z.string().nullable().optional(),
+          responsibleUserId: z.string().nullable().optional(),
+          responsibleName: z.string().nullable().optional(),
+          status: z.enum(['Pendiente', 'Recibido', 'Recibido conforme']).optional(),
+          observations: z.string().nullable().optional(),
+          fileName: z.string().nullable().optional(),
+          fileReference: z.string().nullable().optional(),
+        }),
+      )
+      .optional(),
+    stages: z
+      .array(
+        z.object({
+          stageId: z.string().nullable().optional(),
+          name: z.string().trim().min(1).max(200),
+          status: z.enum(['Pendiente', 'En curso', 'Completado']).optional(),
+          estimatedOn: DateSchema.nullable().optional(),
+          completedOn: DateSchema.nullable().optional(),
+          responsibleUserId: z.string().nullable().optional(),
+          responsibleName: z.string().nullable().optional(),
+          notes: z.string().nullable().optional(),
+        }),
+      )
+      .optional(),
+    additionalData: z
+      .array(
+        z.object({
+          fieldId: z.string().nullable().optional(),
+          fieldCode: z.string().nullable().optional(),
+          value: z.string().trim().min(1).max(500),
+        }),
+      )
+      .optional(),
+  })
+  .openapi('ManagementWrite');
 const ManagementUpdateSchema = ManagementWriteSchema.extend({
   version: z.number().int().positive(),
 }).openapi('ManagementUpdate');
@@ -328,6 +399,24 @@ export function createGestionesRouter(
     assertDates(input.openedOn, input.estimatedCompletionOn, input.lastReviewedOn);
     if (await deps.repository.findById(input.id))
       throw new AppError('RESOURCE_CONFLICT', 'Ya existe una gestión con ese identificador.', 409);
+    const hasRelations = Boolean(
+      input.creationMode ||
+      input.specificManagementId ||
+      input.associatedSpecificManagementIds ||
+      input.requiredBackgrounds ||
+      input.complementaryBackgrounds ||
+      input.stages ||
+      input.additionalData,
+    );
+    if (hasRelations) {
+      if (!deps.repository.createComplete)
+        throw new AppError('NOT_IMPLEMENTED', 'La creación completa no está disponible.', 503);
+      const item = await deps.repository.createComplete({
+        ...input,
+        creationMode: input.creationMode ?? 'principal',
+      } as CompleteManagementInput);
+      return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
+    }
     const item: Management = { ...input, version: 1 };
     await deps.repository.save(item);
     return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
@@ -451,6 +540,178 @@ export function createGestionesRouter(
         body.version,
       );
       return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
+    },
+  );
+  const relationResponse = z.object({ data: z.any(), meta: ApiMetaSchema });
+  router.openapi(
+    createRoute({
+      method: 'post',
+      path: '/items/{id}/backgrounds',
+      tags: ['gestiones'],
+      operationId: 'gestionesCreateBackground',
+      request: {
+        params: z.object({ id: z.string().min(1) }),
+        body: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                backgroundId: z.string().nullable().optional(),
+                parentBackgroundId: z.string().nullable().optional(),
+                name: z.string().trim().min(1).max(300),
+                category: z.enum(['requerido', 'complementario', 'adicional']),
+                required: z.boolean(),
+                requestedBy: z.string().nullable().optional(),
+                responsibleUserId: z.string().nullable().optional(),
+                responsibleName: z.string().nullable().optional(),
+                status: z.enum(['Pendiente', 'Recibido', 'Recibido conforme']).optional(),
+                observations: z.string().nullable().optional(),
+                fileName: z.string().nullable().optional(),
+                fileReference: z.string().nullable().optional(),
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          content: { 'application/json': { schema: relationResponse } },
+          description: 'Antecedente creado.',
+        },
+        403: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Sin permiso.',
+        },
+        404: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'No encontrada.',
+        },
+      },
+    }),
+    async (context) => {
+      const deps = resolve(context.env);
+      await ensureAuthorized(deps, context.req.raw);
+      if (!deps.repository.createBackground)
+        throw new AppError('NOT_IMPLEMENTED', 'El alta de antecedentes no está disponible.', 503);
+      const id = context.req.valid('param').id;
+      if (!(await deps.repository.findById(id)))
+        throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
+      const item = await deps.repository.createBackground(
+        id,
+        context.req.valid('json') as ManagementBackgroundCreateInput,
+      );
+      return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
+    },
+  );
+  router.openapi(
+    createRoute({
+      method: 'post',
+      path: '/items/{id}/stages',
+      tags: ['gestiones'],
+      operationId: 'gestionesCreateStage',
+      request: {
+        params: z.object({ id: z.string().min(1) }),
+        body: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                stageId: z.string().nullable().optional(),
+                name: z.string().trim().min(1).max(200),
+                status: z.enum(['Pendiente', 'En curso', 'Completado']).optional(),
+                estimatedOn: DateSchema.nullable().optional(),
+                completedOn: DateSchema.nullable().optional(),
+                responsibleUserId: z.string().nullable().optional(),
+                responsibleName: z.string().nullable().optional(),
+                notes: z.string().nullable().optional(),
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          content: { 'application/json': { schema: relationResponse } },
+          description: 'Etapa creada.',
+        },
+        403: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Sin permiso.',
+        },
+        404: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'No encontrada.',
+        },
+      },
+    }),
+    async (context) => {
+      const deps = resolve(context.env);
+      await ensureAuthorized(deps, context.req.raw);
+      if (!deps.repository.createStage)
+        throw new AppError('NOT_IMPLEMENTED', 'El alta de etapas no está disponible.', 503);
+      const id = context.req.valid('param').id;
+      if (!(await deps.repository.findById(id)))
+        throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
+      const item = await deps.repository.createStage(
+        id,
+        context.req.valid('json') as ManagementStageCreateInput,
+      );
+      return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
+    },
+  );
+  router.openapi(
+    createRoute({
+      method: 'post',
+      path: '/items/{id}/additional-data',
+      tags: ['gestiones'],
+      operationId: 'gestionesCreateAdditionalData',
+      request: {
+        params: z.object({ id: z.string().min(1) }),
+        body: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                fieldId: z.string().nullable().optional(),
+                fieldCode: z.string().nullable().optional(),
+                value: z.string().trim().min(1).max(500),
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          content: { 'application/json': { schema: relationResponse } },
+          description: 'Dato adicional creado.',
+        },
+        403: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Sin permiso.',
+        },
+        404: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'No encontrada.',
+        },
+      },
+    }),
+    async (context) => {
+      const deps = resolve(context.env);
+      await ensureAuthorized(deps, context.req.raw);
+      if (!deps.repository.createAdditionalData)
+        throw new AppError(
+          'NOT_IMPLEMENTED',
+          'El alta de datos adicionales no está disponible.',
+          503,
+        );
+      const id = context.req.valid('param').id;
+      if (!(await deps.repository.findById(id)))
+        throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
+      await deps.repository.createAdditionalData(
+        id,
+        context.req.valid('json') as ManagementAdditionalDataCreateInput,
+      );
+      return context.json(
+        { data: { managementId: id }, meta: { requestId: context.get('requestId') } },
+        201,
+      );
     },
   );
   return router;

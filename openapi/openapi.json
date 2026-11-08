@@ -713,6 +713,204 @@
           "managementTypeCode": {
             "type": "string",
             "nullable": true
+          },
+          "creationMode": {
+            "type": "string",
+            "enum": ["principal", "subtramite"]
+          },
+          "specificManagementId": {
+            "type": "string",
+            "nullable": true
+          },
+          "associatedSpecificManagementIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "requiredBackgrounds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "backgroundId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "parentBackgroundId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "category": {
+                  "type": "string",
+                  "enum": ["requerido"],
+                  "default": "requerido"
+                },
+                "required": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "requestedBy": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "responsibleUserId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "responsibleName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["Pendiente", "Recibido", "Recibido conforme"]
+                },
+                "observations": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "fileName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "fileReference": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": ["name"]
+            }
+          },
+          "complementaryBackgrounds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "backgroundId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "parentBackgroundId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "category": {
+                  "type": "string",
+                  "enum": ["complementario"],
+                  "default": "complementario"
+                },
+                "required": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "requestedBy": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "responsibleUserId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "responsibleName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["Pendiente", "Recibido", "Recibido conforme"]
+                },
+                "observations": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "fileName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "fileReference": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": ["name"]
+            }
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stageId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["Pendiente", "En curso", "Completado"]
+                },
+                "estimatedOn": {
+                  "type": "string",
+                  "nullable": true,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                },
+                "completedOn": {
+                  "type": "string",
+                  "nullable": true,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                },
+                "responsibleUserId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "responsibleName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "notes": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": ["name"]
+            }
+          },
+          "additionalData": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fieldId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "fieldCode": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              },
+              "required": ["value"]
+            }
           }
         },
         "required": [
@@ -2061,6 +2259,122 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesCreateBackground",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "backgroundId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "parentBackgroundId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": ["requerido", "complementario", "adicional"]
+                  },
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "requestedBy": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "responsibleUserId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "responsibleName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["Pendiente", "Recibido", "Recibido conforme"]
+                  },
+                  "observations": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "fileReference": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": ["name", "category", "required"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Antecedente creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "nullable": true
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/gestiones/items/{id}/stages": {
@@ -2144,6 +2458,109 @@
                     }
                   },
                   "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesCreateStage",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "stageId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["Pendiente", "En curso", "Completado"]
+                  },
+                  "estimatedOn": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "completedOn": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "responsibleUserId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "responsibleName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "notes": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Etapa creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "nullable": true
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["meta"]
                 }
               }
             }
@@ -2354,6 +2771,89 @@
           },
           "409": {
             "description": "Conflicto de versión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/items/{id}/additional-data": {
+      "post": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesCreateAdditionalData",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fieldId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "fieldCode": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": ["value"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Dato adicional creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "nullable": true
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrada.",
             "content": {
               "application/json": {
                 "schema": {
