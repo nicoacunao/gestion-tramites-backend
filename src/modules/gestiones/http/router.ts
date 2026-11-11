@@ -461,7 +461,7 @@ export function createGestionesRouter(
     }
     const item: Management = {
       ...input,
-      id: `${input.level}-${input.scopeCode}-${Date.now()}`,
+      id: input.id ?? `${input.level}-${input.scopeCode}-${Date.now()}`,
       sequence: input.sequence ?? 1,
       version: 1,
     };
