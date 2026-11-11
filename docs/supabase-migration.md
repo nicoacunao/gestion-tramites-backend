@@ -16,7 +16,9 @@ SQL en controladores.
    Esto evita el certificado no conforme que actualmente entrega el pooler
    compartido de Supabase a la validación TLS estricta de Workers.
 3. Para desarrollo local sin Hyperdrive, pega en `DATABASE_URL` la cadena del
-   panel **Connect** de Supabase y conserva `DATABASE_SSL_MODE=verify-full`.
+   panel **Connect** de Supabase y usa `DATABASE_SSL_MODE=disable`. Esta
+   excepción está permitida solo con `APP_ENV=development`; no la uses en
+   staging ni producción porque la conexión cliente→pooler no tendrá TLS.
 4. Si el certificado de tu entorno lo requiere, pega su PEM en
    `DATABASE_SSL_CA` (los saltos pueden escribirse como `\\n`).
 5. Ejecuta `node --env-file=.env --import tsx scripts/check-db.ts`.

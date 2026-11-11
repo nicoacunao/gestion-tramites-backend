@@ -50,7 +50,13 @@ export function readDatabaseConfig(env: DatabaseEnvironment): PoolConfig {
   )
     return invalidConfiguration();
   const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
-  if (sslMode === 'disable' && (!local || env.APP_ENV === 'production'))
+  // Wrangler local currently cannot parse Supabase's shared-pooler certificate.
+  // Allow an explicit plaintext client connection only for local development;
+  // staging and production must use TLS (preferably through Hyperdrive).
+  if (
+    sslMode === 'disable' &&
+    (env.APP_ENV === 'production' || (!local && env.APP_ENV !== 'development'))
+  )
     return invalidConfiguration();
 
   // pg connection-string SSL options override the explicit ssl object. Accept only an

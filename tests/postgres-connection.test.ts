@@ -37,7 +37,7 @@ describe('configuración PostgreSQL', () => {
     },
   );
 
-  it('permite TLS desactivado solo para loopback fuera de producción', () => {
+  it('permite TLS desactivado solo para loopback o desarrollo local', () => {
     const local = {
       DATABASE_URL: 'postgresql://example:secret@localhost:5432/postgres',
       DATABASE_SSL_MODE: 'disable',
@@ -45,6 +45,12 @@ describe('configuración PostgreSQL', () => {
     expect(readDatabaseConfig(local).ssl).toBe(false);
     expect(() => readDatabaseConfig({ ...local, APP_ENV: 'production' })).toThrow();
     expect(() => readDatabaseConfig({ ...env, DATABASE_SSL_MODE: 'disable' })).toThrow();
+    expect(
+      readDatabaseConfig({ ...env, DATABASE_SSL_MODE: 'disable', APP_ENV: 'development' }).ssl,
+    ).toBe(false);
+    expect(() =>
+      readDatabaseConfig({ ...env, DATABASE_SSL_MODE: 'disable', APP_ENV: 'staging' }),
+    ).toThrow();
   });
 
   it.each(['0', '-1', '1.5', 'abc', '101'])('rechaza tamaño de pool inválido: %s', (value) => {
