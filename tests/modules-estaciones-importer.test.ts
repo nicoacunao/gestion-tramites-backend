@@ -27,6 +27,18 @@ describe('parseStationImport', () => {
     const stations = await parseStationImport(
       workbookFile([
         [
+          '60000',
+          'Comercial Válida Limitada',
+          'Pedro Fontova 100',
+          'Huechuraba',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+        ],
+        [
           '60001',
           'Comercial Soar Limitada',
           'Pedro Fontova 6789',
@@ -110,7 +122,7 @@ describe('parseStationImport', () => {
       ]),
     );
 
-    expect(result.stations).toHaveLength(0);
+    expect(result.stations).toHaveLength(1);
     expect(result.errors).toEqual([
       { row: 2, message: 'RUT SOCIEDAD supera el máximo de 12 caracteres.' },
     ]);
