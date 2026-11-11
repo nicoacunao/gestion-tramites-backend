@@ -1,4 +1,4 @@
-import type { StationImportSummary, StationRepository } from './ports';
+import type { StationImportSummary, StationPage, StationRepository } from './ports';
 import type { Station } from '../domain/station';
 import { AppError } from '../../../shared/errors/app-error';
 
@@ -22,6 +22,20 @@ export class StationService {
         (!query.legalName ||
           item.legalName.toLocaleLowerCase().includes(query.legalName.toLocaleLowerCase())),
     );
+  }
+
+  async listPage(page: number, pageSize: number): Promise<StationPage> {
+    if (this.repository.listStationsPage) return this.repository.listStationsPage(page, pageSize);
+    const stations = await this.list({});
+    const total = stations.length;
+    const totalPages = Math.ceil(total / pageSize);
+    return {
+      stations: stations.slice((page - 1) * pageSize, page * pageSize),
+      page,
+      pageSize,
+      total,
+      totalPages,
+    };
   }
 
   async get(id: string): Promise<Station> {

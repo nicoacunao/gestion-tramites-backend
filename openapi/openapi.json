@@ -3763,6 +3763,29 @@
       "get": {
         "tags": ["consultas"],
         "operationId": "consultasListStations",
+        "parameters": [
+          {
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "default": 5,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Estaciones.",
@@ -3823,7 +3846,26 @@
                       }
                     },
                     "meta": {
-                      "$ref": "#/components/schemas/ApiMeta"
+                      "type": "object",
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "example": "4b118c2e-f0f6-4be9-9713-9ed923f44a68"
+                        },
+                        "page": {
+                          "type": "number"
+                        },
+                        "pageSize": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["requestId", "page", "pageSize", "total", "totalPages"]
                     }
                   },
                   "required": ["data", "meta"]

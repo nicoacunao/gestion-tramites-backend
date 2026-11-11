@@ -71,11 +71,25 @@ export function createConsultasModule(
       path: '/stations',
       tags: ['consultas'],
       operationId: 'consultasListStations',
+      request: {
+        query: z.object({
+          page: z.coerce.number().int().min(1).default(1),
+          pageSize: z.coerce.number().int().min(1).max(100).default(5),
+        }),
+      },
       responses: {
         200: {
           content: {
             'application/json': {
-              schema: z.object({ data: z.array(stationData), meta: ApiMetaSchema }),
+              schema: z.object({
+                data: z.array(stationData),
+                meta: ApiMetaSchema.extend({
+                  page: z.number(),
+                  pageSize: z.number(),
+                  total: z.number(),
+                  totalPages: z.number(),
+                }),
+              }),
             },
           },
           description: 'Estaciones.',
@@ -90,10 +104,14 @@ export function createConsultasModule(
       const resolved = dependencies(c.env);
       if (!(await resolved.authorize(c.req.raw, 'indagación')))
         throw new AppError('FORBIDDEN', 'No tienes permisos para consultar estaciones.', 403);
-      const stations = await new StationService(resolved.stations).list({});
+      const query = c.req.valid('query');
+      const result = await new StationService(resolved.stations).listPage(
+        query.page,
+        query.pageSize,
+      );
       return c.json(
         {
-          data: stations.map((item) => ({
+          data: result.stations.map((item) => ({
             stationId: item.id,
             legalName: item.legalName,
             address: item.address,
@@ -105,7 +123,13 @@ export function createConsultasModule(
             legalRepresentativeRut: item.legalRepresentativeRut,
             status: item.status,
           })),
-          meta: { requestId: c.get('requestId') },
+          meta: {
+            requestId: c.get('requestId'),
+            page: result.page,
+            pageSize: result.pageSize,
+            total: result.total,
+            totalPages: result.totalPages,
+          },
         },
         200,
       );

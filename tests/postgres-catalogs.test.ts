@@ -45,6 +45,20 @@ describe('repositorios PostgreSQL de catálogos', () => {
     });
   });
 
+  it('consulta una página de estaciones y calcula el total', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ total: '248' }] })
+      .mockResolvedValueOnce({ rows: [stationRow] });
+    const result = await new PostgresStationRepository({ query } as unknown as SqlExecutor)
+      .listStationsPage!(2, 5);
+
+    expect(result).toMatchObject({ page: 2, pageSize: 5, total: 248, totalPages: 50 });
+    expect(result.stations).toHaveLength(1);
+    expect(query.mock.calls[1]?.[0]).toContain('LIMIT $1 OFFSET $2');
+    expect(query.mock.calls[1]?.[1]).toEqual([5, 5]);
+  });
+
   it('escribe sólo columnas existentes y devuelve la versión real de PostgreSQL', async () => {
     const db = database();
     const repository = new PostgresStationRepository(db.executor);

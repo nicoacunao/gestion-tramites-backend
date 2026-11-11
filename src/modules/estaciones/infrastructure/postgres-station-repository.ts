@@ -1,7 +1,7 @@
 import type { PoolClient } from 'pg';
 import type { SqlExecutor } from '../../../infrastructure/persistence/postgres/connection';
 import { AppError } from '../../../shared/errors/app-error';
-import type { StationImportSummary, StationRepository } from '../application/ports';
+import type { StationImportSummary, StationPage, StationRepository } from '../application/ports';
 import type { Station } from '../domain/station';
 
 interface StationRow {
@@ -45,6 +45,28 @@ export class PostgresStationRepository implements StationRepository {
       [],
     );
     return result.rows.map(fromRow);
+  }
+  async listStationsPage(page: number, pageSize: number): Promise<StationPage> {
+    const offset = (page - 1) * pageSize;
+    const [countResult, rowsResult] = await Promise.all([
+      this.database.query<{ total: string }>('SELECT COUNT(*)::text AS total FROM estacion', []),
+      this.database.query<StationRow>(
+        `
+        SELECT id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
+               rut_sociedad, nombre_representante_legal, rut_representante_legal, status,
+               xmin::text AS version
+        FROM estacion ORDER BY id_estacion LIMIT $1 OFFSET $2`,
+        [pageSize, offset],
+      ),
+    ]);
+    const total = Number(countResult.rows[0]?.total ?? 0);
+    return {
+      stations: rowsResult.rows.map(fromRow),
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
   async findStationById(id: string): Promise<Station | null> {
     const result = await this.database.query<StationRow>(
