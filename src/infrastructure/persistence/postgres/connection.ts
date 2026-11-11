@@ -12,7 +12,10 @@ export interface DatabaseSession {
 /** Construct inside a request; Workers sockets must not be shared between requests.
  * https://developers.cloudflare.com/workers/runtime-apis/tcp-sockets/#considerations
  */
-export function createDatabasePool(env: DatabaseEnvironment): Pool {
+export function createDatabasePool(
+  env: DatabaseEnvironment,
+  onIdleConnectionError?: () => void,
+): Pool {
   // Hyperdrive terminates and manages the upstream database connection for the
   // Worker. Its generated connection string must be passed through unchanged;
   // applying pg's SSL options here would make workerd validate Supabase's
@@ -32,9 +35,13 @@ export function createDatabasePool(env: DatabaseEnvironment): Pool {
     : readDatabaseConfig(env);
   const pool = new Pool(config);
   // Idle connections may fail asynchronously. Do not expose credentials or SQL values.
-  pool.on('error', () => {
-    console.error(JSON.stringify({ level: 'error', event: 'postgres_idle_connection_failed' }));
-  });
+  pool.on(
+    'error',
+    onIdleConnectionError ??
+      (() => {
+        console.error(JSON.stringify({ level: 'error', event: 'postgres_idle_connection_failed' }));
+      }),
+  );
   return pool;
 }
 
@@ -56,7 +63,12 @@ export function createDatabaseSession(env: DatabaseEnvironment): DatabaseSession
   return {
     getPool() {
       if (closed) throw new AppError('DATABASE_SESSION_CLOSED', 'La solicitud ya finalizó.', 500);
-      pool ??= createDatabasePool(env);
+      pool ??= createDatabasePool(env, () => {
+        if (!closed)
+          console.error(
+            JSON.stringify({ level: 'error', event: 'postgres_idle_connection_failed' }),
+          );
+      });
       return pool;
     },
     close() {
