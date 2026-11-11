@@ -20,12 +20,20 @@ export async function login(
   dependencies: LoginDependencies,
 ): Promise<LoginResult> {
   const user = await dependencies.users.findByRut(rut);
+  const storedPasswordIsHash = user !== null && dependencies.passwords.isHash(user.passwordHash);
   const valid =
     user !== null &&
     user.active &&
-    (await dependencies.passwords.verify(password, user.passwordHash));
+    (storedPasswordIsHash
+      ? await dependencies.passwords.verify(password, user.passwordHash)
+      : password === user.passwordHash);
 
   if (!valid || user === null) throw new InvalidCredentialsError();
+
+  if (!storedPasswordIsHash && dependencies.users.upgradePasswordHash) {
+    const upgradedHash = await dependencies.passwords.hash(password);
+    await dependencies.users.upgradePasswordHash(user.id, upgradedHash, user.version);
+  }
 
   return {
     session: await dependencies.sessions.issue(user.id),

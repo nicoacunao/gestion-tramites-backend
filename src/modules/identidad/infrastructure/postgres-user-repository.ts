@@ -9,6 +9,10 @@ const projection = `id_usuario::text AS id, rut, contrasena_hash AS "passwordHas
   organizacion AS organization, xmin::text AS version`;
 type UserRow = Omit<User, 'active' | 'version'> & { version: string };
 
+function normalizeRut(rut: string): string {
+  return rut.replace(/[^0-9kK]/g, '').toUpperCase();
+}
+
 function fromRow(row: UserRow): User {
   // Decisión acordada: el esquema no modela desactivación de usuarios.
   return { ...row, active: true, version: Number(row.version) };
@@ -19,8 +23,9 @@ export class PostgresUserRepository implements UserRepository {
 
   async findByRut(rut: string): Promise<User | null> {
     const result = await this.database.query<UserRow>(
-      `SELECT ${projection} FROM usuario WHERE upper(btrim(rut)) = $1`,
-      [rut.trim().toUpperCase()],
+      `SELECT ${projection} FROM usuario
+       WHERE regexp_replace(upper(btrim(rut)), '[^0-9K]', '', 'g') = $1`,
+      [normalizeRut(rut)],
     );
     return result.rows[0] ? fromRow(result.rows[0]) : null;
   }
@@ -31,6 +36,18 @@ export class PostgresUserRepository implements UserRepository {
       [id],
     );
     return result.rows[0] ? fromRow(result.rows[0]) : null;
+  }
+
+  async upgradePasswordHash(
+    id: string,
+    passwordHash: string,
+    expectedVersion?: number,
+  ): Promise<void> {
+    await this.database.query(
+      `UPDATE usuario SET contrasena_hash = $2
+       WHERE id_usuario = $1::bigint AND ($3::text IS NULL OR xmin::text = $3)`,
+      [id, passwordHash, expectedVersion === undefined ? null : String(expectedVersion)],
+    );
   }
 
   async list(): Promise<readonly User[]> {

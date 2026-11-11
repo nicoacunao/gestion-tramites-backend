@@ -21,16 +21,39 @@ export class Pbkdf2PasswordHasher {
     return `pbkdf2-sha256$${ITERATIONS}$${encode(salt.buffer)}$${encode(key)}`;
   }
 
+  isHash(passwordHash: string): boolean {
+    return this.parse(passwordHash) !== null;
+  }
+
   async verify(plainText: string, passwordHash: string): Promise<boolean> {
+    const parsed = this.parse(passwordHash);
+    if (!parsed) return false;
+    const { iterations, salt, expected } = parsed;
+    const actual = new Uint8Array(await this.derive(plainText, salt, iterations));
+    if (actual.length !== expected.length) return false;
+    let difference = 0;
+    for (let index = 0; index < actual.length; index += 1)
+      difference |= (actual[index] ?? 0) ^ (expected[index] ?? 0);
+    return difference === 0;
+  }
+
+  private parse(passwordHash: string): {
+    iterations: number;
+    salt: Uint8Array;
+    expected: Uint8Array;
+  } | null {
     const [algorithm, iterationText, saltText, expectedText] = passwordHash.split('$');
-    if (algorithm !== 'pbkdf2-sha256' || !iterationText || !saltText || !expectedText) return false;
+    if (algorithm !== 'pbkdf2-sha256' || !iterationText || !saltText || !expectedText) return null;
     const iterations = Number(iterationText);
-    if (!Number.isSafeInteger(iterations) || iterations < 100_000) return false;
-    const actual = new Uint8Array(await this.derive(plainText, decode(saltText), iterations));
-    const expected = decode(expectedText);
-    return (
-      actual.length === expected.length && actual.every((byte, index) => byte === expected[index])
-    );
+    if (!Number.isSafeInteger(iterations) || iterations < 100_000) return null;
+    try {
+      const salt = decode(saltText);
+      const expected = decode(expectedText);
+      if (salt.length === 0 || expected.length === 0) return null;
+      return { iterations, salt, expected };
+    } catch {
+      return null;
+    }
   }
 
   private async derive(
