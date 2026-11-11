@@ -3,8 +3,7 @@ import type { AppEnv } from '../../../shared/config/bindings';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import { AppError } from '../../../shared/errors/app-error';
 import type { ConsultasDependencies } from '../application/ports';
-import { StationService } from '../../estaciones/application/service';
-import { parseStationImport } from '../../estaciones/application/importer';
+import { parseStationImport, StationService } from '../../estaciones';
 import { createModuleHealthRouter } from '../../../shared/api/health-router';
 
 const summary = z.object({
