@@ -3937,9 +3937,24 @@
                             },
                             "rejected": {
                               "type": "number"
+                            },
+                            "rejectedRows": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "number"
+                                  },
+                                  "message": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["row", "message"]
+                              }
                             }
                           },
-                          "required": ["created", "updated", "rejected"]
+                          "required": ["created", "updated", "rejected", "rejectedRows"]
                         }
                       ]
                     }
