@@ -19,7 +19,12 @@ const projection = `codigo AS id, id_estacion AS "stationId", id_tipo_gestion AS
   prioridad AS priority, nombre_solicitante AS "requesterName", estado AS status, xmin::text AS version,
   modalidad_creacion AS "creationMode", id_gestion_especifica::text AS "specificManagementId",
   id_estacion AS "stationName", razon_social AS "legalName", responsable_nombre AS "responsibleName",
-  id_tipo_gestion AS "managementTypeCode"`;
+  (SELECT t.nombre FROM tipo_gestion t WHERE t.id_tipo_gestion = gestion.id_tipo_gestion) AS "managementTypeName",
+  (SELECT ge.codigo FROM gestion_especifica ge WHERE ge.id_gestion_especifica = gestion.id_gestion_especifica) AS "managementTypeCode",
+  (SELECT e.comuna FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS commune,
+  (SELECT e.direccion FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS address,
+  (SELECT e.rut_sociedad FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS "legalRut",
+  (SELECT e.nombre_representante_legal FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS "legalRepresentative"`;
 type ManagementRow = Omit<Management, 'version' | 'responsibleUserId'> & {
   version: string;
   responsibleUserId: string | null;
@@ -152,7 +157,7 @@ export class PostgresManagementRepository implements ManagementRepository {
   ): Promise<ManagementBackground> {
     const result = await this.database.query<ManagementBackground & { version: string }>(
       `UPDATE antecedente_gestion a SET id_usuario_responsable = NULLIF($2, '')::bigint,
-         estado = $3, observaciones = $4
+         estado = $3, archivo_referencia = $4
        FROM gestion g WHERE a.id_antecedente_gestion = $1::bigint AND g.id_gestion = a.id_gestion
          AND a.xmin = $5::text::xid
        RETURNING a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
@@ -179,9 +184,13 @@ export class PostgresManagementRepository implements ManagementRepository {
   ): Promise<ManagementStage> {
     const result = await this.database.query<ManagementStage & { version: string }>(
       `UPDATE etapa_gestion e SET estado = $2, fecha_estimada = $3::date, fecha_real = $4::date,
-         id_usuario_responsable = NULLIF($5, '')::bigint, responsable_nombre = $6, observaciones = $7
+         id_usuario_responsable = NULLIF($5, '')::bigint,
+         responsable_nombre = CASE WHEN NULLIF($5, '') IS NULL THEN NULL
+           ELSE (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
+                 FROM usuario WHERE id_usuario = NULLIF($5, '')::bigint) END,
+         observaciones = $6
        FROM gestion g WHERE e.id_etapa_gestion = $1::bigint AND g.id_gestion = e.id_gestion
-         AND e.xmin = $8::text::xid
+         AND e.xmin = $7::text::xid
        RETURNING e.id_etapa_gestion::text AS id, g.codigo AS "managementId", e.id_etapa::text AS "stageId",
          e.estado AS status, e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
          e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version`,
@@ -190,7 +199,6 @@ export class PostgresManagementRepository implements ManagementRepository {
         input.status,
         input.estimatedOn,
         input.completedOn,
-        input.responsible,
         input.responsible,
         input.notes,
         expectedVersion,
@@ -281,6 +289,14 @@ export class PostgresManagementRepository implements ManagementRepository {
     client: PoolClient,
     input: CompleteManagementInput,
   ): Promise<Management> {
+    const sequenceResult = await client.query<{ next_sequence: string }>(
+      `SELECT (COALESCE(MAX(correlativo), 0) + 1)::text AS next_sequence
+       FROM gestion WHERE nivel = $1 AND codigo_ambito = $2`,
+      [input.level, input.scopeCode],
+    );
+    const sequence = input.sequence ?? Number(sequenceResult.rows[0]?.next_sequence ?? '1');
+    const code =
+      input.id || `${input.level}-${input.scopeCode}-${String(sequence).padStart(3, '0')}`;
     const result = await client.query<ManagementRow>(
       `INSERT INTO gestion (codigo, id_estacion, id_tipo_gestion, id_gestion_especifica, codigo_ambito,
         id_usuario_responsable, nivel, correlativo, modalidad_creacion, estado, prioridad,
@@ -297,14 +313,14 @@ export class PostgresManagementRepository implements ManagementRepository {
         (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2), $13::date, $14::date, $15::date)
        RETURNING ${projection}`,
       [
-        input.id,
+        code,
         input.stationId,
         input.managementTypeId,
         input.specificManagementId ?? '',
         input.scopeCode,
         input.responsibleUserId,
         input.level,
-        input.sequence,
+        sequence,
         input.creationMode,
         input.status,
         input.priority,

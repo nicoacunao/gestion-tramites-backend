@@ -49,6 +49,8 @@ const ManagementSchema = z
   .openapi('Management');
 const ManagementWriteSchema = ManagementSchema.omit({ version: true })
   .extend({
+    id: z.string().trim().min(1).max(50).optional(),
+    sequence: z.number().int().positive().optional(),
     creationMode: z.enum(['principal', 'subtramite']).optional(),
     specificManagementId: z.string().nullable().optional(),
     associatedSpecificManagementIds: z.array(z.string()).optional(),
@@ -402,10 +404,10 @@ export function createGestionesRouter(
     await ensureAuthorized(deps, context.req.raw);
     const input = context.req.valid('json');
     assertDates(input.openedOn, input.estimatedCompletionOn, input.lastReviewedOn);
-    if (await deps.repository.findById(input.id))
+    if (input.id && (await deps.repository.findById(input.id)))
       throw new AppError('RESOURCE_CONFLICT', 'Ya existe una gestión con ese identificador.', 409);
     const hasRelations = Boolean(
-      input.creationMode ||
+      (deps.repository.createComplete && input.creationMode) ||
       input.specificManagementId ||
       input.associatedSpecificManagementIds ||
       input.requiredBackgrounds ||
@@ -423,6 +425,7 @@ export function createGestionesRouter(
         throw new AppError('NOT_IMPLEMENTED', 'La creación completa no está disponible.', 503);
       const completeInput = {
         ...input,
+        id: input.id ?? '',
         creationMode: input.creationMode ?? 'principal',
         associatedSpecificManagementIds:
           input.associatedSpecificManagementIds ?? input.subtramitesAsociados,
@@ -456,7 +459,12 @@ export function createGestionesRouter(
       const item = await deps.repository.createComplete(completeInput);
       return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
     }
-    const item: Management = { ...input, version: 1 };
+    const item: Management = {
+      ...input,
+      id: `${input.level}-${input.scopeCode}-${Date.now()}`,
+      sequence: input.sequence ?? 1,
+      version: 1,
+    };
     await deps.repository.save(item);
     return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
   });
@@ -472,7 +480,12 @@ export function createGestionesRouter(
         expectedVersion: current.version,
       });
     assertDates(input.openedOn, input.estimatedCompletionOn, input.lastReviewedOn);
-    const item: Management = { ...input, id, version: current.version + 1 };
+    const item: Management = {
+      ...input,
+      id,
+      sequence: input.sequence ?? current.sequence,
+      version: current.version + 1,
+    };
     await deps.repository.save(item, current.version);
     return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
   });

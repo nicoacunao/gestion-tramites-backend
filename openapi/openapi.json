@@ -948,13 +948,11 @@
           }
         },
         "required": [
-          "id",
           "stationId",
           "managementTypeId",
           "scopeCode",
           "responsibleUserId",
           "level",
-          "sequence",
           "openedOn",
           "estimatedCompletionOn",
           "lastReviewedOn",

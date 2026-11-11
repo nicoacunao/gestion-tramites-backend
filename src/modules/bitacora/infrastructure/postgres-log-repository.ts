@@ -109,13 +109,13 @@ export class PostgresLogRepository implements LogRepository {
     const result = await this.database.query<LogRow>(
       `INSERT INTO entrada_bitacora (
          codigo_externo, id_gestion, id_usuario, fecha_hora,
-         autor_nombre, autor_iniciales, titulo, comentario
+         autor_nombre, autor_iniciales, tipo, automatica, titulo, comentario
        ) VALUES (
          $1, $2::bigint, $3::bigint, ($4::date + $5::time) AT TIME ZONE $6,
-         $7, $8, $9, $10
+         $7, $8, $9, $10, $11, $12
        )
        RETURNING id_entrada_bitacora::text AS internal_id, codigo_externo,
-                 $11::text AS management_code, id_usuario::text AS user_id,
+                 $13::text AS management_code, id_usuario::text AS user_id,
                  to_char(fecha_hora AT TIME ZONE $6, 'YYYY-MM-DD') AS registered_on,
                  to_char(fecha_hora AT TIME ZONE $6, 'HH24:MI:SS') AS registered_at,
                  titulo, comentario, autor_nombre, autor_iniciales, tipo, automatica, xmin::text AS version`,
@@ -128,6 +128,8 @@ export class PostgresLogRepository implements LogRepository {
         TIME_ZONE,
         author.autor_nombre,
         author.autor_iniciales,
+        entry.type,
+        entry.automatic,
         entry.title,
         entry.comment,
         entry.managementId,

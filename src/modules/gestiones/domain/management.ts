@@ -94,7 +94,9 @@ export interface ManagementAdditionalDataCreateInput {
   value: string;
 }
 
-export interface CompleteManagementInput extends ManagementInput {
+export interface CompleteManagementInput extends Omit<ManagementInput, 'id' | 'sequence'> {
+  id: string;
+  sequence?: number;
   creationMode: 'principal' | 'subtramite';
   specificManagementId?: string | null;
   associatedSpecificManagementIds?: string[];
