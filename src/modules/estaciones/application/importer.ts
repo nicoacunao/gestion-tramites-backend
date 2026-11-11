@@ -16,11 +16,38 @@ const HEADERS = [
   'STATUS',
 ] as const;
 
+const FIELD_LIMITS = [
+  { index: 0, name: 'EDS', max: 20 },
+  { index: 1, name: 'RAZON SOCIAL', max: 150 },
+  { index: 2, name: 'DIRECCION', max: 250 },
+  { index: 3, name: 'COMUNA', max: 100 },
+  { index: 4, name: 'JEFE DE ZONA', max: 150 },
+  { index: 5, name: 'JEFE COMERCIAL', max: 150 },
+  { index: 6, name: 'RUT SOCIEDAD', max: 12 },
+  { index: 7, name: 'Socio 1 Representante Legal', max: 150 },
+  { index: 8, name: 'RUT REPRESENTANTE LEGAL', max: 12 },
+  { index: 9, name: 'STATUS', max: 30 },
+] as const;
+
+export interface StationImportParseResult {
+  stations: readonly Station[];
+  errors: readonly { row: number; message: string }[];
+}
+
 function cell(value: unknown): string {
   return String(value ?? '').trim();
 }
 
-export async function parseStationImport(file: File): Promise<readonly Station[]> {
+function rowErrorMessage(errors: readonly { row: number; message: string }[]): string {
+  const preview = errors
+    .slice(0, 5)
+    .map((error) => `Fila ${error.row}: ${error.message}`)
+    .join(' ');
+  const remaining = errors.length - Math.min(errors.length, 5);
+  return `El archivo no fue importado. ${preview}${remaining > 0 ? ` Hay ${remaining} errores adicionales.` : ''}`;
+}
+
+export async function parseStationImport(file: File): Promise<StationImportParseResult> {
   const extension = file.name.toLowerCase().split('.').pop();
   if (extension !== 'xlsx' && extension !== 'csv')
     throw new AppError('INVALID_FILE_TYPE', 'El archivo debe tener extensión .xlsx o .csv.', 422);
@@ -69,14 +96,26 @@ export async function parseStationImport(file: File): Promise<readonly Station[]
     const legalRepresentative = value(7);
     const legalRepresentativeRut = value(8);
     const status = value(9);
-    if (!id) errors.push({ row: index + 2, message: 'EDS es obligatorio.' });
-    else if (ids.has(id)) errors.push({ row: index + 2, message: `EDS duplicado: ${id}.` });
-    else ids.add(id);
-    if (!legalName || !address || !commune || !status)
-      errors.push({
+    const rowErrors: Array<{ row: number; message: string }> = [];
+    if (!id) rowErrors.push({ row: index + 2, message: 'EDS es obligatorio.' });
+    else if (ids.has(id)) rowErrors.push({ row: index + 2, message: `EDS duplicado: ${id}.` });
+    if (!legalName || !address || !commune)
+      rowErrors.push({
         row: index + 2,
-        message: 'RAZON SOCIAL, DIRECCION, COMUNA y STATUS son obligatorios.',
+        message: 'RAZON SOCIAL, DIRECCION y COMUNA son obligatorios.',
       });
+    for (const field of FIELD_LIMITS) {
+      if ((values[field.index] ?? '').length > field.max)
+        rowErrors.push({
+          row: index + 2,
+          message: `${field.name} supera el máximo de ${field.max} caracteres.`,
+        });
+    }
+    if (rowErrors.length > 0) {
+      errors.push(...rowErrors);
+      return;
+    }
+    ids.add(id);
     stations.push({
       id,
       name: null,
@@ -88,16 +127,16 @@ export async function parseStationImport(file: File): Promise<readonly Station[]
       companyRut,
       legalRepresentative,
       legalRepresentativeRut: legalRepresentativeRut || null,
-      status,
+      // La fuente histórica deja STATUS vacío en muchas filas. El contrato de
+      // estaciones usa active como estado derivado por defecto.
+      status: status || 'active',
       version: 1,
     });
   });
-  if (errors.length > 0)
-    throw new AppError(
-      'INVALID_IMPORT_ROWS',
-      'El archivo contiene filas inválidas y no fue importado.',
-      422,
-      { errors },
-    );
-  return stations;
+  if (stations.length === 0 && errors.length > 0)
+    throw new AppError('INVALID_IMPORT_ROWS', rowErrorMessage(errors), 422, {
+      errors,
+      totalErrors: errors.length,
+    });
+  return { stations, errors };
 }

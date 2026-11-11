@@ -96,6 +96,7 @@ export function createApp(): OpenAPIHono<AppEnv> {
         ? error
         : (translateDatabaseError(error) ??
           new AppError('INTERNAL_ERROR', 'Ocurrió un error inesperado.', 500));
+    const unknownError = error instanceof AppError ? undefined : error;
 
     console.error(
       JSON.stringify({
@@ -104,6 +105,19 @@ export function createApp(): OpenAPIHono<AppEnv> {
         requestId: context.get('requestId'),
         code: appError.code,
         message: appError.message,
+        errorName: unknownError instanceof Error ? unknownError.name : undefined,
+        errorCode:
+          typeof unknownError === 'object' && unknownError !== null && 'code' in unknownError
+            ? String(unknownError.code)
+            : undefined,
+        databaseTable:
+          typeof unknownError === 'object' && unknownError !== null && 'table' in unknownError
+            ? String(unknownError.table)
+            : undefined,
+        databaseColumn:
+          typeof unknownError === 'object' && unknownError !== null && 'column' in unknownError
+            ? String(unknownError.column)
+            : undefined,
       }),
     );
 

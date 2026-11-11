@@ -64,6 +64,7 @@ export function createConsultasModule(
     legalRepresentativeRut: z.string().nullable(),
     status: z.string(),
   });
+  const importRowError = z.object({ row: z.number(), message: z.string() });
   app.openapi(
     createRoute({
       method: 'get',
@@ -129,6 +130,7 @@ export function createConsultasModule(
                   created: z.number(),
                   updated: z.number(),
                   rejected: z.number(),
+                  rejectedRows: z.array(importRowError),
                 }),
               }),
             },
@@ -149,11 +151,26 @@ export function createConsultasModule(
       const resolved = dependencies(c.env);
       if (!(await resolved.authorize(c.req.raw, 'indagación')))
         throw new AppError('FORBIDDEN', 'No tienes permisos para importar estaciones.', 403);
-      const file = (await c.req.raw.formData()).get('file');
+      let formData: Record<string, string | File | File[]>;
+      try {
+        formData = await c.req.parseBody();
+      } catch {
+        throw new AppError(
+          'INVALID_MULTIPART',
+          'La solicitud debe enviarse como multipart/form-data con un archivo en el campo file.',
+          422,
+          {
+            receivedContentType: c.req.header('content-type')?.split(';', 1)[0] ?? null,
+          },
+        );
+      }
+      const file = formData.file;
       if (!(file instanceof File))
         throw new AppError('INVALID_FILE', 'Debes enviar el campo file.', 422);
+      const parsed = await parseStationImport(file);
       const result = await new StationService(resolved.stations).import(
-        await parseStationImport(file),
+        parsed.stations,
+        parsed.errors.length,
       );
       return c.json(
         {
@@ -174,6 +191,7 @@ export function createConsultasModule(
             created: result.created,
             updated: result.updated,
             rejected: result.rejected,
+            rejectedRows: [...parsed.errors],
           },
         },
         200,

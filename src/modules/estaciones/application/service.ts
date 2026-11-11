@@ -47,7 +47,7 @@ export class StationService {
     return (await this.repository.saveStation(updated, current.version)) ?? updated;
   }
 
-  async import(stations: readonly Station[]): Promise<StationImportSummary> {
+  async import(stations: readonly Station[], rejected = 0): Promise<StationImportSummary> {
     if (stations.length === 0)
       throw new AppError('INVALID_IMPORT', 'El archivo no contiene filas para importar.', 422);
     if (!this.repository.importStations)
@@ -56,6 +56,7 @@ export class StationService {
         'La importación de estaciones no está configurada.',
         503,
       );
-    return this.repository.importStations(stations);
+    const result = await this.repository.importStations(stations);
+    return { ...result, rejected: result.rejected + rejected };
   }
 }

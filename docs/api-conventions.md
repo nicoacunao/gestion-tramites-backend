@@ -59,6 +59,9 @@ endpoint. `pageSize` tendrá un máximo documentado cuando se implementen rutas.
 - `code` es estable y apto para lógica del cliente.
 - `message` es seguro para mostrar; no contiene secretos ni stack traces.
 - `details` es opcional y se usa para errores de validación.
+- En importaciones tabulares, `details.errors` contiene la fila y el motivo de
+  cada error, y `message` incluye un resumen seguro para mostrar directamente
+  en la interfaz. El cliente debe conservar ambos valores.
 - `x-request-id` se acepta o genera y siempre se devuelve.
 
 ## Estados HTTP
