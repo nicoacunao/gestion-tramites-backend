@@ -26,6 +26,7 @@ CREATE TABLE estacion (
     rut_sociedad VARCHAR(12),
     nombre_representante_legal VARCHAR(150),
     rut_representante_legal VARCHAR(12),
+    status VARCHAR(30) NOT NULL DEFAULT 'No',
 
     CONSTRAINT pk_estacion PRIMARY KEY (id_estacion)
 );

@@ -3758,6 +3758,219 @@
           }
         }
       }
+    },
+    "/api/v1/consultas/stations": {
+      "get": {
+        "tags": ["consultas"],
+        "operationId": "consultasListStations",
+        "responses": {
+          "200": {
+            "description": "Estaciones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "stationId": {
+                            "type": "string"
+                          },
+                          "legalName": {
+                            "type": "string"
+                          },
+                          "address": {
+                            "type": "string"
+                          },
+                          "comuna": {
+                            "type": "string"
+                          },
+                          "zoneManager": {
+                            "type": "string"
+                          },
+                          "commercialManager": {
+                            "type": "string"
+                          },
+                          "companyRut": {
+                            "type": "string"
+                          },
+                          "legalRepresentative": {
+                            "type": "string"
+                          },
+                          "legalRepresentativeRut": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "stationId",
+                          "legalName",
+                          "address",
+                          "comuna",
+                          "zoneManager",
+                          "commercialManager",
+                          "companyRut",
+                          "legalRepresentative",
+                          "legalRepresentativeRut",
+                          "status"
+                        ]
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consultas/stations/import": {
+      "post": {
+        "tags": ["consultas"],
+        "operationId": "consultasImportStations",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Importación completada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "stationId": {
+                            "type": "string"
+                          },
+                          "legalName": {
+                            "type": "string"
+                          },
+                          "address": {
+                            "type": "string"
+                          },
+                          "comuna": {
+                            "type": "string"
+                          },
+                          "zoneManager": {
+                            "type": "string"
+                          },
+                          "commercialManager": {
+                            "type": "string"
+                          },
+                          "companyRut": {
+                            "type": "string"
+                          },
+                          "legalRepresentative": {
+                            "type": "string"
+                          },
+                          "legalRepresentativeRut": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "stationId",
+                          "legalName",
+                          "address",
+                          "comuna",
+                          "zoneManager",
+                          "commercialManager",
+                          "companyRut",
+                          "legalRepresentative",
+                          "legalRepresentativeRut",
+                          "status"
+                        ]
+                      }
+                    },
+                    "meta": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiMeta"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "created": {
+                              "type": "number"
+                            },
+                            "updated": {
+                              "type": "number"
+                            },
+                            "rejected": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["created", "updated", "rejected"]
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Archivo inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

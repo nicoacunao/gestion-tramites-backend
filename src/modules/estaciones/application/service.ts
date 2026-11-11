@@ -1,4 +1,4 @@
-import type { StationRepository } from './ports';
+import type { StationImportSummary, StationRepository } from './ports';
 import type { Station } from '../domain/station';
 import { AppError } from '../../../shared/errors/app-error';
 
@@ -45,5 +45,17 @@ export class StationService {
       });
     const updated = { ...station, version: current.version + 1 };
     return (await this.repository.saveStation(updated, current.version)) ?? updated;
+  }
+
+  async import(stations: readonly Station[]): Promise<StationImportSummary> {
+    if (stations.length === 0)
+      throw new AppError('INVALID_IMPORT', 'El archivo no contiene filas para importar.', 422);
+    if (!this.repository.importStations)
+      throw new AppError(
+        'CAPABILITY_NOT_CONFIGURED',
+        'La importación de estaciones no está configurada.',
+        503,
+      );
+    return this.repository.importStations(stations);
   }
 }

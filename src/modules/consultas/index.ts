@@ -3,3 +3,4 @@ export type { ManagementListItem, StationSummary } from './domain/read-models';
 export { consultasModule } from './health/router';
 export { createConsultasModule } from './http/router';
 export { postgresConsultasDependencies } from './factory';
+export type { ConsultasDependencies } from './application/ports';
