@@ -85,6 +85,21 @@ describe('pool por solicitud de Cloudflare Workers', () => {
     expect(() => first.getPool()).toThrow('La solicitud ya finalizó.');
   });
 
+  it('usa la cadena de Hyperdrive sin exigir DATABASE_URL ni sobreescribir TLS', async () => {
+    const session = createDatabaseSession({
+      HYPERDRIVE: { connectionString: 'postgresql://hyperdrive.example.invalid/postgres' },
+    });
+    try {
+      const pool = session.getPool();
+      expect(pool.options.connectionString).toBe(
+        'postgresql://hyperdrive.example.invalid/postgres',
+      );
+      expect(pool.options.ssl).toBeUndefined();
+    } finally {
+      await session.close();
+    }
+  });
+
   it('cierra el pool una sola vez', async () => {
     const session = createDatabaseSession(env);
     const close = vi.spyOn(session.getPool(), 'end');

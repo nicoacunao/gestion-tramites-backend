@@ -8,16 +8,24 @@ SQL en controladores.
 ## Probar localmente
 
 1. Copia `.env.example` a `.env`.
-2. Pega en `DATABASE_URL` la cadena del panel **Connect** de Supabase. Para
-   Workers usa el pooler de Supabase; conserva `DATABASE_SSL_MODE=verify-full`.
-3. Si el certificado de tu entorno lo requiere, pega su PEM en
+2. Para producción en Cloudflare Workers, crea un Hyperdrive apuntando a la
+   cadena de Supabase y agrega el binding `HYPERDRIVE` a `wrangler.jsonc`:
+   `npx wrangler hyperdrive create gestion-tramites-db` con
+   `--connection-string="postgres://..."`. El Worker usará automáticamente
+   `env.HYPERDRIVE.connectionString` y Hyperdrive gestionará la conexión TLS.
+   Esto evita el certificado no conforme que actualmente entrega el pooler
+   compartido de Supabase a la validación TLS estricta de Workers.
+3. Para desarrollo local sin Hyperdrive, pega en `DATABASE_URL` la cadena del
+   panel **Connect** de Supabase y conserva `DATABASE_SSL_MODE=verify-full`.
+4. Si el certificado de tu entorno lo requiere, pega su PEM en
    `DATABASE_SSL_CA` (los saltos pueden escribirse como `\\n`).
-4. Ejecuta `node --env-file=.env --import tsx scripts/check-db.ts`.
-5. Ejecuta `npm run dev` y consulta `http://localhost:8787/openapi.json`.
+5. Ejecuta `node --env-file=.env --import tsx scripts/check-db.ts`.
+6. Ejecuta `npm run dev` y consulta `http://localhost:8787/openapi.json`.
 
 No se registra `DATABASE_URL`, errores de `pg` ni parámetros SQL. En Cloudflare,
-configura `DATABASE_URL` y `AUTH_TOKEN_SECRET` como secretos; las variables de
-pool pueden ser variables normales.
+configura `AUTH_TOKEN_SECRET` como secreto; las variables de pool pueden ser
+variables normales. `DATABASE_URL` solo es necesario cuando no se usa
+Hyperdrive.
 
 ## Estructura
 

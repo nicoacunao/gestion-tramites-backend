@@ -1,6 +1,7 @@
 import type { DatabaseSession } from '../../infrastructure/persistence/postgres/connection';
+import type { DatabaseEnvironment } from '../../infrastructure/persistence/postgres/config';
 
-export interface SecretBindings {
+export interface SecretBindings extends Pick<DatabaseEnvironment, 'HYPERDRIVE'> {
   DATABASE_URL?: string;
   DATABASE_SSL_MODE?: string;
   DATABASE_SSL_CA?: string;

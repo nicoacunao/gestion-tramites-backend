@@ -2,6 +2,7 @@ import type { PoolConfig } from 'pg';
 import { AppError } from '../../../shared/errors/app-error';
 
 export interface DatabaseEnvironment {
+  HYPERDRIVE?: { connectionString: string };
   DATABASE_URL?: string;
   DATABASE_SSL_MODE?: string;
   DATABASE_SSL_CA?: string;
