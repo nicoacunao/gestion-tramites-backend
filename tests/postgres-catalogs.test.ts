@@ -116,6 +116,10 @@ describe('repositorios PostgreSQL de catálogos', () => {
         code: 'PROV',
         name: 'Provisoria',
         active: true,
+        backgrounds: [
+          { id: '1', name: 'Formulario de ingreso' },
+          { id: '2', name: 'Certificado' },
+        ],
       },
     ];
     const db = database(rows);
@@ -125,6 +129,12 @@ describe('repositorios PostgreSQL de catálogos', () => {
     expect(result[0]?.id).toBe('9007199254740993');
     expect(db.query.mock.calls[0]?.[1]).toEqual(["' OR true --"]);
     expect(db.query.mock.calls[0]?.[0]).toContain('id_gestion_especifica::text');
+    expect(db.query.mock.calls[0]?.[0]).toContain('gestion_especifica_antecedente');
+    expect(db.query.mock.calls[0]?.[0]).toContain('ORDER BY gea.orden');
+    expect(result[0]?.backgrounds).toEqual([
+      { id: '1', name: 'Formulario de ingreso' },
+      { id: '2', name: 'Certificado' },
+    ]);
     const fields = database([]);
     await new PostgresCamposAdicionalesRepository(fields.executor).list();
     expect(fields.query.mock.calls[0]?.[1]).toEqual([null]);
@@ -135,11 +145,16 @@ describe('repositorios PostgreSQL de catálogos', () => {
 
 describe('rutas de catálogos separados', () => {
   it('expone el reemplazo de type-relations con un filtro y contrato explícitos', async () => {
-    const list = vi
-      .fn()
-      .mockResolvedValue([
-        { id: '1', managementTypeId: 'patentes', code: 'PROV', name: 'Provisoria', active: true },
-      ]);
+    const list = vi.fn().mockResolvedValue([
+      {
+        id: '1',
+        managementTypeId: 'patentes',
+        code: 'PROV',
+        name: 'Provisoria',
+        active: true,
+        backgrounds: [{ id: '2', name: 'Formulario de ingreso' }],
+      },
+    ]);
     const app = createGestionesEspecificasModule({ repository: { list }, authorize: () => true });
     const response = await app.request('/items?managementTypeId=patentes');
     expect(response.status).toBe(200);

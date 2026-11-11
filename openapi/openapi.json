@@ -996,9 +996,24 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "backgrounds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": ["id", "name"]
+            }
           }
         },
-        "required": ["id", "managementTypeId", "code", "name", "active"]
+        "required": ["id", "managementTypeId", "code", "name", "active", "backgrounds"]
       },
       "AdditionalField": {
         "type": "object",

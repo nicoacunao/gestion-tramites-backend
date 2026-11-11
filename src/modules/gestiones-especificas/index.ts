@@ -1,4 +1,4 @@
-export type { SpecificManagement } from './domain/model';
+export type { SpecificManagement, SpecificManagementBackground } from './domain/model';
 export type { GestionesEspecificasRepository } from './application/ports';
 export type {
   GestionesEspecificasDependencies,

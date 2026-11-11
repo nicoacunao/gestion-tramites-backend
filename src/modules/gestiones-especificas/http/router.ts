@@ -15,6 +15,12 @@ const responseSchema = z.object({
         code: z.string(),
         name: z.string(),
         active: z.boolean(),
+        backgrounds: z.array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+          }),
+        ),
       })
       .openapi('SpecificManagement'),
   ),
