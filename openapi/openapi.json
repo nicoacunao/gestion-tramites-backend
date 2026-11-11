@@ -3766,9 +3766,9 @@
         "parameters": [
           {
             "schema": {
-              "default": 1,
               "type": "integer",
-              "minimum": 1
+              "minimum": 1,
+              "default": 1
             },
             "required": false,
             "name": "page",
@@ -3776,10 +3776,10 @@
           },
           {
             "schema": {
-              "default": 5,
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 100,
+              "default": 5
             },
             "required": false,
             "name": "pageSize",
@@ -3846,26 +3846,29 @@
                       }
                     },
                     "meta": {
-                      "type": "object",
-                      "properties": {
-                        "requestId": {
-                          "type": "string",
-                          "example": "4b118c2e-f0f6-4be9-9713-9ed923f44a68"
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiMeta"
                         },
-                        "page": {
-                          "type": "number"
-                        },
-                        "pageSize": {
-                          "type": "number"
-                        },
-                        "total": {
-                          "type": "number"
-                        },
-                        "totalPages": {
-                          "type": "number"
+                        {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "number"
+                            },
+                            "pageSize": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["page", "pageSize", "total", "totalPages"]
                         }
-                      },
-                      "required": ["requestId", "page", "pageSize", "total", "totalPages"]
+                      ]
                     }
                   },
                   "required": ["data", "meta"]
