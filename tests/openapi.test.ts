@@ -24,6 +24,8 @@ describe('contrato OpenAPI', () => {
         '/api/v1/catalogos/scopes',
         '/api/v1/catalogos/stages',
         '/api/v1/consultas/health',
+        '/api/v1/consultas/stations',
+        '/api/v1/consultas/stations/import',
         '/api/v1/consultas/stations/summary',
         '/api/v1/estaciones/items',
         '/api/v1/estaciones/items/{id}',

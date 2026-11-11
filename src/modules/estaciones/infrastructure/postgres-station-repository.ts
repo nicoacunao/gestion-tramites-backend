@@ -29,7 +29,7 @@ function fromRow(row: StationRow): Station {
     companyRut: row.rut_sociedad ?? '',
     legalRepresentative: row.nombre_representante_legal ?? '',
     legalRepresentativeRut: row.rut_representante_legal,
-    status: row.status,
+    status: row.status ?? 'active',
     version: Number(row.version),
   };
 }
@@ -57,10 +57,10 @@ export class PostgresStationRepository implements StationRepository {
     return result.rows[0] ? fromRow(result.rows[0]) : null;
   }
   async saveStation(station: Station, expectedVersion?: number): Promise<Station> {
-    if (station.name !== null)
+    if (station.name !== null || station.status !== 'active')
       throw new AppError(
         'UNSUPPORTED_STATION_FIELDS',
-        'El esquema no admite un nombre de presentación independiente.',
+        'El esquema admite name=null y status=active; no existe almacenamiento para otros valores.',
         422,
       );
     const values = [
@@ -73,15 +73,14 @@ export class PostgresStationRepository implements StationRepository {
       station.companyRut || null,
       station.legalRepresentative || null,
       station.legalRepresentativeRut,
-      station.status,
     ];
     const result =
       expectedVersion === undefined
         ? await this.database.query<StationRow>(
             `
           INSERT INTO estacion (id_estacion, direccion, comuna, razon_social, jefe_zona,
-            jefe_comercial, rut_sociedad, nombre_representante_legal, rut_representante_legal, status)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            jefe_comercial, rut_sociedad, nombre_representante_legal, rut_representante_legal)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           RETURNING id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
             rut_sociedad, nombre_representante_legal, rut_representante_legal, status, xmin::text AS version`,
             values,
@@ -90,8 +89,8 @@ export class PostgresStationRepository implements StationRepository {
             `
           UPDATE estacion SET direccion = $2, comuna = $3, razon_social = $4, jefe_zona = $5,
             jefe_comercial = $6, rut_sociedad = $7, nombre_representante_legal = $8,
-            rut_representante_legal = $9, status = $10
-          WHERE id_estacion = $1 AND xmin::text = $11
+            rut_representante_legal = $9
+          WHERE id_estacion = $1 AND xmin::text = $10
           RETURNING id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
             rut_sociedad, nombre_representante_legal, rut_representante_legal, status, xmin::text AS version`,
             [...values, String(expectedVersion)],
