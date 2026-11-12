@@ -587,6 +587,92 @@
           "managementTypeCode": {
             "type": "string",
             "nullable": true
+          },
+          "commune": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "legalRut": {
+            "type": "string",
+            "nullable": true
+          },
+          "legalRepresentative": {
+            "type": "string",
+            "nullable": true
+          },
+          "legalRepresentativeRut": {
+            "type": "string",
+            "nullable": true
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "ambito": {
+            "type": "string"
+          },
+          "codigoAmbito": {
+            "type": "string"
+          },
+          "correlativo": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "semaforo": {
+            "type": "string",
+            "enum": ["al-dia", "proximo-vencer", "atrasado"]
+          },
+          "semaforoEtiqueta": {
+            "type": "string"
+          },
+          "fechaInicio": {
+            "type": "string"
+          },
+          "fechaIngreso": {
+            "type": "string"
+          },
+          "fechaIngresoOrden": {
+            "type": "string"
+          },
+          "fechaEstimadaTermino": {
+            "type": "string"
+          },
+          "responsableInterno": {
+            "type": "string"
+          },
+          "idEstacion": {
+            "type": "string"
+          },
+          "estacionServicio": {
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "comuna": {
+            "type": "string"
+          },
+          "rutRazonSocial": {
+            "type": "string"
+          },
+          "razonSocial": {
+            "type": "string"
+          },
+          "representanteLegal": {
+            "type": "string"
+          },
+          "rutRepresentanteLegal": {
+            "type": "string"
+          },
+          "concesionario": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
           }
         },
         "required": [
@@ -713,6 +799,92 @@
           "managementTypeCode": {
             "type": "string",
             "nullable": true
+          },
+          "commune": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "legalRut": {
+            "type": "string",
+            "nullable": true
+          },
+          "legalRepresentative": {
+            "type": "string",
+            "nullable": true
+          },
+          "legalRepresentativeRut": {
+            "type": "string",
+            "nullable": true
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "ambito": {
+            "type": "string"
+          },
+          "codigoAmbito": {
+            "type": "string"
+          },
+          "correlativo": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "semaforo": {
+            "type": "string",
+            "enum": ["al-dia", "proximo-vencer", "atrasado"]
+          },
+          "semaforoEtiqueta": {
+            "type": "string"
+          },
+          "fechaInicio": {
+            "type": "string"
+          },
+          "fechaIngreso": {
+            "type": "string"
+          },
+          "fechaIngresoOrden": {
+            "type": "string"
+          },
+          "fechaEstimadaTermino": {
+            "type": "string"
+          },
+          "responsableInterno": {
+            "type": "string"
+          },
+          "idEstacion": {
+            "type": "string"
+          },
+          "estacionServicio": {
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "comuna": {
+            "type": "string"
+          },
+          "rutRazonSocial": {
+            "type": "string"
+          },
+          "razonSocial": {
+            "type": "string"
+          },
+          "representanteLegal": {
+            "type": "string"
+          },
+          "rutRepresentanteLegal": {
+            "type": "string"
+          },
+          "concesionario": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
           },
           "creationMode": {
             "type": "string",
