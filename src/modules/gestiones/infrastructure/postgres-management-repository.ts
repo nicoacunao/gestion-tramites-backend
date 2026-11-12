@@ -352,8 +352,8 @@ export class PostgresManagementRepository implements ManagementRepository {
         'N2', $5, $4, $6, $7, NULLIF($8, '')::bigint,
         COALESCE(NULLIF($9, ''), (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
           FROM usuario WHERE id_usuario = NULLIF($8, '')::bigint), ''), $10, $11, $12, $13,
-        CASE WHEN $13 IS NULL THEN NULL ELSE now() END)
-       RETURNING id_antecedente_gestion::text AS id, $1 AS "managementId",
+        CASE WHEN $13::text IS NULL THEN NULL ELSE now() END)
+       RETURNING id_antecedente_gestion::text AS id, $1::text AS "managementId",
         id_antecedente_padre::text AS "parentManagementBackgroundId",
         (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1) AS "managementTypeId",
         COALESCE(id_antecedente::text, '') AS "backgroundId", nivel AS level,
@@ -391,7 +391,7 @@ export class PostgresManagementRepository implements ManagementRepository {
        VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
         (SELECT id_etapa FROM etapa WHERE id_etapa::text = NULLIF($2, '') OR nombre = $3),
         $4, $5::date, $6::date, NULLIF($7, '')::bigint, $8, $9)
-       RETURNING id_etapa_gestion::text AS id, $1 AS "managementId", id_etapa::text AS "stageId",
+       RETURNING id_etapa_gestion::text AS id, $1::text AS "managementId", id_etapa::text AS "stageId",
         estado AS status, fecha_estimada::text AS "estimatedOn", fecha_real::text AS "completedOn",
         responsable_nombre AS responsible, observaciones AS notes, xmin::text AS version`,
       [
