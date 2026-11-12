@@ -21,10 +21,12 @@ const projection = `codigo AS id, id_estacion AS "stationId", id_tipo_gestion AS
   id_estacion AS "stationName", razon_social AS "legalName", responsable_nombre AS "responsibleName",
   (SELECT t.nombre FROM tipo_gestion t WHERE t.id_tipo_gestion = gestion.id_tipo_gestion) AS "managementTypeName",
   (SELECT ge.codigo FROM gestion_especifica ge WHERE ge.id_gestion_especifica = gestion.id_gestion_especifica) AS "managementTypeCode",
+  (SELECT a.nombre FROM ambito_gestion a WHERE a.codigo_ambito = gestion.codigo_ambito) AS "scopeName",
   (SELECT e.comuna FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS commune,
   (SELECT e.direccion FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS address,
   (SELECT e.rut_sociedad FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS "legalRut",
-  (SELECT e.nombre_representante_legal FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS "legalRepresentative"`;
+  (SELECT e.nombre_representante_legal FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS "legalRepresentative",
+  (SELECT e.rut_representante_legal FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS "legalRepresentativeRut"`;
 type ManagementRow = Omit<Management, 'version' | 'responsibleUserId'> & {
   version: string;
   responsibleUserId: string | null;

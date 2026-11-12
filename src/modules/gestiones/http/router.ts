@@ -3,6 +3,7 @@ import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { AppError } from '../../../shared/errors/app-error';
 import type { ManagementRepository } from '../application/ports';
+import { presentManagement } from '../application/presentation';
 import type {
   CompleteManagementInput,
   Management,
@@ -45,6 +46,32 @@ const ManagementSchema = z
     responsibleName: z.string().nullable().optional(),
     managementTypeName: z.string().nullable().optional(),
     managementTypeCode: z.string().nullable().optional(),
+    commune: z.string().nullable().optional(),
+    address: z.string().nullable().optional(),
+    legalRut: z.string().nullable().optional(),
+    legalRepresentative: z.string().nullable().optional(),
+    legalRepresentativeRut: z.string().nullable().optional(),
+    codigo: z.string().optional(),
+    ambito: z.string().optional(),
+    codigoAmbito: z.string().optional(),
+    correlativo: z.number().int().positive().optional(),
+    semaforo: z.enum(['al-dia', 'proximo-vencer', 'atrasado']).optional(),
+    semaforoEtiqueta: z.string().optional(),
+    fechaInicio: z.string().optional(),
+    fechaIngreso: z.string().optional(),
+    fechaIngresoOrden: z.string().optional(),
+    fechaEstimadaTermino: z.string().optional(),
+    responsableInterno: z.string().optional(),
+    idEstacion: z.string().optional(),
+    estacionServicio: z.string().optional(),
+    direccion: z.string().optional(),
+    comuna: z.string().optional(),
+    rutRazonSocial: z.string().optional(),
+    razonSocial: z.string().optional(),
+    representanteLegal: z.string().optional(),
+    rutRepresentanteLegal: z.string().optional(),
+    concesionario: z.string().optional(),
+    descripcion: z.string().optional(),
   })
   .openapi('Management');
 const ManagementWriteSchema = ManagementSchema.omit({ version: true })
@@ -304,7 +331,7 @@ export function createGestionesRouter(
     await ensureAuthorized(deps, context.req.raw);
     return context.json(
       {
-        data: Array.from(await deps.repository.list()),
+        data: Array.from(await deps.repository.list(), presentManagement),
         meta: { requestId: context.get('requestId') },
       },
       200,
@@ -315,7 +342,10 @@ export function createGestionesRouter(
     await ensureAuthorized(deps, context.req.raw);
     const item = await deps.repository.findById(context.req.valid('param').id);
     if (!item) throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
-    return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
+    return context.json(
+      { data: presentManagement(item), meta: { requestId: context.get('requestId') } },
+      200,
+    );
   });
   router.openapi(
     createRoute({
@@ -457,7 +487,10 @@ export function createGestionesRouter(
           })),
       } as CompleteManagementInput;
       const item = await deps.repository.createComplete(completeInput);
-      return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
+      return context.json(
+        { data: presentManagement(item), meta: { requestId: context.get('requestId') } },
+        201,
+      );
     }
     const item: Management = {
       ...input,
@@ -466,7 +499,10 @@ export function createGestionesRouter(
       version: 1,
     };
     await deps.repository.save(item);
-    return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
+    return context.json(
+      { data: presentManagement(item), meta: { requestId: context.get('requestId') } },
+      201,
+    );
   });
   router.openapi(updateRoute, async (context) => {
     const deps = resolve(context.env);
@@ -487,7 +523,10 @@ export function createGestionesRouter(
       version: current.version + 1,
     };
     await deps.repository.save(item, current.version);
-    return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 200);
+    return context.json(
+      { data: presentManagement(item), meta: { requestId: context.get('requestId') } },
+      200,
+    );
   });
   router.openapi(
     createRoute({

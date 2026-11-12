@@ -63,7 +63,24 @@ describe('gestiones', () => {
     const detail = await router.request('/items/1001', { headers: auth });
 
     expect(list.status).toBe(200);
-    expect(await list.json()).toMatchObject({ data: [{ id: '1001' }] });
+    expect(await list.json()).toMatchObject({
+      data: [
+        {
+          id: '1001',
+          codigo: '1001',
+          nivel: 'N1',
+          codigoAmbito: 'PAT',
+          correlativo: 1,
+          semaforo: 'al-dia',
+          semaforoEtiqueta: 'Al día',
+          fechaInicio: '02-07-2026',
+          fechaIngreso: '02-07-2026',
+          fechaIngresoOrden: '2026-07-02',
+          fechaEstimadaTermino: '12-07-2026',
+          responsableInterno: 'u-1',
+        },
+      ],
+    });
     expect(detail.status).toBe(200);
     expect(await detail.json()).toMatchObject({ data: { priority: 'Alta' } });
   });
