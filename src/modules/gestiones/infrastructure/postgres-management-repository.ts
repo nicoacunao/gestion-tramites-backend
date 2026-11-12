@@ -232,7 +232,7 @@ export class PostgresManagementRepository implements ManagementRepository {
           `INSERT INTO gestion_subtramite (id_gestion, id_gestion_especifica)
            VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
              (SELECT id_gestion_especifica FROM gestion_especifica
-               WHERE id_gestion_especifica::text = $2 OR nombre = $2))`,
+               WHERE id_gestion_especifica::text = $2::text OR nombre::text = $2::text))`,
           [management.id, specificId],
         );
       await client.query('COMMIT');
@@ -291,7 +291,7 @@ export class PostgresManagementRepository implements ManagementRepository {
   ): Promise<Management> {
     const sequenceResult = await client.query<{ next_sequence: string }>(
       `SELECT (COALESCE(MAX(correlativo), 0) + 1)::text AS next_sequence
-       FROM gestion WHERE nivel = $1 AND codigo_ambito = $2`,
+       FROM gestion WHERE nivel = $1::varchar AND codigo_ambito = $2::varchar`,
       [input.level, input.scopeCode],
     );
     const sequence = input.sequence ?? Number(sequenceResult.rows[0]?.next_sequence ?? '1');
@@ -302,15 +302,17 @@ export class PostgresManagementRepository implements ManagementRepository {
         id_usuario_responsable, nivel, correlativo, modalidad_creacion, estado, prioridad,
         responsable_nombre, nombre_solicitante, razon_social, rut_razon_social, representante_legal,
         rut_representante_legal, fecha_apertura, fecha_estimada_termino, fecha_ultima_revision)
-       VALUES ($1, $2, $3,
+       VALUES ($1::varchar, $2::varchar, $3::varchar,
         (SELECT id_gestion_especifica FROM gestion_especifica
-          WHERE id_gestion_especifica::text = NULLIF($4, '') OR nombre = NULLIF($4, '')),
-        $5, $6::bigint, $7, $8, $9, $10, $11,
+          WHERE id_gestion_especifica::text = NULLIF($4::text, '')
+             OR nombre::text = NULLIF($4::text, '')),
+        $5::varchar, $6::bigint, $7::varchar, $8::integer, $9::varchar, $10::varchar, $11::varchar,
         (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido) FROM usuario WHERE id_usuario = $6::bigint),
-        $12, (SELECT razon_social FROM estacion WHERE id_estacion = $2),
-        (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2),
-        (SELECT nombre_representante_legal FROM estacion WHERE id_estacion = $2),
-        (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2), $13::date, $14::date, $15::date)
+        $12::varchar, (SELECT razon_social FROM estacion WHERE id_estacion = $2::varchar),
+        (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2::varchar),
+        (SELECT nombre_representante_legal FROM estacion WHERE id_estacion = $2::varchar),
+        (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2::varchar),
+        $13::date, $14::date, $15::date)
        RETURNING ${projection}`,
       [
         code,
@@ -348,11 +350,14 @@ export class PostgresManagementRepository implements ManagementRepository {
         nombre_mostrado, flag_obligatorio, solicitado_por, id_usuario_responsable, responsable_nombre,
         estado, observaciones, archivo_nombre, archivo_referencia, fecha_carga)
        VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), $2::bigint,
-        (SELECT id_antecedente FROM antecedente WHERE id_antecedente::text = NULLIF($3, '') OR nombre = $4),
-        'N2', $5, $4, $6, $7, NULLIF($8, '')::bigint,
-        COALESCE(NULLIF($9, ''), (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
-          FROM usuario WHERE id_usuario = NULLIF($8, '')::bigint), ''), $10, $11, $12, $13,
-        CASE WHEN $13::text IS NULL THEN NULL ELSE now() END)
+        (SELECT id_antecedente FROM antecedente
+          WHERE id_antecedente::text = NULLIF($3::text, '') OR nombre::text = $4::text),
+        'N2', $5::varchar, $4::varchar, $6::boolean, $7::varchar,
+        NULLIF($8::text, '')::bigint,
+        COALESCE(NULLIF($9::text, ''), (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
+          FROM usuario WHERE id_usuario = NULLIF($8::text, '')::bigint), ''),
+        $10::varchar, $11::varchar, $12::varchar, $13::varchar,
+        CASE WHEN $13::varchar IS NULL THEN NULL ELSE now() END)
        RETURNING id_antecedente_gestion::text AS id, $1::text AS "managementId",
         id_antecedente_padre::text AS "parentManagementBackgroundId",
         (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1) AS "managementTypeId",
@@ -389,7 +394,8 @@ export class PostgresManagementRepository implements ManagementRepository {
       `INSERT INTO etapa_gestion (id_gestion, id_etapa, estado, fecha_estimada, fecha_real,
         id_usuario_responsable, responsable_nombre, observaciones)
        VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
-        (SELECT id_etapa FROM etapa WHERE id_etapa::text = NULLIF($2, '') OR nombre = $3),
+        (SELECT id_etapa FROM etapa
+          WHERE id_etapa::text = NULLIF($2::text, '') OR nombre::text = $3::text),
         $4, $5::date, $6::date, NULLIF($7, '')::bigint, $8, $9)
        RETURNING id_etapa_gestion::text AS id, $1::text AS "managementId", id_etapa::text AS "stageId",
         estado AS status, fecha_estimada::text AS "estimatedOn", fecha_real::text AS "completedOn",
@@ -420,7 +426,8 @@ export class PostgresManagementRepository implements ManagementRepository {
       `INSERT INTO gestion_dato_adicional (id_gestion, id_campo_adicional, valor)
        VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
         (SELECT id_campo_adicional FROM campo_adicional_tipo
-          WHERE id_campo_adicional::text = NULLIF($2, '') OR codigo = $3), $4)`,
+          WHERE (id_campo_adicional::text = NULLIF($2::text, '') OR codigo::text = $3::text)
+            AND id_tipo_gestion = (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1)), $4)`,
       [managementId, input.fieldId ?? '', input.fieldCode ?? '', input.value],
     );
   }
