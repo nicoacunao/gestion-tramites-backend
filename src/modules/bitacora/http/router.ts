@@ -26,7 +26,12 @@ const LogEntrySchema = z
   })
   .openapi('LogEntry');
 
-const LogEntryWriteSchema = LogEntrySchema.omit({ version: true }).openapi('LogEntryWrite');
+const LogEntryWriteSchema = LogEntrySchema.omit({ id: true, version: true })
+  .extend({
+    id: z.string().trim().min(1).max(100).optional(),
+    userId: z.string().trim().min(1).max(100),
+  })
+  .openapi('LogEntryWrite');
 const LogEntryResponseSchema = z
   .object({ data: LogEntrySchema, meta: ApiMetaSchema })
   .openapi('LogEntryResponse');

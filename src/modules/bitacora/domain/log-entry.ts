@@ -15,8 +15,9 @@ export interface LogEntry {
 
 export type LogEntryInput = Omit<
   LogEntry,
-  'version' | 'authorName' | 'authorInitials' | 'type' | 'automatic'
+  'id' | 'version' | 'authorName' | 'authorInitials' | 'type' | 'automatic'
 > & {
+  id?: string | undefined;
   type: 'inicio' | 'novedad' | 'seguimiento' | 'contacto' | null;
   automatic: boolean;
 };

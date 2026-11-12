@@ -67,6 +67,55 @@ describe('bitácora', () => {
     expect(await response.json()).toMatchObject({ data: { id: 'BIT-001', version: 1 } });
   });
 
+  it('acepta el ingreso automático enviado por el frontend sin id', async () => {
+    const response = await app(repository([])).request('/items', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        managementId: '1001',
+        userId: '1',
+        registeredOn: '2026-11-05',
+        registeredAt: '10:30:00',
+        title: 'Ingreso del trámite',
+        comment: 'Se ha ingresado el trámite al sistema.',
+        authorName: 'Usuario de prueba',
+        authorInitials: 'UP',
+        type: 'inicio',
+        automatic: true,
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({
+      data: {
+        id: 'AUTO-1001-2026-11-05-103000',
+        managementId: '1001',
+        registeredOn: '2026-11-05',
+        registeredAt: '10:30:00',
+        userId: '1',
+        type: 'inicio',
+        automatic: true,
+      },
+    });
+  });
+
+  it('rechaza una entrada automática que no sea de inicio', async () => {
+    const response = await app(repository([])).request('/items', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        ...entry,
+        type: 'seguimiento',
+        automatic: true,
+      }),
+    });
+
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({
+      error: { code: 'INVALID_AUTOMATIC_LOG_TYPE' },
+    });
+  });
+
   it('rechaza título o comentario vacíos y no requiere autorización', async () => {
     const router = app(repository([]));
     const emptyTitle = await router.request('/items', {

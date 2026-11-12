@@ -1337,11 +1337,6 @@
       "LogEntryWrite": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
-          },
           "managementId": {
             "type": "string",
             "minLength": 1,
@@ -1349,7 +1344,6 @@
           },
           "userId": {
             "type": "string",
-            "nullable": true,
             "minLength": 1,
             "maxLength": 100
           },
@@ -1386,17 +1380,14 @@
           },
           "automatic": {
             "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
           }
         },
-        "required": [
-          "id",
-          "managementId",
-          "userId",
-          "registeredOn",
-          "registeredAt",
-          "title",
-          "comment"
-        ]
+        "required": ["managementId", "userId", "registeredOn", "registeredAt", "title", "comment"]
       }
     },
     "parameters": {}

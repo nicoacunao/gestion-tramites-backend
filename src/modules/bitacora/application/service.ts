@@ -18,6 +18,18 @@ export class BitacoraService {
 
   async create(input: LogEntryInput): Promise<LogEntry> {
     this.assertManagementCode(input.managementId);
+    if (input.automatic && input.type !== 'inicio')
+      throw new AppError(
+        'INVALID_AUTOMATIC_LOG_TYPE',
+        'Las entradas automáticas deben tener tipo inicio.',
+        422,
+      );
+    if (!input.id && (!input.automatic || input.type !== 'inicio'))
+      throw new AppError(
+        'BITACORA_ID_REQUIRED',
+        'Debes indicar un identificador para la entrada manual.',
+        422,
+      );
     if (input.userId === null)
       throw new AppError(
         'BITACORA_AUTHOR_REQUIRED',
@@ -45,10 +57,16 @@ export class BitacoraService {
         422,
       );
 
-    if (await this.repository.findById(input.id))
+    const id = input.id ?? this.automaticEntryId(input);
+    if (await this.repository.findById(id))
       throw new AppError('RESOURCE_CONFLICT', 'Ya existe una entrada con ese identificador.', 409);
-    await this.repository.append({ ...input, version: 1 });
-    return { ...input, version: 1 };
+    const entry = { ...input, id, version: 1 };
+    await this.repository.append(entry);
+    return entry;
+  }
+
+  private automaticEntryId(input: LogEntryInput): string {
+    return `AUTO-${input.managementId}-${input.registeredOn}-${input.registeredAt.replaceAll(':', '')}`;
   }
 
   private assertManagementCode(code: string): void {
