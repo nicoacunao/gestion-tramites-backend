@@ -28,6 +28,11 @@ export function createAntecedentesRouter(
       path,
       tags: ['antecedentes'],
       operationId,
+      request: {
+        query: z.object({
+          categoria: z.enum(['requerido', 'complementario']).optional(),
+        }),
+      },
       responses: {
         200: {
           content: { 'application/json': { schema: responseSchema } },
@@ -42,7 +47,10 @@ export function createAntecedentesRouter(
     async (context) => {
       const resolved =
         typeof dependencies === 'function' ? dependencies(context.env) : dependencies;
-      const items = await new AntecedentesController(resolved).list(context.req.raw);
+      const items = await new AntecedentesController(resolved).list(
+        context.req.raw,
+        context.req.valid('query').categoria,
+      );
       return context.json(
         { data: Array.from(items), meta: { requestId: context.get('requestId') } },
         200,

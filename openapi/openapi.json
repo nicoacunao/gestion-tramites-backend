@@ -1877,6 +1877,17 @@
       "get": {
         "tags": ["antecedentes"],
         "operationId": "catalogosListBackgrounds",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["requerido", "complementario"]
+            },
+            "required": false,
+            "name": "categoria",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Catálogo.",
@@ -3278,6 +3289,17 @@
       "get": {
         "tags": ["antecedentes"],
         "operationId": "antecedentesList",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["requerido", "complementario"]
+            },
+            "required": false,
+            "name": "categoria",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Catálogo.",

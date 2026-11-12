@@ -1,4 +1,4 @@
-export type { BackgroundCatalogItem } from './domain/model';
+export type { BackgroundCatalogItem, BackgroundCategory } from './domain/model';
 export type { AntecedentesRepository } from './application/ports';
 export type { AntecedentesDependencies, AntecedentesDependenciesFactory } from './http/controller';
 export { createAntecedentesModule } from './module';

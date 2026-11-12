@@ -55,9 +55,12 @@ CREATE TABLE antecedente (
     id_antecedente BIGINT GENERATED ALWAYS AS IDENTITY,
 
     nombre VARCHAR(300) NOT NULL,
+    categoria VARCHAR(20) NOT NULL DEFAULT 'requerido',
 
     CONSTRAINT pk_antecedente PRIMARY KEY (id_antecedente),
-    CONSTRAINT uq_antecedente_nombre UNIQUE (nombre)
+    CONSTRAINT uq_antecedente_nombre UNIQUE (nombre),
+    CONSTRAINT ck_antecedente_categoria
+        CHECK (categoria IN ('requerido', 'complementario'))
 );
 
 CREATE TABLE etapa (

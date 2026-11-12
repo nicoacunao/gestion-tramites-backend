@@ -1,5 +1,5 @@
-import type { BackgroundCatalogItem } from '../domain/model';
+import type { BackgroundCatalogItem, BackgroundCategory } from '../domain/model';
 
 export interface AntecedentesRepository {
-  listBackgrounds(): Promise<readonly BackgroundCatalogItem[]>;
+  listBackgrounds(category?: BackgroundCategory): Promise<readonly BackgroundCatalogItem[]>;
 }
