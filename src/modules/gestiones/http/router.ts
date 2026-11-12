@@ -274,6 +274,8 @@ const StageSchema = z.object({
   id: z.string(),
   managementId: z.string(),
   stageId: z.string(),
+  stageName: z.string(),
+  percentage: z.number().int().min(0).max(100),
   status: z.string(),
   estimatedOn: DateSchema.nullable(),
   completedOn: DateSchema.nullable(),

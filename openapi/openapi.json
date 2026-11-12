@@ -2644,6 +2644,14 @@
                           "stageId": {
                             "type": "string"
                           },
+                          "stageName": {
+                            "type": "string"
+                          },
+                          "percentage": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
                           "status": {
                             "type": "string"
                           },
@@ -2674,6 +2682,8 @@
                           "id",
                           "managementId",
                           "stageId",
+                          "stageName",
+                          "percentage",
                           "status",
                           "estimatedOn",
                           "completedOn",

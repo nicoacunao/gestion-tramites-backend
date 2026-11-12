@@ -31,7 +31,7 @@ export interface ManagementRepository {
   ): Promise<ManagementBackground>;
   updateStage?(
     id: string,
-    input: Omit<ManagementStage, 'id' | 'version'>,
+    input: Omit<ManagementStage, 'id' | 'version' | 'stageName' | 'percentage'>,
     expectedVersion: number,
   ): Promise<ManagementStage>;
 }

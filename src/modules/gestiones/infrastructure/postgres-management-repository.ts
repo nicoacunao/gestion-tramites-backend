@@ -143,6 +143,7 @@ export class PostgresManagementRepository implements ManagementRepository {
       Omit<ManagementStage, 'version'> & { version: string }
     >(
       `SELECT e.id_etapa_gestion::text AS id, g.codigo AS "managementId", e.id_etapa::text AS "stageId",
+        t.nombre AS "stageName", t.porcentaje AS percentage,
         e.estado AS status, e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
         e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version
        FROM etapa_gestion e JOIN gestion g ON g.id_gestion = e.id_gestion JOIN etapa t ON t.id_etapa = e.id_etapa
@@ -181,7 +182,7 @@ export class PostgresManagementRepository implements ManagementRepository {
 
   async updateStage(
     id: string,
-    input: Omit<ManagementStage, 'id' | 'version'>,
+    input: Omit<ManagementStage, 'id' | 'version' | 'stageName' | 'percentage'>,
     expectedVersion: number,
   ): Promise<ManagementStage> {
     const result = await this.database.query<ManagementStage & { version: string }>(
@@ -194,6 +195,8 @@ export class PostgresManagementRepository implements ManagementRepository {
        FROM gestion g WHERE e.id_etapa_gestion = $1::bigint AND g.id_gestion = e.id_gestion
          AND e.xmin = $7::text::xid
        RETURNING e.id_etapa_gestion::text AS id, g.codigo AS "managementId", e.id_etapa::text AS "stageId",
+         (SELECT nombre FROM etapa WHERE id_etapa = e.id_etapa) AS "stageName",
+         (SELECT porcentaje FROM etapa WHERE id_etapa = e.id_etapa) AS percentage,
          e.estado AS status, e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
          e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version`,
       [
@@ -400,6 +403,8 @@ export class PostgresManagementRepository implements ManagementRepository {
           WHERE id_etapa::text = NULLIF($2::text, '') OR nombre::text = $3::text),
         $4, $5::date, $6::date, NULLIF($7, '')::bigint, $8, $9)
        RETURNING id_etapa_gestion::text AS id, $1::text AS "managementId", id_etapa::text AS "stageId",
+        (SELECT nombre FROM etapa WHERE id_etapa = etapa_gestion.id_etapa) AS "stageName",
+        (SELECT porcentaje FROM etapa WHERE id_etapa = etapa_gestion.id_etapa) AS percentage,
         estado AS status, fecha_estimada::text AS "estimatedOn", fecha_real::text AS "completedOn",
         responsable_nombre AS responsible, observaciones AS notes, xmin::text AS version`,
       [

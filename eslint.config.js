@@ -5,6 +5,7 @@ export default tseslint.config(
   {
     ignores: [
       'dist/**',
+      '.wrangler/**',
       'node_modules/**',
       'coverage/**',
       'worker-configuration.d.ts',
