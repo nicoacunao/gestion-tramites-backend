@@ -269,4 +269,85 @@ describe('gestiones', () => {
       ).status,
     ).toBe(400);
   });
+
+  it('actualiza la fecha de carga, permite responsable nulo y conserva la versión', async () => {
+    const background: ManagementBackground = {
+      id: '10',
+      managementId: '1001',
+      parentManagementBackgroundId: null,
+      managementTypeId: 'patente-comercial',
+      backgroundId: '20',
+      level: 'N2',
+      required: true,
+      responsibleUserId: null,
+      status: 'Pendiente',
+      fileReference: null,
+      uploadedAt: null,
+      version: 0,
+    };
+    const repo = repository([management], [background]);
+    repo.updateBackground = async (id, input, expectedVersion) => ({
+      ...background,
+      ...input,
+      id,
+      version: expectedVersion + 1,
+    });
+    const response = await app(repo).request('/backgrounds/10', {
+      method: 'PUT',
+      headers: { ...auth, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        responsibleUserId: null,
+        status: 'Recibido',
+        fileReference: 'storage://file-1',
+        uploadedAt: '2026-11-13',
+        version: 0,
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      data: { responsibleUserId: null, uploadedAt: '2026-11-13', version: 1 },
+    });
+  });
+
+  it('permite completar una etapa después de creada y mantiene completedOn nullable', async () => {
+    const stage = {
+      id: '30',
+      managementId: '1001',
+      stageId: '40',
+      stageName: 'Revisión',
+      percentage: 50,
+      status: 'En curso',
+      estimatedOn: '2026-11-20',
+      completedOn: null,
+      responsible: null,
+      notes: null,
+      version: 0,
+    };
+    const repo = repository();
+    repo.findStage = async (id) => (id === stage.id ? stage : null);
+    repo.updateStage = async (id, input, expectedVersion) => ({
+      ...stage,
+      ...input,
+      id,
+      version: expectedVersion + 1,
+    });
+    const response = await app(repo).request('/stages/30', {
+      method: 'PUT',
+      headers: { ...auth, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        status: 'Completado',
+        estimatedOn: '2026-11-20',
+        completedOn: '2026-11-21',
+        responsible: null,
+        notes: 'Validada',
+        version: 0,
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      data: { completedOn: '2026-11-21', responsible: null, version: 1 },
+    });
+  });
 });

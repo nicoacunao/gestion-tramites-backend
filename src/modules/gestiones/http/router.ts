@@ -255,10 +255,10 @@ const BackgroundSchema = z.object({
   backgroundId: z.string(),
   level: z.enum(['N2', 'N3', 'N4']),
   required: z.boolean(),
-  responsibleUserId: z.string(),
+  responsibleUserId: z.string().nullable(),
   status: z.string(),
   fileReference: z.string().nullable(),
-  uploadedAt: z.string().nullable(),
+  uploadedAt: DateSchema.nullable(),
   version: z.number().int().nonnegative(),
 });
 const StageSchema = z.object({
@@ -275,10 +275,11 @@ const StageSchema = z.object({
   version: z.number().int().nonnegative(),
 });
 const BackgroundUpdateSchema = z.object({
-  responsibleUserId: z.string().trim().max(50),
+  responsibleUserId: z.string().trim().max(50).nullable(),
   status: z.enum(['Pendiente', 'Recibido', 'Recibido conforme']),
   fileReference: z.string().trim().max(500).nullable(),
-  version: z.number().int().positive(),
+  uploadedAt: DateSchema.nullable(),
+  version: z.number().int().nonnegative(),
 });
 const StageUpdateSchema = z.object({
   status: z.enum(['Pendiente', 'En curso', 'Completado']),
@@ -286,7 +287,7 @@ const StageUpdateSchema = z.object({
   completedOn: DateSchema.nullable(),
   responsible: z.string().trim().max(150).nullable(),
   notes: z.string().trim().max(300).nullable(),
-  version: z.number().int().positive(),
+  version: z.number().int().nonnegative(),
 });
 function assertDates(
   openedOn: string,
@@ -536,6 +537,10 @@ export function createGestionesRouter(
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'Sin permiso.',
         },
+        404: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Antecedente no encontrado.',
+        },
         409: {
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'Conflicto de versión.',
@@ -552,8 +557,11 @@ export function createGestionesRouter(
           503,
         );
       const body = context.req.valid('json');
+      const backgroundId = context.req.valid('param').id;
+      if (deps.repository.findBackground && !(await deps.repository.findBackground(backgroundId)))
+        throw new AppError('RESOURCE_NOT_FOUND', 'El antecedente solicitado no existe.', 404);
       const item = await deps.repository.updateBackground(
-        context.req.valid('param').id,
+        backgroundId,
         {
           managementId: '',
           parentManagementBackgroundId: null,
@@ -564,7 +572,7 @@ export function createGestionesRouter(
           responsibleUserId: body.responsibleUserId,
           status: body.status,
           fileReference: body.fileReference,
-          uploadedAt: null,
+          uploadedAt: body.uploadedAt,
         },
         body.version,
       );
@@ -592,6 +600,10 @@ export function createGestionesRouter(
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'Sin permiso.',
         },
+        404: {
+          content: { 'application/json': { schema: ApiErrorSchema } },
+          description: 'Etapa no encontrada.',
+        },
         409: {
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'Conflicto de versión.',
@@ -604,8 +616,17 @@ export function createGestionesRouter(
       if (!deps.repository.updateStage)
         throw new AppError('NOT_IMPLEMENTED', 'La edición de etapas no está disponible.', 503);
       const body = context.req.valid('json');
+      const stageId = context.req.valid('param').id;
+      if (deps.repository.findStage && !(await deps.repository.findStage(stageId)))
+        throw new AppError('RESOURCE_NOT_FOUND', 'La etapa solicitada no existe.', 404);
+      if (body.estimatedOn && body.completedOn && body.completedOn < body.estimatedOn)
+        throw new AppError(
+          'INVALID_DATE_RANGE',
+          'La fecha real no puede ser anterior a la fecha estimada.',
+          422,
+        );
       const item = await deps.repository.updateStage(
-        context.req.valid('param').id,
+        stageId,
         {
           managementId: '',
           stageId: '',

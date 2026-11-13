@@ -128,8 +128,8 @@ export class PostgresManagementRepository implements ManagementRepository {
       `SELECT a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
         a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
         COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
-        COALESCE(a.id_usuario_responsable::text, '') AS "responsibleUserId", a.estado AS status,
-        a.archivo_referencia AS "fileReference", a.fecha_carga AS "uploadedAt", a.xmin::text AS version
+        a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
+        a.archivo_referencia AS "fileReference", a.fecha_carga::text AS "uploadedAt", a.xmin::text AS version
        FROM antecedente_gestion a JOIN gestion g ON g.id_gestion = a.id_gestion
        WHERE g.codigo = $1 ORDER BY a.id_antecedente_gestion`,
       [managementId],
@@ -152,6 +152,37 @@ export class PostgresManagementRepository implements ManagementRepository {
     return result.rows.map((row) => ({ ...row, version: Number(row.version) }));
   }
 
+  async findBackground(id: string): Promise<ManagementBackground | null> {
+    const rows = await this.database.query<
+      Omit<ManagementBackground, 'version'> & { version: string }
+    >(
+      `SELECT a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
+        a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
+        COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
+        a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
+        a.archivo_referencia AS "fileReference", a.fecha_carga::text AS "uploadedAt", a.xmin::text AS version
+       FROM antecedente_gestion a JOIN gestion g ON g.id_gestion = a.id_gestion
+       WHERE a.id_antecedente_gestion = $1::bigint`,
+      [id],
+    );
+    const row = rows.rows[0];
+    return row ? { ...row, version: Number(row.version) } : null;
+  }
+
+  async findStage(id: string): Promise<ManagementStage | null> {
+    const rows = await this.database.query<Omit<ManagementStage, 'version'> & { version: string }>(
+      `SELECT e.id_etapa_gestion::text AS id, g.codigo AS "managementId", e.id_etapa::text AS "stageId",
+        t.nombre AS "stageName", t.porcentaje AS percentage, e.estado AS status,
+        e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
+        e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version
+       FROM etapa_gestion e JOIN gestion g ON g.id_gestion = e.id_gestion JOIN etapa t ON t.id_etapa = e.id_etapa
+       WHERE e.id_etapa_gestion = $1::bigint`,
+      [id],
+    );
+    const row = rows.rows[0];
+    return row ? { ...row, version: Number(row.version) } : null;
+  }
+
   async updateBackground(
     id: string,
     input: Omit<ManagementBackground, 'id' | 'version'>,
@@ -159,15 +190,22 @@ export class PostgresManagementRepository implements ManagementRepository {
   ): Promise<ManagementBackground> {
     const result = await this.database.query<ManagementBackground & { version: string }>(
       `UPDATE antecedente_gestion a SET id_usuario_responsable = NULLIF($2, '')::bigint,
-         estado = $3, archivo_referencia = $4
+         estado = $3, archivo_referencia = $4, fecha_carga = $5::date
        FROM gestion g WHERE a.id_antecedente_gestion = $1::bigint AND g.id_gestion = a.id_gestion
          AND a.xmin = $5::text::xid
        RETURNING a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
          a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
          COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
-         COALESCE(a.id_usuario_responsable::text, '') AS "responsibleUserId", a.estado AS status,
-         a.archivo_referencia AS "fileReference", a.fecha_carga AS "uploadedAt", a.xmin::text AS version`,
-      [id, input.responsibleUserId, input.status, input.fileReference, expectedVersion],
+         a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
+         a.archivo_referencia AS "fileReference", a.fecha_carga::text AS "uploadedAt", a.xmin::text AS version`,
+      [
+        id,
+        input.responsibleUserId,
+        input.status,
+        input.fileReference,
+        input.uploadedAt,
+        expectedVersion,
+      ],
     );
     const row = result.rows[0];
     if (!row)
@@ -466,7 +504,7 @@ export class PostgresManagementRepository implements ManagementRepository {
         id_antecedente_padre::text AS "parentManagementBackgroundId",
         (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1) AS "managementTypeId",
         COALESCE(id_antecedente::text, '') AS "backgroundId", nivel AS level,
-        flag_obligatorio AS required, COALESCE(id_usuario_responsable::text, '') AS "responsibleUserId",
+        flag_obligatorio AS required, id_usuario_responsable::text AS "responsibleUserId",
         estado AS status, archivo_referencia AS "fileReference", fecha_carga AS "uploadedAt", xmin::text AS version`,
       [
         managementId,

@@ -13,6 +13,8 @@ export interface ManagementRepository {
   save(management: Management, expectedVersion?: number): Promise<void>;
   listBackgrounds(managementId: string): Promise<readonly ManagementBackground[]>;
   listStages(managementId: string): Promise<readonly ManagementStage[]>;
+  findBackground?(id: string): Promise<ManagementBackground | null>;
+  findStage?(id: string): Promise<ManagementStage | null>;
   createComplete?(input: CompleteManagementInput): Promise<Management>;
   createBackground?(
     managementId: string,

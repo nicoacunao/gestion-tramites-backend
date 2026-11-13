@@ -70,7 +70,7 @@ export interface ManagementBackground {
   backgroundId: string;
   level: Exclude<ManagementLevel, 'N1'>;
   required: boolean;
-  responsibleUserId: string;
+  responsibleUserId: string | null;
   status: string;
   fileReference: string | null;
   uploadedAt: string | null;

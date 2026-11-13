@@ -2,6 +2,8 @@ import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { z } from '@hono/zod-openapi';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
+import { authenticatedUser } from '../../../shared/auth/request-auth';
+import { AppError } from '../../../shared/errors/app-error';
 import {
   BitacoraController,
   type BitacoraDependencies,
@@ -26,10 +28,23 @@ const LogEntrySchema = z
   })
   .openapi('LogEntry');
 
-const LogEntryWriteSchema = LogEntrySchema.omit({ id: true, version: true })
-  .extend({
+const LogEntryWriteSchema = z
+  .object({
+    managementId: z.string().trim().min(1).max(100),
+    title: z.string().trim().min(1).max(80),
+    comment: z.string().trim().min(1).max(1000),
+    type: z.enum(['inicio', 'novedad', 'seguimiento', 'contacto']).nullable().default('novedad'),
+    automatic: z.boolean().default(false),
     id: z.string().trim().min(1).max(100).optional(),
-    userId: z.string().trim().min(1).max(100),
+    userId: z.string().trim().min(1).max(100).optional(),
+    registeredOn: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    registeredAt: z
+      .string()
+      .regex(/^\d{2}:\d{2}(:\d{2})?$/)
+      .optional(),
   })
   .openapi('LogEntryWrite');
 const LogEntryResponseSchema = z
@@ -126,11 +141,37 @@ export function createBitacoraRouter(
 
   router.openapi(createRouteDefinition, async (context) => {
     const input = context.req.valid('json');
-    const entryInput = { ...input };
-    delete entryInput.authorName;
-    delete entryInput.authorInitials;
+    let userId = input.userId;
+    let registeredOn = input.registeredOn;
+    let registeredAt = input.registeredAt;
+    if (!userId || !registeredOn || !registeredAt) {
+      if (!context.req.header('authorization'))
+        throw new AppError('UNAUTHORIZED', 'Debes autenticarte para registrar una novedad.', 401);
+      const user = await authenticatedUser(context.req.raw, context.env);
+      userId = user.id;
+      const now = new Date();
+      registeredOn = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Santiago',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(now);
+      registeredAt = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'America/Santiago',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).format(now);
+    }
     const entry = await controller.create(context.env, {
-      ...entryInput,
+      id: input.id,
+      managementId: input.managementId,
+      userId,
+      registeredOn,
+      registeredAt,
+      title: input.title,
+      comment: input.comment,
       type: input.type ?? null,
       automatic: input.automatic ?? false,
     });

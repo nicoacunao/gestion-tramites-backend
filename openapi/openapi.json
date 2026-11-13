@@ -1280,6 +1280,31 @@
             "minLength": 1,
             "maxLength": 100
           },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "type": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["inicio", "novedad", "seguimiento", "contacto", null],
+            "default": "novedad"
+          },
+          "automatic": {
+            "type": "boolean",
+            "default": false
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
           "userId": {
             "type": "string",
             "minLength": 1,
@@ -1292,40 +1317,9 @@
           "registeredAt": {
             "type": "string",
             "pattern": "^\\d{2}:\\d{2}(:\\d{2})?$"
-          },
-          "title": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
-          },
-          "comment": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 1000
-          },
-          "authorName": {
-            "type": "string",
-            "nullable": true
-          },
-          "authorInitials": {
-            "type": "string",
-            "nullable": true
-          },
-          "type": {
-            "type": "string",
-            "nullable": true,
-            "enum": ["inicio", "novedad", "seguimiento", "contacto", null]
-          },
-          "automatic": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
           }
         },
-        "required": ["managementId", "userId", "registeredOn", "registeredAt", "title", "comment"]
+        "required": ["managementId", "title", "comment"]
       }
     },
     "parameters": {}
@@ -2354,7 +2348,8 @@
                             "type": "boolean"
                           },
                           "responsibleUserId": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "status": {
                             "type": "string"
@@ -2365,7 +2360,8 @@
                           },
                           "uploadedAt": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
                           },
                           "version": {
                             "type": "integer",
@@ -2784,6 +2780,7 @@
                 "properties": {
                   "responsibleUserId": {
                     "type": "string",
+                    "nullable": true,
                     "maxLength": 50
                   },
                   "status": {
@@ -2795,13 +2792,23 @@
                     "nullable": true,
                     "maxLength": 500
                   },
+                  "uploadedAt": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
                   "version": {
                     "type": "integer",
-                    "minimum": 0,
-                    "exclusiveMinimum": true
+                    "minimum": 0
                   }
                 },
-                "required": ["responsibleUserId", "status", "fileReference", "version"]
+                "required": [
+                  "responsibleUserId",
+                  "status",
+                  "fileReference",
+                  "uploadedAt",
+                  "version"
+                ]
               }
             }
           }
@@ -2828,6 +2835,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Antecedente no encontrado.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2896,8 +2913,7 @@
                   },
                   "version": {
                     "type": "integer",
-                    "minimum": 0,
-                    "exclusiveMinimum": true
+                    "minimum": 0
                   }
                 },
                 "required": [
@@ -2934,6 +2950,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Etapa no encontrada.",
             "content": {
               "application/json": {
                 "schema": {
