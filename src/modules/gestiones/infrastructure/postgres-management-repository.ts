@@ -465,7 +465,9 @@ export class PostgresManagementRepository implements ManagementRepository {
       const hierarchyIsValid =
         level === 'N2'
           ? parentBackgroundId === null
-          : parentBackgroundId !== null && catalogBackground.parentLevel === expectedParentLevel;
+          : level === 'N3' && parentBackgroundId === null
+            ? true
+            : parentBackgroundId !== null && catalogBackground.parentLevel === expectedParentLevel;
       if (!hierarchyIsValid)
         throw new AppError(
           'INVALID_BACKGROUND_CATALOG_HIERARCHY',

@@ -6,7 +6,7 @@ export class PostgresGestionesEspecificasRepository implements GestionesEspecifi
   async list(managementTypeId?: string): Promise<readonly SpecificManagement[]> {
     const result = await this.database.query<SpecificManagement>(
       `SELECT ge.id_gestion_especifica::text AS id, ge.id_tipo_gestion AS "managementTypeId",
-        ge.codigo AS code, ge.nombre AS name, ge.activo AS active,
+        ge.codigo AS code, ge.nombre AS name, ge.nivel AS level, ge.activo AS active,
         COALESCE(
           json_agg(
             json_build_object(
@@ -23,7 +23,7 @@ export class PostgresGestionesEspecificasRepository implements GestionesEspecifi
         ON gea.id_gestion_especifica = ge.id_gestion_especifica
       LEFT JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
       WHERE ($1::varchar IS NULL OR ge.id_tipo_gestion = $1)
-      GROUP BY ge.id_gestion_especifica, ge.id_tipo_gestion, ge.codigo, ge.nombre, ge.activo
+      GROUP BY ge.id_gestion_especifica, ge.id_tipo_gestion, ge.codigo, ge.nombre, ge.nivel, ge.activo
       ORDER BY ge.nombre, ge.id_gestion_especifica`,
       [managementTypeId ?? null],
     );

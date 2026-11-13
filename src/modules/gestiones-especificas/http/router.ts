@@ -14,6 +14,7 @@ const responseSchema = z.object({
         managementTypeId: z.string(),
         code: z.string(),
         name: z.string(),
+        level: z.literal('N2'),
         active: z.boolean(),
         backgrounds: z.array(
           z.object({

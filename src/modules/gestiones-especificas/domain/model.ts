@@ -10,6 +10,7 @@ export interface SpecificManagement {
   managementTypeId: string;
   code: string;
   name: string;
+  level: 'N2';
   active: boolean;
   backgrounds: SpecificManagementBackground[];
 }

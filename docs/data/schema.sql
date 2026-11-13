@@ -83,6 +83,7 @@ CREATE TABLE gestion_especifica (
     id_tipo_gestion VARCHAR(80) NOT NULL,
     codigo VARCHAR(100) NOT NULL,
     nombre VARCHAR(200) NOT NULL,
+    nivel VARCHAR(2) NOT NULL DEFAULT 'N2',
     activo BOOLEAN NOT NULL DEFAULT TRUE,
 
     CONSTRAINT pk_gestion_especifica
@@ -93,6 +94,9 @@ CREATE TABLE gestion_especifica (
 
     CONSTRAINT uq_gestion_especifica_tipo_nombre
         UNIQUE (id_tipo_gestion, nombre),
+
+    CONSTRAINT ck_gestion_especifica_nivel
+        CHECK (nivel = 'N2'),
 
     CONSTRAINT fk_gestion_especifica_tipo
         FOREIGN KEY (id_tipo_gestion)

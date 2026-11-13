@@ -128,6 +128,7 @@ describe('repositorios PostgreSQL de catálogos', () => {
         managementTypeId: 'patentes',
         code: 'PROV',
         name: 'Provisoria',
+        level: 'N2',
         active: true,
         backgrounds: [
           { id: '1', name: 'Formulario de ingreso', level: 'N3', parentBackgroundId: null },

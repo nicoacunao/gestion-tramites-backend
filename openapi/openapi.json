@@ -1122,6 +1122,10 @@
           "name": {
             "type": "string"
           },
+          "level": {
+            "type": "string",
+            "enum": ["N2"]
+          },
           "active": {
             "type": "boolean"
           },
@@ -1149,7 +1153,7 @@
             }
           }
         },
-        "required": ["id", "managementTypeId", "code", "name", "active", "backgrounds"]
+        "required": ["id", "managementTypeId", "code", "name", "level", "active", "backgrounds"]
       },
       "FileListResponse": {
         "type": "object",
