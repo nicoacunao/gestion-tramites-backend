@@ -132,8 +132,8 @@ describe('repositorios PostgreSQL de catálogos', () => {
         name: 'Provisoria',
         active: true,
         backgrounds: [
-          { id: '1', name: 'Formulario de ingreso' },
-          { id: '2', name: 'Certificado' },
+          { id: '1', name: 'Formulario de ingreso', level: 'N3', parentBackgroundId: null },
+          { id: '2', name: 'Certificado', level: 'N3', parentBackgroundId: null },
         ],
       },
     ];
@@ -147,8 +147,8 @@ describe('repositorios PostgreSQL de catálogos', () => {
     expect(db.query.mock.calls[0]?.[0]).toContain('gestion_especifica_antecedente');
     expect(db.query.mock.calls[0]?.[0]).toContain('ORDER BY gea.orden');
     expect(result[0]?.backgrounds).toEqual([
-      { id: '1', name: 'Formulario de ingreso' },
-      { id: '2', name: 'Certificado' },
+      { id: '1', name: 'Formulario de ingreso', level: 'N3', parentBackgroundId: null },
+      { id: '2', name: 'Certificado', level: 'N3', parentBackgroundId: null },
     ]);
     const fields = database([]);
     await new PostgresCamposAdicionalesRepository(fields.executor).list();
@@ -186,7 +186,9 @@ describe('rutas de catálogos separados', () => {
         code: 'PROV',
         name: 'Provisoria',
         active: true,
-        backgrounds: [{ id: '2', name: 'Formulario de ingreso' }],
+        backgrounds: [
+          { id: '2', name: 'Formulario de ingreso', level: 'N3', parentBackgroundId: null },
+        ],
       },
     ]);
     const app = createGestionesEspecificasModule({ repository: { list }, authorize: () => true });

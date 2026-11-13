@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createGestionesRouter } from '../src/modules/gestiones/http/router';
 import type { ManagementRepository } from '../src/modules/gestiones/application/ports';
-import type { Management } from '../src/modules/gestiones/domain/management';
+import type { Management, ManagementBackground } from '../src/modules/gestiones/domain/management';
 import { AppError } from '../src/shared/errors/app-error';
 
 const management: Management = {
@@ -21,7 +21,10 @@ const management: Management = {
   version: 1,
 };
 
-function repository(initial: Management[] = [management]): ManagementRepository {
+function repository(
+  initial: Management[] = [management],
+  backgrounds: ManagementBackground[] = [],
+): ManagementRepository {
   const items = [...initial];
   return {
     list: async () => items,
@@ -33,7 +36,7 @@ function repository(initial: Management[] = [management]): ManagementRepository 
       if (index >= 0) items[index] = value;
       else items.push(value);
     },
-    listBackgrounds: async () => [],
+    listBackgrounds: async () => backgrounds,
     listStages: async () => [],
   };
 }
@@ -172,5 +175,100 @@ describe('gestiones', () => {
 
     expect(missing.status).toBe(404);
     expect(conflict.status).toBe(409);
+  });
+
+  it('devuelve el nivel y el padre de cada antecedente', async () => {
+    const backgrounds: ManagementBackground[] = [
+      {
+        id: '10',
+        managementId: '1001',
+        parentManagementBackgroundId: null,
+        managementTypeId: 'patente-comercial',
+        backgroundId: '20',
+        level: 'N2',
+        required: true,
+        responsibleUserId: '',
+        status: 'Pendiente',
+        fileReference: null,
+        uploadedAt: null,
+        version: 1,
+      },
+      {
+        id: '11',
+        managementId: '1001',
+        parentManagementBackgroundId: '10',
+        managementTypeId: 'patente-comercial',
+        backgroundId: '21',
+        level: 'N3',
+        required: true,
+        responsibleUserId: '',
+        status: 'Pendiente',
+        fileReference: null,
+        uploadedAt: null,
+        version: 1,
+      },
+    ];
+    const response = await app(repository([management], backgrounds)).request(
+      '/items/1001/backgrounds',
+      { headers: auth },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      data: [
+        { id: '10', level: 'N2', parentManagementBackgroundId: null },
+        { id: '11', level: 'N3', parentManagementBackgroundId: '10' },
+      ],
+    });
+  });
+
+  it('valida y reenvía el nivel al crear un antecedente', async () => {
+    const repo = repository();
+    let received: unknown;
+    repo.createBackground = async (_managementId, input) => {
+      received = input;
+      return {
+        id: '12',
+        managementId: '1001',
+        parentManagementBackgroundId: '10',
+        managementTypeId: 'patente-comercial',
+        backgroundId: input.backgroundId ?? '',
+        level: input.level,
+        required: input.required,
+        responsibleUserId: '',
+        status: input.status ?? 'Pendiente',
+        fileReference: null,
+        uploadedAt: null,
+        version: 1,
+      };
+    };
+    const response = await app(repo).request('/items/1001/backgrounds', {
+      method: 'POST',
+      headers: { ...auth, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        backgroundId: '21',
+        parentBackgroundId: '10',
+        level: 'N3',
+        name: 'Certificado',
+        category: 'requerido',
+        required: true,
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    expect(received).toMatchObject({ level: 'N3', parentBackgroundId: '10' });
+    expect(
+      (
+        await app(repo).request('/items/1001/backgrounds', {
+          method: 'POST',
+          headers: { ...auth, 'content-type': 'application/json' },
+          body: JSON.stringify({
+            name: 'Sin nivel',
+            category: 'requerido',
+            required: true,
+          }),
+        })
+      ).status,
+    ).toBe(400);
   });
 });

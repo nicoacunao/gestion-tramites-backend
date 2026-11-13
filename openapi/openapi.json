@@ -913,6 +913,10 @@
                   "type": "string",
                   "nullable": true
                 },
+                "level": {
+                  "type": "string",
+                  "enum": ["N2", "N3", "N4"]
+                },
                 "name": {
                   "type": "string",
                   "minLength": 1,
@@ -956,7 +960,7 @@
                   "nullable": true
                 }
               },
-              "required": ["name"]
+              "required": ["level", "name"]
             }
           },
           "complementaryBackgrounds": {
@@ -971,6 +975,10 @@
                 "parentBackgroundId": {
                   "type": "string",
                   "nullable": true
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["N2", "N3", "N4"]
                 },
                 "name": {
                   "type": "string",
@@ -1015,7 +1023,7 @@
                   "nullable": true
                 }
               },
-              "required": ["name"]
+              "required": ["level", "name"]
             }
           },
           "stages": {
@@ -1179,9 +1187,17 @@
                 },
                 "name": {
                   "type": "string"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["N2", "N3", "N4"]
+                },
+                "parentBackgroundId": {
+                  "type": "string",
+                  "nullable": true
                 }
               },
-              "required": ["id", "name"]
+              "required": ["id", "name", "level", "parentBackgroundId"]
             }
           }
         },
@@ -2509,6 +2525,10 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "level": {
+                    "type": "string",
+                    "enum": ["N2", "N3", "N4"]
+                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -2550,7 +2570,7 @@
                     "nullable": true
                   }
                 },
-                "required": ["name", "category", "required"]
+                "required": ["level", "name", "category", "required"]
               }
             }
           }

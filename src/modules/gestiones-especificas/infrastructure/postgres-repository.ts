@@ -11,7 +11,9 @@ export class PostgresGestionesEspecificasRepository implements GestionesEspecifi
           json_agg(
             json_build_object(
               'id', a.id_antecedente::text,
-              'name', a.nombre
+              'name', a.nombre,
+              'level', gea.nivel,
+              'parentBackgroundId', gea.id_antecedente_padre::text
             ) ORDER BY gea.orden
           ) FILTER (WHERE a.id_antecedente IS NOT NULL),
           '[]'::json

@@ -348,8 +348,28 @@ export class PostgresManagementRepository implements ManagementRepository {
     parentIds: Map<string, string>,
   ): Promise<ManagementBackground> {
     const parentId = input.parentBackgroundId
-      ? (parentIds.get(input.parentBackgroundId) ?? null)
+      ? (parentIds.get(input.parentBackgroundId) ??
+        (
+          await client.query<{ id: string }>(
+            `SELECT id_antecedente_gestion::text AS id
+             FROM antecedente_gestion ag JOIN gestion g ON g.id_gestion = ag.id_gestion
+             WHERE g.codigo = $1
+               AND (ag.id_antecedente_gestion::text = $2
+                 OR ag.id_antecedente::text = $2
+                 OR ag.nombre_mostrado = $2)
+             ORDER BY ag.id_antecedente_gestion
+             LIMIT 1`,
+            [managementId, input.parentBackgroundId],
+          )
+        ).rows[0]?.id ??
+        null)
       : null;
+    if (input.parentBackgroundId && !parentId)
+      throw new AppError(
+        'BACKGROUND_PARENT_NOT_FOUND',
+        `No se encontró el antecedente padre "${input.parentBackgroundId}".`,
+        422,
+      );
     const result = await client.query<ManagementBackground & { version: string }>(
       `INSERT INTO antecedente_gestion (id_gestion, id_antecedente_padre, id_antecedente, nivel, categoria,
         nombre_mostrado, flag_obligatorio, solicitado_por, id_usuario_responsable, responsable_nombre,
@@ -357,12 +377,12 @@ export class PostgresManagementRepository implements ManagementRepository {
        VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), $2::bigint,
         (SELECT id_antecedente FROM antecedente
           WHERE id_antecedente::text = NULLIF($3::text, '') OR nombre::text = $4::text),
-        'N2', $5::varchar, $4::varchar, $6::boolean, $7::varchar,
-        NULLIF($8::text, '')::bigint,
-        COALESCE(NULLIF($9::text, ''), (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
-          FROM usuario WHERE id_usuario = NULLIF($8::text, '')::bigint), ''),
-        $10::varchar, $11::varchar, $12::varchar, $13::varchar,
-        CASE WHEN $13::varchar IS NULL THEN NULL ELSE now() END)
+        $5::varchar, $6::varchar, $4::varchar, $7::boolean, $8::varchar,
+        NULLIF($9::text, '')::bigint,
+        COALESCE(NULLIF($10::text, ''), (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
+          FROM usuario WHERE id_usuario = NULLIF($9::text, '')::bigint), ''),
+        $11::varchar, $12::varchar, $13::varchar, $14::varchar,
+        CASE WHEN $14::varchar IS NULL THEN NULL ELSE now() END)
        RETURNING id_antecedente_gestion::text AS id, $1::text AS "managementId",
         id_antecedente_padre::text AS "parentManagementBackgroundId",
         (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1) AS "managementTypeId",
@@ -374,6 +394,7 @@ export class PostgresManagementRepository implements ManagementRepository {
         parentId,
         input.backgroundId ?? '',
         input.name,
+        input.level,
         input.category,
         input.required,
         input.requestedBy ?? null,

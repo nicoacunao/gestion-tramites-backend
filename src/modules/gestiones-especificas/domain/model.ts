@@ -1,6 +1,8 @@
 export interface SpecificManagementBackground {
   id: string;
   name: string;
+  level: 'N2' | 'N3' | 'N4';
+  parentBackgroundId: string | null;
 }
 
 export interface SpecificManagement {

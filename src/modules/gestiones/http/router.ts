@@ -86,6 +86,7 @@ const ManagementWriteSchema = ManagementSchema.omit({ version: true })
         z.object({
           backgroundId: z.string().nullable().optional(),
           parentBackgroundId: z.string().nullable().optional(),
+          level: z.enum(['N2', 'N3', 'N4']),
           name: z.string().trim().min(1).max(300),
           category: z.literal('requerido').default('requerido'),
           required: z.boolean().default(true),
@@ -104,6 +105,7 @@ const ManagementWriteSchema = ManagementSchema.omit({ version: true })
         z.object({
           backgroundId: z.string().nullable().optional(),
           parentBackgroundId: z.string().nullable().optional(),
+          level: z.enum(['N2', 'N3', 'N4']),
           name: z.string().trim().min(1).max(300),
           category: z.literal('complementario').default('complementario'),
           required: z.boolean().default(false),
@@ -465,6 +467,7 @@ export function createGestionesRouter(
           input.requiredBackgrounds ??
           input.antecedentesConfigurados?.map((name) => ({
             name,
+            level: 'N3' as const,
             category: 'requerido' as const,
             required: true,
           })),
@@ -472,6 +475,7 @@ export function createGestionesRouter(
           input.complementaryBackgrounds ??
           input.antecedentesComplementariosConfigurados?.map((name) => ({
             name,
+            level: 'N3' as const,
             category: 'complementario' as const,
             required: false,
           })),
@@ -650,6 +654,7 @@ export function createGestionesRouter(
               schema: z.object({
                 backgroundId: z.string().nullable().optional(),
                 parentBackgroundId: z.string().nullable().optional(),
+                level: z.enum(['N2', 'N3', 'N4']),
                 name: z.string().trim().min(1).max(300),
                 category: z.enum(['requerido', 'complementario', 'adicional']),
                 required: z.boolean(),

@@ -94,6 +94,7 @@ export interface ManagementStage {
 export interface ManagementBackgroundCreateInput {
   backgroundId?: string | null;
   parentBackgroundId?: string | null;
+  level: Exclude<ManagementLevel, 'N1'>;
   name: string;
   category: 'requerido' | 'complementario' | 'adicional';
   required: boolean;

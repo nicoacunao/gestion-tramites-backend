@@ -19,6 +19,8 @@ const responseSchema = z.object({
           z.object({
             id: z.string(),
             name: z.string(),
+            level: z.enum(['N2', 'N3', 'N4']),
+            parentBackgroundId: z.string().nullable(),
           }),
         ),
       })

@@ -150,6 +150,8 @@ CREATE TABLE opcion_campo_adicional (
 CREATE TABLE gestion_especifica_antecedente (
     id_gestion_especifica BIGINT NOT NULL,
     id_antecedente BIGINT NOT NULL,
+    id_antecedente_padre BIGINT,
+    nivel VARCHAR(2) NOT NULL DEFAULT 'N3',
     orden INTEGER NOT NULL,
 
     CONSTRAINT pk_gestion_especifica_antecedente
@@ -161,6 +163,9 @@ CREATE TABLE gestion_especifica_antecedente (
     CONSTRAINT ck_gestion_especifica_antecedente_orden
         CHECK (orden > 0),
 
+    CONSTRAINT ck_gestion_especifica_antecedente_nivel
+        CHECK (nivel IN ('N2', 'N3', 'N4')),
+
     CONSTRAINT fk_gestion_especifica_antecedente_especifica
         FOREIGN KEY (id_gestion_especifica)
         REFERENCES gestion_especifica (id_gestion_especifica)
@@ -169,6 +174,12 @@ CREATE TABLE gestion_especifica_antecedente (
 
     CONSTRAINT fk_gestion_especifica_antecedente_catalogo
         FOREIGN KEY (id_antecedente)
+        REFERENCES antecedente (id_antecedente)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_gestion_especifica_antecedente_padre
+        FOREIGN KEY (id_antecedente_padre)
         REFERENCES antecedente (id_antecedente)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
