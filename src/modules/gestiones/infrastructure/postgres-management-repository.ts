@@ -97,19 +97,19 @@ export class PostgresManagementRepository implements ManagementRepository {
             values,
           )
         : await this.database.query<ManagementRow>(
-            `UPDATE gestion SET id_estacion = $2, id_tipo_gestion = $3, codigo_ambito = $4,
+            `UPDATE gestion SET id_estacion = $2::varchar, id_tipo_gestion = $3::varchar, codigo_ambito = $4::varchar,
           id_usuario_responsable = $5::bigint, nivel = $6, correlativo = $7, estado = $8, prioridad = $9,
           nombre_solicitante = $10, fecha_apertura = $11::date, fecha_estimada_termino = $12::date,
           fecha_ultima_revision = $13::date,
           responsable_nombre = CASE WHEN id_usuario_responsable IS DISTINCT FROM $5::bigint
             THEN (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido) FROM usuario WHERE id_usuario = $5::bigint)
             ELSE responsable_nombre END,
-          razon_social = CASE WHEN id_estacion <> $2 THEN (SELECT razon_social FROM estacion WHERE id_estacion = $2) ELSE razon_social END,
-          rut_razon_social = CASE WHEN id_estacion <> $2 THEN (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2) ELSE rut_razon_social END,
-          representante_legal = CASE WHEN id_estacion <> $2 THEN (SELECT nombre_representante_legal FROM estacion WHERE id_estacion = $2) ELSE representante_legal END,
-          rut_representante_legal = CASE WHEN id_estacion <> $2 THEN (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2) ELSE rut_representante_legal END
-        WHERE codigo = $1 AND xmin = $14::text::xid
-          AND (id_gestion_especifica IS NULL OR id_tipo_gestion = $3)
+          razon_social = CASE WHEN id_estacion <> $2::varchar THEN (SELECT razon_social FROM estacion WHERE id_estacion = $2::varchar) ELSE razon_social END,
+          rut_razon_social = CASE WHEN id_estacion <> $2::varchar THEN (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2::varchar) ELSE rut_razon_social END,
+          representante_legal = CASE WHEN id_estacion <> $2::varchar THEN (SELECT nombre_representante_legal FROM estacion WHERE id_estacion = $2::varchar) ELSE representante_legal END,
+          rut_representante_legal = CASE WHEN id_estacion <> $2::varchar THEN (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2::varchar) ELSE rut_representante_legal END
+        WHERE codigo = $1::varchar AND xmin = $14::text::xid
+          AND (id_gestion_especifica IS NULL OR id_tipo_gestion = $3::varchar)
         RETURNING ${projection}`,
             [...values, expectedVersion],
           );
