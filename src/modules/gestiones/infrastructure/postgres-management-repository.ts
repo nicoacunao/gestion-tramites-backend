@@ -219,6 +219,14 @@ export class PostgresManagementRepository implements ManagementRepository {
     try {
       await client.query('BEGIN');
       const management = await this.insertManagement(client, input);
+      for (const specificId of input.associatedSpecificManagementIds ?? [])
+        await client.query(
+          `INSERT INTO gestion_subtramite (id_gestion, id_gestion_especifica)
+           VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
+             (SELECT id_gestion_especifica FROM gestion_especifica
+               WHERE id_gestion_especifica::text = $2::text OR nombre::text = $2::text))`,
+          [management.id, specificId],
+        );
       const parentIds = new Map<string, string>();
       for (const background of [
         ...(input.requiredBackgrounds ?? []),
@@ -231,14 +239,6 @@ export class PostgresManagementRepository implements ManagementRepository {
         parentIds.set(background.name, created.id);
       }
       for (const stage of input.stages ?? []) await this.insertStage(client, management.id, stage);
-      for (const specificId of input.associatedSpecificManagementIds ?? [])
-        await client.query(
-          `INSERT INTO gestion_subtramite (id_gestion, id_gestion_especifica)
-           VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
-             (SELECT id_gestion_especifica FROM gestion_especifica
-               WHERE id_gestion_especifica::text = $2::text OR nombre::text = $2::text))`,
-          [management.id, specificId],
-        );
       await client.query('COMMIT');
       return management;
     } catch (error) {
@@ -348,6 +348,11 @@ export class PostgresManagementRepository implements ManagementRepository {
          FROM gestion g
          JOIN gestion_especifica_antecedente gea
            ON gea.id_gestion_especifica = g.id_gestion_especifica
+           OR EXISTS (
+             SELECT 1 FROM gestion_subtramite gs
+             WHERE gs.id_gestion = g.id_gestion
+               AND gs.id_gestion_especifica = gea.id_gestion_especifica
+           )
          JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
          LEFT JOIN gestion_especifica_antecedente parent_gea
            ON parent_gea.id_gestion_especifica = gea.id_gestion_especifica
@@ -408,6 +413,11 @@ export class PostgresManagementRepository implements ManagementRepository {
            FROM gestion g
            JOIN gestion_especifica_antecedente gea
              ON gea.id_gestion_especifica = g.id_gestion_especifica
+             OR EXISTS (
+               SELECT 1 FROM gestion_subtramite gs
+               WHERE gs.id_gestion = g.id_gestion
+                 AND gs.id_gestion_especifica = gea.id_gestion_especifica
+             )
            JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
            WHERE g.codigo = $1 AND gea.id_antecedente::text = $2
            LIMIT 1`,
