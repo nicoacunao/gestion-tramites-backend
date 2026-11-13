@@ -52,6 +52,49 @@ function createRepository(catalog?: CatalogFixture, parentCatalog?: CatalogFixtu
 }
 
 describe('PostgresManagementRepository antecedentes', () => {
+  it('usa un parámetro separado para uploadedAt y la versión al actualizar', async () => {
+    const query = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          id: '74',
+          managementId: 'N1-PAT-001',
+          parentManagementBackgroundId: null,
+          managementTypeId: 'patente-comercial',
+          backgroundId: '100',
+          level: 'N2',
+          required: true,
+          responsibleUserId: null,
+          status: 'Recibido',
+          fileReference: null,
+          uploadedAt: '2026-11-13',
+          version: '2',
+        },
+      ],
+    });
+    const database = { query } as unknown as SqlExecutor;
+    const repository = new PostgresManagementRepository(database);
+    await repository.updateBackground(
+      '74',
+      {
+        managementId: 'N1-PAT-001',
+        parentManagementBackgroundId: null,
+        managementTypeId: 'patente-comercial',
+        backgroundId: '100',
+        level: 'N2',
+        required: true,
+        responsibleUserId: null,
+        status: 'Recibido',
+        fileReference: null,
+        uploadedAt: '2026-11-13',
+      },
+      1,
+    );
+    const [sql, values] = query.mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain('fecha_carga = $5::date');
+    expect(sql).toContain('a.xmin = $6::text::xid');
+    expect(values).toEqual(['74', null, 'Recibido', null, '2026-11-13', 1]);
+  });
+
   it.each(['N2', 'N3', 'N4'] as const)('persiste el nivel %s recibido', async (level) => {
     const { repository, client } = createRepository();
     const input: ManagementBackgroundCreateInput = {

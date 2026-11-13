@@ -192,7 +192,7 @@ export class PostgresManagementRepository implements ManagementRepository {
       `UPDATE antecedente_gestion a SET id_usuario_responsable = NULLIF($2, '')::bigint,
          estado = $3, archivo_referencia = $4, fecha_carga = $5::date
        FROM gestion g WHERE a.id_antecedente_gestion = $1::bigint AND g.id_gestion = a.id_gestion
-         AND a.xmin = $5::text::xid
+         AND a.xmin = $6::text::xid
        RETURNING a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
          a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
          COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
