@@ -12,6 +12,8 @@ describe('contrato OpenAPI', () => {
         '/api/v1/ambitos/items',
         '/api/v1/antecedentes/items',
         '/api/v1/archivos/health',
+        '/api/v1/archivos/items',
+        '/api/v1/archivos/items/{id}',
         '/api/v1/bitacora/health',
         '/api/v1/bitacora/items',
         '/api/v1/bitacora/items/{id}',

@@ -339,7 +339,7 @@ describe('gestiones', () => {
         status: 'Completado',
         estimatedOn: '2026-11-20',
         completedOn: '2026-11-21',
-        responsible: null,
+        responsibleUserId: null,
         notes: 'Validada',
         version: 0,
       }),
@@ -347,7 +347,7 @@ describe('gestiones', () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
-      data: { completedOn: '2026-11-21', responsible: null, version: 1 },
+      data: { completedOn: '2026-11-21', responsible: '', version: 1 },
     });
   });
 });

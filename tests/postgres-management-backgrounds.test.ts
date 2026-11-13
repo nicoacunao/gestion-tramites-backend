@@ -19,8 +19,10 @@ function createRepository(catalog?: CatalogFixture, parentCatalog?: CatalogFixtu
       if (sql === 'BEGIN' || sql === 'COMMIT' || sql === 'ROLLBACK') return { rows: [] };
       if (sql.startsWith('SELECT')) {
         if (sql.includes('FROM antecedente_gestion')) return { rows: [] };
-        if (parentCatalog && values?.[1] === parentCatalog.backgroundId)
+        if (parentCatalog && sql.includes('gea.id_antecedente::text = $2'))
           return { rows: [parentCatalog] };
+        if (sql.includes('FROM gestion g') && sql.includes('gestion_especifica_antecedente'))
+          return { rows: catalog ? [catalog] : [] };
         return { rows: catalog ? [catalog] : [] };
       }
       return {
@@ -90,13 +92,18 @@ describe('PostgresManagementRepository antecedentes', () => {
       1,
     );
     const [sql, values] = query.mock.calls[0] as [string, unknown[]];
-    expect(sql).toContain('fecha_carga = $5::date');
-    expect(sql).toContain('a.xmin = $6::text::xid');
-    expect(values).toEqual(['74', null, 'Recibido', null, '2026-11-13', 1]);
+    expect(sql).not.toContain('fecha_carga =');
+    expect(sql).toContain('a.xmin = $4::text::xid');
+    expect(values).toEqual(['74', null, 'Recibido', 1]);
   });
 
   it.each(['N2', 'N3', 'N4'] as const)('persiste el nivel %s recibido', async (level) => {
-    const { repository, client } = createRepository();
+    const { repository, client } = createRepository({
+      level,
+      parentBackgroundId: null,
+      backgroundId: '100',
+      name: `Antecedente ${level}`,
+    });
     const input: ManagementBackgroundCreateInput = {
       backgroundId: '100',
       level,
@@ -141,7 +148,13 @@ describe('PostgresManagementRepository antecedentes', () => {
   });
 
   it('conserva el padre de un antecedente hijo', async () => {
-    const { repository, client } = createRepository();
+    const { repository, client } = createRepository({
+      level: 'N3',
+      parentBackgroundId: '100',
+      parentLevel: 'N2',
+      backgroundId: '101',
+      name: 'Hijo N3',
+    });
     const input: ManagementBackgroundCreateInput = {
       backgroundId: '101',
       parentBackgroundId: '100',
