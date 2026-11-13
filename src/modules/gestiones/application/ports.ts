@@ -8,7 +8,7 @@ import type {
 } from '../domain/management';
 
 export interface ManagementRepository {
-  list(): Promise<readonly Management[]>;
+  list(responsibleUserId?: string): Promise<readonly Management[]>;
   findById(id: string): Promise<Management | null>;
   save(management: Management, expectedVersion?: number): Promise<void>;
   listBackgrounds(managementId: string): Promise<readonly ManagementBackground[]>;

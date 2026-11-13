@@ -2,7 +2,7 @@ import { AppError } from '../../shared/errors/app-error';
 import type { AppBindings } from '../../shared/config/bindings';
 import { PostgresManagementRepository } from './infrastructure/postgres-management-repository';
 import type { GestionesDependencies } from './http/router';
-import { authorizeRequest } from '../../shared/auth/request-auth';
+import { authenticatedUser, authorizeRequest } from '../../shared/auth/request-auth';
 
 export function postgresGestionesDependencies(env: AppBindings): GestionesDependencies {
   if (!env.database)
@@ -10,5 +10,6 @@ export function postgresGestionesDependencies(env: AppBindings): GestionesDepend
   return {
     repository: new PostgresManagementRepository(env.database.getPool()),
     authorize: (request, role) => authorizeRequest(request, env, role),
+    authenticate: (request) => authenticatedUser(request, env),
   };
 }

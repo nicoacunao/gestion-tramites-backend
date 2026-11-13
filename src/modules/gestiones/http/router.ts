@@ -2,6 +2,7 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { AppError } from '../../../shared/errors/app-error';
+import type { User } from '../../identidad/domain/user';
 import type { ManagementRepository } from '../application/ports';
 import { presentManagement } from '../application/presentation';
 import type {
@@ -145,6 +146,7 @@ const ManagementListResponseSchema = z
 export interface GestionesDependencies {
   repository: ManagementRepository;
   authorize: (request: Request, requiredRole: string) => boolean | Promise<boolean>;
+  authenticate: (request: Request) => Promise<User>;
 }
 export type GestionesDependenciesFactory = (env: AppEnv['Bindings']) => GestionesDependencies;
 
@@ -153,10 +155,26 @@ const listRoute = createRoute({
   path: '/items',
   tags: ['gestiones'],
   operationId: 'gestionesList',
+  request: {
+    query: z.object({
+      assignedToMe: z
+        .enum(['true', 'false'])
+        .default('false')
+        .openapi({
+          param: { name: 'assignedToMe', in: 'query' },
+          example: 'true',
+          description: 'Limita el resultado a las gestiones del usuario autenticado.',
+        }),
+    }),
+  },
   responses: {
     200: {
       content: { 'application/json': { schema: ManagementListResponseSchema } },
       description: 'Gestiones.',
+    },
+    401: {
+      content: { 'application/json': { schema: ApiErrorSchema } },
+      description: 'Autenticación requerida para consultar las gestiones asignadas.',
     },
     403: {
       content: { 'application/json': { schema: ApiErrorSchema } },
@@ -317,9 +335,11 @@ export function createGestionesRouter(
   router.openapi(listRoute, async (context) => {
     const deps = resolve(context.env);
     await ensureAuthorized(deps, context.req.raw);
+    const { assignedToMe } = context.req.valid('query');
+    const user = assignedToMe === 'true' ? await deps.authenticate(context.req.raw) : undefined;
     return context.json(
       {
-        data: Array.from(await deps.repository.list(), presentManagement),
+        data: Array.from(await deps.repository.list(user?.id), presentManagement),
         meta: { requestId: context.get('requestId') },
       },
       200,

@@ -51,10 +51,12 @@ export class PostgresManagementRepository implements ManagementRepository {
     return this.database as Pool;
   }
 
-  async list(): Promise<readonly Management[]> {
+  async list(responsibleUserId?: string): Promise<readonly Management[]> {
+    const filter =
+      responsibleUserId === undefined ? '' : ' WHERE id_usuario_responsable = $1::bigint';
     const result = await this.database.query<ManagementRow>(
-      `SELECT ${projection} FROM gestion ORDER BY id_gestion`,
-      [],
+      `SELECT ${projection} FROM gestion${filter} ORDER BY id_gestion`,
+      responsibleUserId === undefined ? [] : [responsibleUserId],
     );
     return result.rows.map(fromRow);
   }

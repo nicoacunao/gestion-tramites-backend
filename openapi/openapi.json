@@ -2161,6 +2161,21 @@
       "get": {
         "tags": ["gestiones"],
         "operationId": "gestionesList",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "default": "false",
+              "example": "true",
+              "description": "Limita el resultado a las gestiones del usuario autenticado."
+            },
+            "required": false,
+            "description": "Limita el resultado a las gestiones del usuario autenticado.",
+            "name": "assignedToMe",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Gestiones.",
@@ -2168,6 +2183,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ManagementListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida para consultar las gestiones asignadas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }

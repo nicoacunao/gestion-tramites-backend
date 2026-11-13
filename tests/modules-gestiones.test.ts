@@ -27,7 +27,10 @@ function repository(
 ): ManagementRepository {
   const items = [...initial];
   return {
-    list: async () => items,
+    list: async (responsibleUserId) =>
+      responsibleUserId === undefined
+        ? items
+        : items.filter((item) => item.responsibleUserId === responsibleUserId),
     findById: async (id) => items.find((item) => item.id === id) ?? null,
     save: async (value, expectedVersion) => {
       const index = items.findIndex((item) => item.id === value.id);
@@ -45,6 +48,21 @@ function app(repo: ManagementRepository) {
   const router = createGestionesRouter({
     repository: repo,
     authorize: (request, role) => request.headers.get('x-role') === role,
+    authenticate: async (request) => ({
+      id: request.headers.get('x-user-id') ?? 'u-1',
+      rut: '1-1',
+      passwordHash: '',
+      names: 'Test',
+      firstSurname: 'User',
+      secondSurname: null,
+      email: 'test@example.com',
+      phone: null,
+      description: null,
+      role: 'gestiones',
+      organization: null,
+      active: true,
+      version: 1,
+    }),
   });
   router.onError((error, context) => {
     const appError =
@@ -86,6 +104,38 @@ describe('gestiones', () => {
     });
     expect(detail.status).toBe(200);
     expect(await detail.json()).toMatchObject({ data: { priority: 'Alta' } });
+  });
+
+  it('filtra por el usuario autenticado y no por un userId enviado', async () => {
+    const otherManagement = { ...management, id: '1002', responsibleUserId: 'u-2' };
+    const router = app(repository([management, otherManagement]));
+    const response = await router.request('/items?assignedToMe=true&userId=u-2', {
+      headers: { ...auth, 'x-user-id': 'u-1' },
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ data: [{ id: '1001' }] });
+
+    const all = await router.request('/items', { headers: auth });
+    expect(all.status).toBe(200);
+    expect(await all.json()).toMatchObject({ data: [{ id: '1001' }, { id: '1002' }] });
+  });
+
+  it('devuelve una lista vacía si el usuario autenticado no tiene gestiones', async () => {
+    const response = await app(repository([management])).request('/items?assignedToMe=true', {
+      headers: { ...auth, 'x-user-id': 'u-without-management' },
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ data: [] });
+  });
+
+  it('rechaza el listado asignado si el usuario no tiene permisos', async () => {
+    const response = await app(repository()).request('/items?assignedToMe=true', {
+      headers: { 'x-user-id': 'u-1' },
+    });
+
+    expect(response.status).toBe(403);
   });
 
   it('crea una gestión y asigna la primera versión', async () => {
