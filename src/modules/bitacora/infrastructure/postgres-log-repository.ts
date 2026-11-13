@@ -14,8 +14,8 @@ interface LogRow {
   registered_at: string;
   titulo: string;
   comentario: string;
-  autor_nombre: string;
-  autor_iniciales: string;
+  autor_nombre_snapshot: string;
+  autor_iniciales_snapshot: string;
   tipo: 'inicio' | 'novedad' | 'seguimiento' | 'contacto' | null;
   automatica: boolean;
   version: string;
@@ -26,7 +26,7 @@ const SELECT_ENTRY = `
          g.codigo AS management_code, e.id_usuario::text AS user_id,
          to_char(e.fecha_hora AT TIME ZONE $1, 'YYYY-MM-DD') AS registered_on,
          to_char(e.fecha_hora AT TIME ZONE $1, 'HH24:MI:SS') AS registered_at,
-         e.titulo, e.comentario, e.autor_nombre, e.autor_iniciales, e.tipo, e.automatica, e.xmin::text AS version
+         e.titulo, e.comentario, e.autor_nombre_snapshot, e.autor_iniciales_snapshot, e.tipo, e.automatica, e.xmin::text AS version
   FROM entrada_bitacora e
   JOIN gestion g ON g.id_gestion = e.id_gestion`;
 
@@ -46,8 +46,8 @@ function fromRow(row: LogRow): LogEntry {
     registeredAt: row.registered_at,
     title: row.titulo,
     comment: row.comentario,
-    authorName: row.autor_nombre,
-    authorInitials: row.autor_iniciales,
+    authorName: row.autor_nombre_snapshot,
+    authorInitials: row.autor_iniciales_snapshot,
     type: row.tipo,
     automatic: row.automatica,
     version: Number(row.version),
@@ -79,12 +79,12 @@ export class PostgresLogRepository implements LogRepository {
     const reference = await this.database.query<{
       id_gestion: string;
       id_usuario: string;
-      autor_nombre: string;
-      autor_iniciales: string;
+      autor_nombre_snapshot: string;
+      autor_iniciales_snapshot: string;
     }>(
       `SELECT g.id_gestion::text, u.id_usuario::text,
-              concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido) AS autor_nombre,
-              upper(left(u.nombres, 1) || left(u.primer_apellido, 1)) AS autor_iniciales
+              concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido) AS autor_nombre_snapshot,
+              upper(left(u.nombres, 1) || left(u.primer_apellido, 1)) AS autor_iniciales_snapshot
        FROM gestion g CROSS JOIN usuario u
        WHERE g.codigo = $1 AND u.id_usuario = $2::bigint`,
       [entry.managementId, entry.userId],
@@ -97,8 +97,8 @@ export class PostgresLogRepository implements LogRepository {
         422,
       );
     if (
-      Array.from(author.autor_nombre).length > 150 ||
-      Array.from(author.autor_iniciales).length > 10
+      Array.from(author.autor_nombre_snapshot).length > 150 ||
+      Array.from(author.autor_iniciales_snapshot).length > 10
     )
       throw new AppError(
         'INVALID_LOG_AUTHOR',
@@ -109,7 +109,7 @@ export class PostgresLogRepository implements LogRepository {
     const result = await this.database.query<LogRow>(
       `INSERT INTO entrada_bitacora (
          codigo_externo, id_gestion, id_usuario, fecha_hora,
-         autor_nombre, autor_iniciales, tipo, automatica, titulo, comentario
+         autor_nombre_snapshot, autor_iniciales_snapshot, tipo, automatica, titulo, comentario
        ) VALUES (
          $1, $2::bigint, $3::bigint, ($4::date + $5::time) AT TIME ZONE $6,
          $7, $8, $9, $10, $11, $12
@@ -118,7 +118,7 @@ export class PostgresLogRepository implements LogRepository {
                  $13::text AS management_code, id_usuario::text AS user_id,
                  to_char(fecha_hora AT TIME ZONE $6, 'YYYY-MM-DD') AS registered_on,
                  to_char(fecha_hora AT TIME ZONE $6, 'HH24:MI:SS') AS registered_at,
-                 titulo, comentario, autor_nombre, autor_iniciales, tipo, automatica, xmin::text AS version`,
+                 titulo, comentario, autor_nombre_snapshot, autor_iniciales_snapshot, tipo, automatica, xmin::text AS version`,
       [
         entry.id,
         author.id_gestion,
@@ -126,8 +126,8 @@ export class PostgresLogRepository implements LogRepository {
         entry.registeredOn,
         entry.registeredAt,
         TIME_ZONE,
-        author.autor_nombre,
-        author.autor_iniciales,
+        author.autor_nombre_snapshot,
+        author.autor_iniciales_snapshot,
         entry.type,
         entry.automatic,
         entry.title,

@@ -87,6 +87,7 @@ export interface ManagementStage {
   estimatedOn: string | null;
   completedOn: string | null;
   responsible: string | null;
+  responsibleUserId?: string | null;
   notes: string | null;
   version: number;
 }
@@ -98,13 +99,10 @@ export interface ManagementBackgroundCreateInput {
   name: string;
   category: 'requerido' | 'complementario' | 'adicional';
   required: boolean;
-  requestedBy?: string | null;
   responsibleUserId?: string | null;
   responsibleName?: string | null;
   status?: 'Pendiente' | 'Recibido' | 'Recibido conforme';
   observations?: string | null;
-  fileName?: string | null;
-  fileReference?: string | null;
 }
 
 export interface ManagementStageCreateInput {

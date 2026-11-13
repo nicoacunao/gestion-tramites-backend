@@ -931,10 +931,6 @@
                   "type": "boolean",
                   "default": true
                 },
-                "requestedBy": {
-                  "type": "string",
-                  "nullable": true
-                },
                 "responsibleUserId": {
                   "type": "string",
                   "nullable": true
@@ -948,14 +944,6 @@
                   "enum": ["Pendiente", "Recibido", "Recibido conforme"]
                 },
                 "observations": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "fileName": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "fileReference": {
                   "type": "string",
                   "nullable": true
                 }
@@ -994,10 +982,6 @@
                   "type": "boolean",
                   "default": false
                 },
-                "requestedBy": {
-                  "type": "string",
-                  "nullable": true
-                },
                 "responsibleUserId": {
                   "type": "string",
                   "nullable": true
@@ -1011,14 +995,6 @@
                   "enum": ["Pendiente", "Recibido", "Recibido conforme"]
                 },
                 "observations": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "fileName": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "fileReference": {
                   "type": "string",
                   "nullable": true
                 }
@@ -1174,6 +1150,99 @@
           }
         },
         "required": ["id", "managementTypeId", "code", "name", "active", "backgrounds"]
+      },
+      "FileListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileRecord"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              }
+            },
+            "required": ["requestId"]
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "FileRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "managementId": {
+            "type": "string"
+          },
+          "managementBackgroundId": {
+            "type": "string",
+            "nullable": true
+          },
+          "storageProvider": {
+            "type": "string"
+          },
+          "storageReference": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "mediaType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "number",
+            "minimum": 0
+          },
+          "uploadedByUserId": {
+            "type": "string"
+          },
+          "uploadedAt": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "managementId",
+          "managementBackgroundId",
+          "storageProvider",
+          "storageReference",
+          "fileName",
+          "mediaType",
+          "sizeBytes",
+          "uploadedByUserId",
+          "uploadedAt",
+          "version"
+        ]
+      },
+      "FileResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FileRecord"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string"
+              }
+            },
+            "required": ["requestId"]
+          }
+        },
+        "required": ["data", "meta"]
       },
       "LogEntryListResponse": {
         "type": "object",
@@ -2459,10 +2528,6 @@
                   "required": {
                     "type": "boolean"
                   },
-                  "requestedBy": {
-                    "type": "string",
-                    "nullable": true
-                  },
                   "responsibleUserId": {
                     "type": "string",
                     "nullable": true
@@ -2476,14 +2541,6 @@
                     "enum": ["Pendiente", "Recibido", "Recibido conforme"]
                   },
                   "observations": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "fileName": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "fileReference": {
                     "type": "string",
                     "nullable": true
                   }
@@ -2901,10 +2958,10 @@
                     "nullable": true,
                     "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
                   },
-                  "responsible": {
+                  "responsibleUserId": {
                     "type": "string",
                     "nullable": true,
-                    "maxLength": 150
+                    "maxLength": 50
                   },
                   "notes": {
                     "type": "string",
@@ -2920,7 +2977,7 @@
                   "status",
                   "estimatedOn",
                   "completedOn",
-                  "responsible",
+                  "responsibleUserId",
                   "notes",
                   "version"
                 ]
@@ -3518,6 +3575,86 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/archivos/items": {
+      "get": {
+        "tags": ["archivos"],
+        "operationId": "archivosList",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "required": true,
+            "name": "managementId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archivos de una gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Consulta inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "nullable": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/archivos/items/{id}": {
+      "get": {
+        "tags": ["archivos"],
+        "operationId": "archivosGet",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archivo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Archivo no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "nullable": true
                 }
               }
             }

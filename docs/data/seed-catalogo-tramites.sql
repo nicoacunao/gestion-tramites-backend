@@ -10,7 +10,7 @@ BEGIN;
 -- Las relaciones se normalizan con niveles y padres explícitos en la migración
 -- de jerarquía que se ejecuta al finalizar este seed.
 ALTER TABLE gestion_especifica_antecedente
-    ALTER COLUMN nivel SET DEFAULT 'N3';
+    ALTER COLUMN nivel SET DEFAULT 'N2';
 
 -- 1) Tipos de trámite (gestiones mayores)
 INSERT INTO tipo_gestion (id_tipo_gestion, nombre, etiqueta_segundo_nivel, requiere_seleccion_segundo_nivel_principal) VALUES ('patente-comercial', 'Patente comercial', 'Subtrámite o gestión asociada', FALSE) ON CONFLICT (id_tipo_gestion) DO UPDATE SET nombre=EXCLUDED.nombre, etiqueta_segundo_nivel=EXCLUDED.etiqueta_segundo_nivel, requiere_seleccion_segundo_nivel_principal=EXCLUDED.requiere_seleccion_segundo_nivel_principal;
@@ -187,5 +187,5 @@ ALTER TABLE gestion_especifica_antecedente
 
 COMMIT;
 
--- Conteos esperados: 4 tipos, 13 subtrámites, 53 antecedentes únicos, 79 relaciones.
+-- Conteos esperados: 4 tipos, 13 subtrámites, 56 antecedentes únicos, 79 relaciones.
 

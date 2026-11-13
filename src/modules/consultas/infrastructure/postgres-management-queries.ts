@@ -13,7 +13,9 @@ export class PostgresManagementQueries implements ManagementQueries {
   private async list(where: string, values: unknown[]): Promise<readonly ManagementListItem[]> {
     const result = await this.database.query<ManagementListItem>(
       `SELECT g.codigo AS id, g.codigo AS code, g.nivel AS level,
-      g.id_estacion AS "stationId", e.comuna AS commune, g.responsable_nombre AS "responsibleName",
+      g.id_estacion AS "stationId", e.comuna AS commune,
+      (SELECT concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido)
+         FROM usuario u WHERE u.id_usuario = g.id_usuario_responsable) AS "responsibleName",
       g.estado AS status, g.fecha_apertura::text AS "openedOn" FROM gestion g JOIN estacion e ON e.id_estacion = g.id_estacion ${where} ORDER BY g.fecha_apertura DESC`,
       values,
     );

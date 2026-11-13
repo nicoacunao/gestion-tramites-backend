@@ -17,7 +17,10 @@ const projection = `codigo AS id, id_estacion AS "stationId", id_tipo_gestion AS
   fecha_estimada_termino::text AS "estimatedCompletionOn", fecha_ultima_revision::text AS "lastReviewedOn",
   prioridad AS priority, nombre_solicitante AS "requesterName", estado AS status, xmin::text AS version,
   modalidad_creacion AS "creationMode", id_gestion_especifica::text AS "specificManagementId",
-  id_estacion AS "stationName", razon_social AS "legalName", responsable_nombre AS "responsibleName",
+  id_estacion AS "stationName",
+  (SELECT e.razon_social FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS "legalName",
+  (SELECT concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido)
+     FROM usuario u WHERE u.id_usuario = gestion.id_usuario_responsable) AS "responsibleName",
   (SELECT t.nombre FROM tipo_gestion t WHERE t.id_tipo_gestion = gestion.id_tipo_gestion) AS "managementTypeName",
   (SELECT ge.codigo FROM gestion_especifica ge WHERE ge.id_gestion_especifica = gestion.id_gestion_especifica) AS "managementTypeCode",
   (SELECT a.nombre FROM ambito_gestion a WHERE a.codigo_ambito = gestion.codigo_ambito) AS "scopeName",
@@ -84,15 +87,10 @@ export class PostgresManagementRepository implements ManagementRepository {
       expectedVersion === undefined
         ? await this.database.query<ManagementRow>(
             `INSERT INTO gestion (codigo, id_estacion, id_tipo_gestion, codigo_ambito, id_usuario_responsable,
-          nivel, correlativo, modalidad_creacion, estado, prioridad, responsable_nombre, nombre_solicitante,
-          razon_social, rut_razon_social, representante_legal, rut_representante_legal,
+          nivel, correlativo, modalidad_creacion, estado, prioridad, nombre_solicitante,
           fecha_apertura, fecha_estimada_termino, fecha_ultima_revision)
         VALUES ($1, $2, $3, $4, $5::bigint, $6, $7, 'principal', $8, $9,
-          (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido) FROM usuario WHERE id_usuario = $5::bigint), $10,
-          (SELECT razon_social FROM estacion WHERE id_estacion = $2),
-          (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2),
-          (SELECT nombre_representante_legal FROM estacion WHERE id_estacion = $2),
-          (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2),
+          $10,
           $11::date, $12::date, $13::date) RETURNING ${projection}`,
             values,
           )
@@ -100,14 +98,7 @@ export class PostgresManagementRepository implements ManagementRepository {
             `UPDATE gestion SET id_estacion = $2::varchar, id_tipo_gestion = $3::varchar, codigo_ambito = $4::varchar,
           id_usuario_responsable = $5::bigint, nivel = $6, correlativo = $7, estado = $8, prioridad = $9,
           nombre_solicitante = $10, fecha_apertura = $11::date, fecha_estimada_termino = $12::date,
-          fecha_ultima_revision = $13::date,
-          responsable_nombre = CASE WHEN id_usuario_responsable IS DISTINCT FROM $5::bigint
-            THEN (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido) FROM usuario WHERE id_usuario = $5::bigint)
-            ELSE responsable_nombre END,
-          razon_social = CASE WHEN id_estacion <> $2::varchar THEN (SELECT razon_social FROM estacion WHERE id_estacion = $2::varchar) ELSE razon_social END,
-          rut_razon_social = CASE WHEN id_estacion <> $2::varchar THEN (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2::varchar) ELSE rut_razon_social END,
-          representante_legal = CASE WHEN id_estacion <> $2::varchar THEN (SELECT nombre_representante_legal FROM estacion WHERE id_estacion = $2::varchar) ELSE representante_legal END,
-          rut_representante_legal = CASE WHEN id_estacion <> $2::varchar THEN (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2::varchar) ELSE rut_representante_legal END
+          fecha_ultima_revision = $13::date
         WHERE codigo = $1::varchar AND xmin = $14::text::xid
           AND (id_gestion_especifica IS NULL OR id_tipo_gestion = $3::varchar)
         RETURNING ${projection}`,
@@ -129,7 +120,12 @@ export class PostgresManagementRepository implements ManagementRepository {
         a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
         COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
         a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
-        a.archivo_referencia AS "fileReference", a.fecha_carga::text AS "uploadedAt", a.xmin::text AS version
+        (SELECT f.referencia_almacenamiento FROM archivo_gestion f
+          WHERE f.id_antecedente_gestion = a.id_antecedente_gestion
+          ORDER BY f.fecha_carga DESC LIMIT 1) AS "fileReference",
+        (SELECT f.fecha_carga::text FROM archivo_gestion f
+          WHERE f.id_antecedente_gestion = a.id_antecedente_gestion
+          ORDER BY f.fecha_carga DESC LIMIT 1) AS "uploadedAt", a.xmin::text AS version
        FROM antecedente_gestion a JOIN gestion g ON g.id_gestion = a.id_gestion
        WHERE g.codigo = $1 ORDER BY a.id_antecedente_gestion`,
       [managementId],
@@ -144,7 +140,9 @@ export class PostgresManagementRepository implements ManagementRepository {
       `SELECT e.id_etapa_gestion::text AS id, g.codigo AS "managementId", e.id_etapa::text AS "stageId",
         t.nombre AS "stageName", t.porcentaje AS percentage,
         e.estado AS status, e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
-        e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version
+        (SELECT concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido)
+           FROM usuario u WHERE u.id_usuario = e.id_usuario_responsable) AS responsible,
+        e.observaciones AS notes, e.xmin::text AS version
        FROM etapa_gestion e JOIN gestion g ON g.id_gestion = e.id_gestion JOIN etapa t ON t.id_etapa = e.id_etapa
        WHERE g.codigo = $1 ORDER BY t.orden`,
       [managementId],
@@ -160,7 +158,12 @@ export class PostgresManagementRepository implements ManagementRepository {
         a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
         COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
         a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
-        a.archivo_referencia AS "fileReference", a.fecha_carga::text AS "uploadedAt", a.xmin::text AS version
+        (SELECT f.referencia_almacenamiento FROM archivo_gestion f
+          WHERE f.id_antecedente_gestion = a.id_antecedente_gestion
+          ORDER BY f.fecha_carga DESC LIMIT 1) AS "fileReference",
+        (SELECT f.fecha_carga::text FROM archivo_gestion f
+          WHERE f.id_antecedente_gestion = a.id_antecedente_gestion
+          ORDER BY f.fecha_carga DESC LIMIT 1) AS "uploadedAt", a.xmin::text AS version
        FROM antecedente_gestion a JOIN gestion g ON g.id_gestion = a.id_gestion
        WHERE a.id_antecedente_gestion = $1::bigint`,
       [id],
@@ -174,7 +177,9 @@ export class PostgresManagementRepository implements ManagementRepository {
       `SELECT e.id_etapa_gestion::text AS id, g.codigo AS "managementId", e.id_etapa::text AS "stageId",
         t.nombre AS "stageName", t.porcentaje AS percentage, e.estado AS status,
         e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
-        e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version
+        (SELECT concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido)
+           FROM usuario u WHERE u.id_usuario = e.id_usuario_responsable) AS responsible,
+        e.observaciones AS notes, e.xmin::text AS version
        FROM etapa_gestion e JOIN gestion g ON g.id_gestion = e.id_gestion JOIN etapa t ON t.id_etapa = e.id_etapa
        WHERE e.id_etapa_gestion = $1::bigint`,
       [id],
@@ -190,22 +195,20 @@ export class PostgresManagementRepository implements ManagementRepository {
   ): Promise<ManagementBackground> {
     const result = await this.database.query<ManagementBackground & { version: string }>(
       `UPDATE antecedente_gestion a SET id_usuario_responsable = NULLIF($2, '')::bigint,
-         estado = $3, archivo_referencia = $4, fecha_carga = $5::date
+         estado = $3
        FROM gestion g WHERE a.id_antecedente_gestion = $1::bigint AND g.id_gestion = a.id_gestion
-         AND a.xmin = $6::text::xid
+         AND a.xmin = $4::text::xid
        RETURNING a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
          a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
          COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
          a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
-         a.archivo_referencia AS "fileReference", a.fecha_carga::text AS "uploadedAt", a.xmin::text AS version`,
-      [
-        id,
-        input.responsibleUserId,
-        input.status,
-        input.fileReference,
-        input.uploadedAt,
-        expectedVersion,
-      ],
+         (SELECT f.referencia_almacenamiento FROM archivo_gestion f
+           WHERE f.id_antecedente_gestion = a.id_antecedente_gestion
+           ORDER BY f.fecha_carga DESC LIMIT 1) AS "fileReference",
+         (SELECT f.fecha_carga::text FROM archivo_gestion f
+           WHERE f.id_antecedente_gestion = a.id_antecedente_gestion
+           ORDER BY f.fecha_carga DESC LIMIT 1) AS "uploadedAt", a.xmin::text AS version`,
+      [id, input.responsibleUserId, input.status, expectedVersion],
     );
     const row = result.rows[0];
     if (!row)
@@ -214,7 +217,23 @@ export class PostgresManagementRepository implements ManagementRepository {
         'El antecedente cambió; recarga antes de guardar.',
         409,
       );
-    return { ...row, version: Number(row.version) };
+    if (input.fileReference !== null) {
+      await this.database.query(
+        `UPDATE archivo_gestion
+            SET referencia_almacenamiento = $2,
+                fecha_carga = COALESCE($3::timestamptz, fecha_carga)
+          WHERE id_antecedente_gestion = $1::bigint
+            AND id_archivo = (
+              SELECT id_archivo FROM archivo_gestion
+              WHERE id_antecedente_gestion = $1::bigint
+              ORDER BY fecha_carga DESC
+              LIMIT 1
+            )`,
+        [id, input.fileReference, input.uploadedAt],
+      );
+    }
+    const refreshed = await this.findBackground(id);
+    return refreshed ?? { ...row, version: Number(row.version) };
   }
 
   async updateStage(
@@ -225,9 +244,6 @@ export class PostgresManagementRepository implements ManagementRepository {
     const result = await this.database.query<ManagementStage & { version: string }>(
       `UPDATE etapa_gestion e SET estado = $2, fecha_estimada = $3::date, fecha_real = $4::date,
          id_usuario_responsable = NULLIF($5, '')::bigint,
-         responsable_nombre = CASE WHEN NULLIF($5, '') IS NULL THEN NULL
-           ELSE (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
-                 FROM usuario WHERE id_usuario = NULLIF($5, '')::bigint) END,
          observaciones = $6
        FROM gestion g WHERE e.id_etapa_gestion = $1::bigint AND g.id_gestion = e.id_gestion
          AND e.xmin = $7::text::xid
@@ -235,13 +251,15 @@ export class PostgresManagementRepository implements ManagementRepository {
          (SELECT nombre FROM etapa WHERE id_etapa = e.id_etapa) AS "stageName",
          (SELECT porcentaje FROM etapa WHERE id_etapa = e.id_etapa) AS percentage,
          e.estado AS status, e.fecha_estimada::text AS "estimatedOn", e.fecha_real::text AS "completedOn",
-         e.responsable_nombre AS responsible, e.observaciones AS notes, e.xmin::text AS version`,
+         (SELECT concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido)
+            FROM usuario u WHERE u.id_usuario = e.id_usuario_responsable) AS responsible,
+         e.observaciones AS notes, e.xmin::text AS version`,
       [
         id,
         input.status,
         input.estimatedOn,
         input.completedOn,
-        input.responsible,
+        input.responsibleUserId ?? null,
         input.notes,
         expectedVersion,
       ],
@@ -265,18 +283,51 @@ export class PostgresManagementRepository implements ManagementRepository {
                WHERE id_gestion_especifica::text = $2::text OR nombre::text = $2::text))`,
           [management.id, specificId],
         );
-      const parentIds = new Map<string, string>();
-      for (const background of [
+      let backgrounds = [
         ...(input.requiredBackgrounds ?? []),
         ...(input.complementaryBackgrounds ?? []),
-      ]) {
+      ];
+      if (backgrounds.length === 0 && input.specificManagementId) {
+        const catalog = await client.query<{
+          backgroundId: string;
+          level: ManagementBackgroundCreateInput['level'];
+          name: string;
+          category: ManagementBackgroundCreateInput['category'];
+          required: boolean;
+        }>(
+          `SELECT gea.id_antecedente::text AS "backgroundId", gea.nivel AS level,
+                  a.nombre AS name,
+                  CASE WHEN a.categoria = 'complementario'
+                    THEN 'complementario' ELSE 'requerido' END AS category,
+                  (a.categoria = 'requerido') AS required
+           FROM gestion_especifica_antecedente gea
+           JOIN gestion_especifica ge
+             ON ge.id_gestion_especifica = gea.id_gestion_especifica
+           JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
+           WHERE ge.id_gestion_especifica::text = $1::text
+              OR ge.codigo = $1::text
+              OR ge.nombre = $1::text
+           ORDER BY gea.orden`,
+          [input.specificManagementId],
+        );
+        backgrounds = catalog.rows;
+      }
+      const parentIds = new Map<string, string>();
+      for (const background of backgrounds) {
         const backgroundKey = background.backgroundId ?? background.name;
         if (parentIds.has(backgroundKey) || parentIds.has(background.name)) continue;
         const created = await this.insertBackground(client, management.id, background, parentIds);
         parentIds.set(background.backgroundId ?? background.name, created.id);
         parentIds.set(background.name, created.id);
       }
-      for (const stage of input.stages ?? []) await this.insertStage(client, management.id, stage);
+      let stages = input.stages;
+      if (stages === undefined) {
+        const catalog = await client.query<{ name: string }>(
+          `SELECT nombre AS name FROM etapa ORDER BY orden`,
+        );
+        stages = catalog.rows.map((stage) => ({ name: stage.name, status: 'Pendiente' as const }));
+      }
+      for (const stage of stages) await this.insertStage(client, management.id, stage);
       await client.query('COMMIT');
       return management;
     } catch (error) {
@@ -333,18 +384,14 @@ export class PostgresManagementRepository implements ManagementRepository {
     const result = await client.query<ManagementRow>(
       `INSERT INTO gestion (codigo, id_estacion, id_tipo_gestion, id_gestion_especifica, codigo_ambito,
         id_usuario_responsable, nivel, correlativo, modalidad_creacion, estado, prioridad,
-        responsable_nombre, nombre_solicitante, razon_social, rut_razon_social, representante_legal,
-        rut_representante_legal, fecha_apertura, fecha_estimada_termino, fecha_ultima_revision)
+        nombre_solicitante, fecha_apertura, fecha_estimada_termino, fecha_ultima_revision)
        VALUES ($1::varchar, $2::varchar, $3::varchar,
         (SELECT id_gestion_especifica FROM gestion_especifica
           WHERE id_gestion_especifica::text = NULLIF($4::text, '')
+             OR codigo::text = NULLIF($4::text, '')
              OR nombre::text = NULLIF($4::text, '')),
         $5::varchar, $6::bigint, $7::varchar, $8::integer, $9::varchar, $10::varchar, $11::varchar,
-        (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido) FROM usuario WHERE id_usuario = $6::bigint),
-        $12::varchar, (SELECT razon_social FROM estacion WHERE id_estacion = $2::varchar),
-        (SELECT rut_sociedad FROM estacion WHERE id_estacion = $2::varchar),
-        (SELECT nombre_representante_legal FROM estacion WHERE id_estacion = $2::varchar),
-        (SELECT rut_representante_legal FROM estacion WHERE id_estacion = $2::varchar),
+        $12::varchar,
         $13::date, $14::date, $15::date)
        RETURNING ${projection}`,
       [
@@ -401,6 +448,12 @@ export class PostgresManagementRepository implements ManagementRepository {
         [managementId, input.backgroundId ?? '', input.name],
       )
     ).rows[0];
+    if (!catalogBackground)
+      throw new AppError(
+        'BACKGROUND_NOT_FOUND_IN_CATALOG',
+        `El antecedente "${input.name}" no existe en el catálogo de la gestión.`,
+        422,
+      );
     const level = catalogBackground?.level ?? input.level;
     const parentBackgroundId = catalogBackground
       ? catalogBackground.parentBackgroundId
@@ -422,12 +475,13 @@ export class PostgresManagementRepository implements ManagementRepository {
       ? (parentIds.get(parentBackgroundId) ??
         (
           await client.query<{ id: string }>(
-            `SELECT id_antecedente_gestion::text AS id
+            `SELECT ag.id_antecedente_gestion::text AS id
              FROM antecedente_gestion ag JOIN gestion g ON g.id_gestion = ag.id_gestion
+             JOIN antecedente a ON a.id_antecedente = ag.id_antecedente
              WHERE g.codigo = $1
                AND (ag.id_antecedente_gestion::text = $2
                  OR ag.id_antecedente::text = $2
-                 OR ag.nombre_mostrado = $2)
+                 OR a.nombre = $2)
              ORDER BY ag.id_antecedente_gestion
              LIMIT 1`,
             [managementId, parentBackgroundId],
@@ -489,23 +543,18 @@ export class PostgresManagementRepository implements ManagementRepository {
       );
     const result = await client.query<ManagementBackground & { version: string }>(
       `INSERT INTO antecedente_gestion (id_gestion, id_antecedente_padre, id_antecedente, nivel, categoria,
-        nombre_mostrado, flag_obligatorio, solicitado_por, id_usuario_responsable, responsable_nombre,
-        estado, observaciones, archivo_nombre, archivo_referencia, fecha_carga)
+        flag_obligatorio, id_usuario_responsable, estado, observaciones)
        VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), $2::bigint,
         (SELECT id_antecedente FROM antecedente
           WHERE id_antecedente::text = NULLIF($3::text, '') OR nombre::text = $4::text),
-        $5::varchar, $6::varchar, $4::varchar, $7::boolean, $8::varchar,
-        NULLIF($9::text, '')::bigint,
-        COALESCE(NULLIF($10::text, ''), (SELECT concat_ws(' ', nombres, primer_apellido, segundo_apellido)
-          FROM usuario WHERE id_usuario = NULLIF($9::text, '')::bigint), ''),
-        $11::varchar, $12::varchar, $13::varchar, $14::varchar,
-        CASE WHEN $14::varchar IS NULL THEN NULL ELSE now() END)
+        $5::varchar, $6::varchar, $7::boolean,
+        NULLIF($8::text, '')::bigint, $9::varchar, $10::varchar)
        RETURNING id_antecedente_gestion::text AS id, $1::text AS "managementId",
         id_antecedente_padre::text AS "parentManagementBackgroundId",
         (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1) AS "managementTypeId",
         COALESCE(id_antecedente::text, '') AS "backgroundId", nivel AS level,
         flag_obligatorio AS required, id_usuario_responsable::text AS "responsibleUserId",
-        estado AS status, archivo_referencia AS "fileReference", fecha_carga AS "uploadedAt", xmin::text AS version`,
+        estado AS status, NULL::varchar AS "fileReference", NULL::timestamptz AS "uploadedAt", xmin::text AS version`,
       [
         managementId,
         parentId,
@@ -514,13 +563,9 @@ export class PostgresManagementRepository implements ManagementRepository {
         level,
         input.category,
         input.required,
-        input.requestedBy ?? null,
         input.responsibleUserId ?? '',
-        input.responsibleName ?? '',
         input.status ?? 'Pendiente',
         input.observations ?? null,
-        input.fileName ?? null,
-        input.fileReference ?? null,
       ],
     );
     const row = result.rows[0];
@@ -535,16 +580,18 @@ export class PostgresManagementRepository implements ManagementRepository {
   ): Promise<ManagementStage> {
     const result = await client.query<ManagementStage & { version: string }>(
       `INSERT INTO etapa_gestion (id_gestion, id_etapa, estado, fecha_estimada, fecha_real,
-        id_usuario_responsable, responsable_nombre, observaciones)
+        id_usuario_responsable, observaciones)
        VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
         (SELECT id_etapa FROM etapa
           WHERE id_etapa::text = NULLIF($2::text, '') OR nombre::text = $3::text),
-        $4, $5::date, $6::date, NULLIF($7, '')::bigint, $8, $9)
+        $4, $5::date, $6::date, NULLIF($7, '')::bigint, $8)
        RETURNING id_etapa_gestion::text AS id, $1::text AS "managementId", id_etapa::text AS "stageId",
         (SELECT nombre FROM etapa WHERE id_etapa = etapa_gestion.id_etapa) AS "stageName",
         (SELECT porcentaje FROM etapa WHERE id_etapa = etapa_gestion.id_etapa) AS percentage,
         estado AS status, fecha_estimada::text AS "estimatedOn", fecha_real::text AS "completedOn",
-        responsable_nombre AS responsible, observaciones AS notes, xmin::text AS version`,
+        (SELECT concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido)
+           FROM usuario u WHERE u.id_usuario = etapa_gestion.id_usuario_responsable) AS responsible,
+        observaciones AS notes, xmin::text AS version`,
       [
         managementId,
         input.stageId ?? '',
@@ -553,7 +600,6 @@ export class PostgresManagementRepository implements ManagementRepository {
         input.estimatedOn ?? null,
         input.completedOn ?? null,
         input.responsibleUserId ?? '',
-        input.responsibleName ?? null,
         input.notes ?? null,
       ],
     );

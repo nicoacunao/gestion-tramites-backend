@@ -33,6 +33,45 @@ npm run dev
 El Worker queda normalmente en `http://localhost:8787`. La configuración de
 Supabase está en [docs/supabase-migration.md](./docs/supabase-migration.md).
 
+## Migraciones y datos de prueba
+
+Las migraciones operacionales deben ejecutarse después de `docs/data/schema.sql`
+y antes de cargar o crear gestiones:
+
+```text
+20261113_antecedente-niveles.sql
+20261113_normalizacion-operacional.sql
+20261113_bitacora-snapshot.sql
+20261113_borrado-agregado-gestion.sql
+20261113_indices-operacionales.sql
+```
+
+Con `psql` se pueden ejecutar todas mediante el runner:
+
+```bash
+PG_CONN_STRING="$(node --env-file=.env -e 'process.stdout.write(process.env.DATABASE_URL)')"
+psql "$PG_CONN_STRING" -v ON_ERROR_STOP=1 \
+  -f docs/data/migrations/20261113_apply-all.sql
+unset PG_CONN_STRING
+```
+
+Desde el editor SQL de Supabase, ejecutar los cinco archivos individualmente
+en el orden anterior; el editor no interpreta los comandos `\\ir` de `psql`.
+
+Luego cargar el catálogo:
+
+```bash
+PG_CONN_STRING="$(node --env-file=.env -e 'process.stdout.write(process.env.DATABASE_URL)')"
+psql "$PG_CONN_STRING" -v ON_ERROR_STOP=1 \
+  -f docs/data/seed-catalogo-tramites.sql
+psql "$PG_CONN_STRING" -v ON_ERROR_STOP=1 \
+  -f docs/data/migrations/20261113_verificar-normalizacion.sql
+unset PG_CONN_STRING
+```
+
+Los datos ficticios `00000`, `PRUEBA-00000` y `PRUEBA-00001` son opcionales y
+solo deben crearse en entornos de prueba.
+
 ## Comandos
 
 | Comando                    | Descripción                                  |

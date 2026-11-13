@@ -62,7 +62,7 @@ export class BitacoraService {
       throw new AppError('RESOURCE_CONFLICT', 'Ya existe una entrada con ese identificador.', 409);
     const entry = { ...input, id, version: 1 };
     await this.repository.append(entry);
-    return entry;
+    return (await this.repository.findById(id)) ?? entry;
   }
 
   private automaticEntryId(input: LogEntryInput): string {

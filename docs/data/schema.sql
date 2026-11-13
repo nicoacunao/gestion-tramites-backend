@@ -136,6 +136,12 @@ CREATE TABLE gestion_especifica_antecedente (
         FOREIGN KEY (id_antecedente_padre)
         REFERENCES antecedente (id_antecedente)
         ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_gestion_especifica_antecedente_padre_misma_especifica
+        FOREIGN KEY (id_gestion_especifica, id_antecedente_padre)
+        REFERENCES gestion_especifica_antecedente (id_gestion_especifica, id_antecedente)
+        ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
 
@@ -147,7 +153,7 @@ CREATE TABLE gestion (
     id_tipo_gestion VARCHAR(80) NOT NULL,
     id_gestion_especifica BIGINT,
     codigo_ambito VARCHAR(10) NOT NULL,
-    id_usuario_responsable BIGINT,
+    id_usuario_responsable BIGINT NOT NULL,
 
     nivel VARCHAR(2) NOT NULL,
     correlativo INTEGER NOT NULL,
@@ -155,13 +161,7 @@ CREATE TABLE gestion (
     estado VARCHAR(30) NOT NULL,
     prioridad VARCHAR(10) NOT NULL,
 
-    responsable_nombre VARCHAR(150) NOT NULL,
     nombre_solicitante VARCHAR(150) NOT NULL,
-
-    razon_social VARCHAR(150) NOT NULL,
-    rut_razon_social VARCHAR(12),
-    representante_legal VARCHAR(150),
-    rut_representante_legal VARCHAR(12),
 
     fecha_apertura DATE NOT NULL DEFAULT CURRENT_DATE,
     fecha_estimada_termino DATE,
@@ -245,12 +245,14 @@ CREATE TABLE gestion (
 );
 
 CREATE TABLE gestion_subtramite (
+    -- Relación N:M: una gestión principal puede tener múltiples específicas
+    -- asociadas; no duplica la específica principal de gestion.
     id_gestion BIGINT NOT NULL,
     id_gestion_especifica BIGINT NOT NULL,
 
     CONSTRAINT pk_gestion_subtramite PRIMARY KEY (id_gestion, id_gestion_especifica),
     CONSTRAINT fk_gestion_subtramite_gestion FOREIGN KEY (id_gestion)
-        REFERENCES gestion (id_gestion) ON DELETE RESTRICT,
+        REFERENCES gestion (id_gestion) ON DELETE CASCADE,
     CONSTRAINT fk_gestion_subtramite_especifica FOREIGN KEY (id_gestion_especifica)
         REFERENCES gestion_especifica (id_gestion_especifica) ON DELETE RESTRICT
 );
@@ -260,25 +262,18 @@ CREATE TABLE antecedente_gestion (
 
     id_gestion BIGINT NOT NULL,
     id_antecedente_padre BIGINT,
-    id_antecedente BIGINT,
+    id_antecedente BIGINT NOT NULL,
 
     nivel VARCHAR(2) NOT NULL,
+    -- categoria clasifica el antecedente en la gestión; no determina por sí
+    -- sola si debe exigirse en esta instancia concreta.
     categoria VARCHAR(20) NOT NULL,
-    nombre_mostrado VARCHAR(300) NOT NULL,
+    -- Regla contextual: un antecedente adicional también puede ser obligatorio.
     flag_obligatorio BOOLEAN NOT NULL DEFAULT FALSE,
 
-    solicitado_por VARCHAR(150),
     id_usuario_responsable BIGINT,
-    responsable_nombre VARCHAR(150) NOT NULL,
-
     estado VARCHAR(30) NOT NULL DEFAULT 'Pendiente',
     observaciones VARCHAR(2000),
-
-    archivo_nombre VARCHAR(255),
-    archivo_referencia VARCHAR(500),
-    fecha_carga TIMESTAMPTZ,
-    id_usuario_carga BIGINT,
-    cargado_por VARCHAR(150),
 
     CONSTRAINT pk_antecedente_gestion
         PRIMARY KEY (id_antecedente_gestion),
@@ -298,23 +293,17 @@ CREATE TABLE antecedente_gestion (
     CONSTRAINT ck_antecedente_gestion_estado
         CHECK (estado IN ('Pendiente', 'Recibido', 'Recibido conforme')),
 
-    CONSTRAINT ck_antecedente_gestion_archivo
-        CHECK (
-            archivo_referencia IS NULL
-            OR fecha_carga IS NOT NULL
-        ),
-
     CONSTRAINT fk_antecedente_gestion_gestion
         FOREIGN KEY (id_gestion)
         REFERENCES gestion (id_gestion)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_antecedente_gestion_padre
         FOREIGN KEY (id_antecedente_padre)
         REFERENCES antecedente_gestion (id_antecedente_gestion)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_antecedente_gestion_catalogo
         FOREIGN KEY (id_antecedente)
@@ -322,17 +311,18 @@ CREATE TABLE antecedente_gestion (
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
 
+    CONSTRAINT uq_antecedente_gestion_gestion_antecedente
+        UNIQUE (id_gestion, id_antecedente),
+
+    CONSTRAINT uq_antecedente_gestion_id_gestion
+        UNIQUE (id_antecedente_gestion, id_gestion),
+
     CONSTRAINT fk_antecedente_gestion_usuario_responsable
         FOREIGN KEY (id_usuario_responsable)
         REFERENCES usuario (id_usuario)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-
-    CONSTRAINT fk_antecedente_gestion_usuario_carga
-        FOREIGN KEY (id_usuario_carga)
-        REFERENCES usuario (id_usuario)
-        ON UPDATE CASCADE
         ON DELETE RESTRICT
+
 );
 
 CREATE TABLE etapa_gestion (
@@ -344,7 +334,6 @@ CREATE TABLE etapa_gestion (
     fecha_estimada DATE,
     fecha_real DATE,
     id_usuario_responsable BIGINT,
-    responsable_nombre VARCHAR(150),
     observaciones VARCHAR(300),
 
     CONSTRAINT pk_etapa_gestion
@@ -367,7 +356,7 @@ CREATE TABLE etapa_gestion (
         FOREIGN KEY (id_gestion)
         REFERENCES gestion (id_gestion)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_etapa_gestion_etapa
         FOREIGN KEY (id_etapa)
@@ -390,8 +379,8 @@ CREATE TABLE entrada_bitacora (
     id_usuario BIGINT,
 
     fecha_hora TIMESTAMPTZ NOT NULL DEFAULT now(),
-    autor_nombre VARCHAR(150) NOT NULL,
-    autor_iniciales VARCHAR(10) NOT NULL,
+    autor_nombre_snapshot VARCHAR(150) NOT NULL,
+    autor_iniciales_snapshot VARCHAR(10) NOT NULL,
 
     tipo VARCHAR(20),
     titulo VARCHAR(80) NOT NULL,
@@ -410,11 +399,14 @@ CREATE TABLE entrada_bitacora (
             OR tipo IN ('inicio', 'novedad', 'seguimiento', 'contacto')
         ),
 
+    CONSTRAINT ck_entrada_bitacora_autor
+        CHECK (id_usuario IS NOT NULL OR automatica = TRUE),
+
     CONSTRAINT fk_entrada_bitacora_gestion
         FOREIGN KEY (id_gestion)
         REFERENCES gestion (id_gestion)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_entrada_bitacora_usuario
         FOREIGN KEY (id_usuario)
@@ -425,13 +417,51 @@ CREATE TABLE entrada_bitacora (
 
 CREATE TABLE archivo_gestion (
     id_archivo VARCHAR(100) PRIMARY KEY,
-    id_gestion BIGINT NOT NULL REFERENCES gestion (id_gestion) ON DELETE RESTRICT,
-    id_antecedente_gestion BIGINT REFERENCES antecedente_gestion (id_antecedente_gestion) ON DELETE RESTRICT,
+    id_gestion BIGINT NOT NULL REFERENCES gestion (id_gestion) ON DELETE CASCADE,
+    id_antecedente_gestion BIGINT,
     proveedor VARCHAR(30) NOT NULL,
     referencia_almacenamiento VARCHAR(500) NOT NULL UNIQUE,
     nombre_archivo VARCHAR(255) NOT NULL,
     tipo_mime VARCHAR(150) NOT NULL,
     tamano_bytes BIGINT NOT NULL CHECK (tamano_bytes >= 0),
     id_usuario_carga BIGINT NOT NULL REFERENCES usuario (id_usuario),
-    fecha_carga TIMESTAMPTZ NOT NULL DEFAULT now()
+    fecha_carga TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_archivo_gestion_antecedente_gestion
+        FOREIGN KEY (id_antecedente_gestion, id_gestion)
+        REFERENCES antecedente_gestion (id_antecedente_gestion, id_gestion)
+        ON DELETE CASCADE
 );
+
+CREATE INDEX idx_gestion_estacion ON gestion (id_estacion);
+CREATE INDEX idx_gestion_tipo ON gestion (id_tipo_gestion);
+CREATE INDEX idx_gestion_ambito ON gestion (codigo_ambito);
+CREATE INDEX idx_gestion_responsable ON gestion (id_usuario_responsable);
+CREATE INDEX idx_gestion_especifica
+    ON gestion (id_gestion_especifica)
+    WHERE id_gestion_especifica IS NOT NULL;
+
+CREATE INDEX idx_antecedente_gestion_gestion ON antecedente_gestion (id_gestion);
+CREATE INDEX idx_antecedente_gestion_padre
+    ON antecedente_gestion (id_antecedente_padre)
+    WHERE id_antecedente_padre IS NOT NULL;
+CREATE INDEX idx_antecedente_gestion_responsable
+    ON antecedente_gestion (id_usuario_responsable)
+    WHERE id_usuario_responsable IS NOT NULL;
+
+CREATE INDEX idx_etapa_gestion_gestion ON etapa_gestion (id_gestion);
+CREATE INDEX idx_etapa_gestion_responsable
+    ON etapa_gestion (id_usuario_responsable)
+    WHERE id_usuario_responsable IS NOT NULL;
+
+CREATE INDEX idx_entrada_bitacora_gestion_fecha
+    ON entrada_bitacora (id_gestion, fecha_hora DESC);
+
+CREATE INDEX idx_archivo_gestion_gestion_fecha
+    ON archivo_gestion (id_gestion, fecha_carga DESC);
+CREATE INDEX idx_archivo_gestion_antecedente_fecha
+    ON archivo_gestion (id_antecedente_gestion, fecha_carga DESC)
+    WHERE id_antecedente_gestion IS NOT NULL;
+
+CREATE INDEX idx_gestion_especifica_antecedente_antecedente
+    ON gestion_especifica_antecedente (id_antecedente);
