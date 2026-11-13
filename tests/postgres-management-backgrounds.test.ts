@@ -4,14 +4,25 @@ import { PostgresManagementRepository } from '../src/modules/gestiones/infrastru
 import type { ManagementBackgroundCreateInput } from '../src/modules/gestiones/domain/management';
 import type { SqlExecutor } from '../src/infrastructure/persistence/postgres/connection';
 
-function createRepository(catalog?: {
+type CatalogFixture = {
   level: 'N2' | 'N3' | 'N4';
   parentBackgroundId: string | null;
-}) {
+  parentLevel?: 'N2' | 'N3' | 'N4' | null;
+  backgroundId?: string;
+  name?: string;
+  category?: 'requerido' | 'complementario';
+};
+
+function createRepository(catalog?: CatalogFixture, parentCatalog?: CatalogFixture) {
   const client = {
     query: vi.fn(async (sql: string, values?: unknown[]) => {
       if (sql === 'BEGIN' || sql === 'COMMIT' || sql === 'ROLLBACK') return { rows: [] };
-      if (sql.startsWith('SELECT')) return { rows: catalog ? [catalog] : [] };
+      if (sql.startsWith('SELECT')) {
+        if (sql.includes('FROM antecedente_gestion')) return { rows: [] };
+        if (parentCatalog && values?.[1] === parentCatalog.backgroundId)
+          return { rows: [parentCatalog] };
+        return { rows: catalog ? [catalog] : [] };
+      }
       return {
         rows: [
           {
@@ -121,7 +132,11 @@ describe('PostgresManagementRepository antecedentes', () => {
   });
 
   it('usa el nivel del catálogo aunque el payload informe otro nivel', async () => {
-    const { repository, client } = createRepository({ level: 'N3', parentBackgroundId: null });
+    const { repository, client } = createRepository({
+      level: 'N3',
+      parentBackgroundId: '10',
+      parentLevel: 'N2',
+    });
     const input: ManagementBackgroundCreateInput = {
       backgroundId: '100',
       level: 'N2',
@@ -139,12 +154,53 @@ describe('PostgresManagementRepository antecedentes', () => {
           parentIds: Map<string, string>,
         ) => Promise<{ level: string }>;
       }
-    ).insertBackground(client as unknown as PoolClient, 'N1-PAT-001', input, new Map());
+    ).insertBackground(
+      client as unknown as PoolClient,
+      'N1-PAT-001',
+      input,
+      new Map([['10', '1']]),
+    );
 
     expect(result.level).toBe('N3');
     const insertCall = client.query.mock.calls.find(([sql]: [unknown, ...unknown[]]) =>
       String(sql).includes('INSERT'),
     );
     expect(insertCall?.[1]).toEqual(expect.arrayContaining(['N3']));
+  });
+
+  it('crea automáticamente el padre catalogado que no venía en el payload', async () => {
+    const { repository, client } = createRepository(
+      {
+        level: 'N3',
+        parentBackgroundId: '117',
+        parentLevel: 'N2',
+        backgroundId: '118',
+        name: 'Hijo N3',
+      },
+      { level: 'N2', parentBackgroundId: null, backgroundId: '117', name: 'Padre N2' },
+    );
+    const input: ManagementBackgroundCreateInput = {
+      backgroundId: '118',
+      level: 'N3',
+      name: 'Hijo N3',
+      category: 'requerido',
+      required: true,
+    };
+
+    const result = await (
+      repository as unknown as {
+        insertBackground: (
+          client: PoolClient,
+          managementId: string,
+          input: ManagementBackgroundCreateInput,
+          parentIds: Map<string, string>,
+        ) => Promise<{ parentManagementBackgroundId: string }>;
+      }
+    ).insertBackground(client as unknown as PoolClient, 'N1-PAT-001', input, new Map());
+
+    expect(result.parentManagementBackgroundId).toBe('2');
+    expect(client.query.mock.calls.filter(([sql]) => String(sql).includes('INSERT'))).toHaveLength(
+      2,
+    );
   });
 });

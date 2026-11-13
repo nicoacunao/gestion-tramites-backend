@@ -224,6 +224,8 @@ export class PostgresManagementRepository implements ManagementRepository {
         ...(input.requiredBackgrounds ?? []),
         ...(input.complementaryBackgrounds ?? []),
       ]) {
+        const backgroundKey = background.backgroundId ?? background.name;
+        if (parentIds.has(backgroundKey) || parentIds.has(background.name)) continue;
         const created = await this.insertBackground(client, management.id, background, parentIds);
         parentIds.set(background.backgroundId ?? background.name, created.id);
         parentIds.set(background.name, created.id);
@@ -339,12 +341,17 @@ export class PostgresManagementRepository implements ManagementRepository {
       await client.query<{
         level: ManagementBackgroundCreateInput['level'];
         parentBackgroundId: string | null;
+        parentLevel: ManagementBackgroundCreateInput['level'] | null;
       }>(
-        `SELECT gea.nivel AS level, gea.id_antecedente_padre::text AS "parentBackgroundId"
+        `SELECT gea.nivel AS level, gea.id_antecedente_padre::text AS "parentBackgroundId",
+                parent_gea.nivel AS "parentLevel"
          FROM gestion g
          JOIN gestion_especifica_antecedente gea
            ON gea.id_gestion_especifica = g.id_gestion_especifica
          JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
+         LEFT JOIN gestion_especifica_antecedente parent_gea
+           ON parent_gea.id_gestion_especifica = gea.id_gestion_especifica
+          AND parent_gea.id_antecedente = gea.id_antecedente_padre
          WHERE g.codigo = $1
            AND (gea.id_antecedente::text = NULLIF($2::text, '') OR a.nombre = $3)
          LIMIT 1`,
@@ -355,7 +362,20 @@ export class PostgresManagementRepository implements ManagementRepository {
     const parentBackgroundId = catalogBackground
       ? catalogBackground.parentBackgroundId
       : input.parentBackgroundId;
-    const parentId = parentBackgroundId
+    if (catalogBackground) {
+      const expectedParentLevel = level === 'N3' ? 'N2' : level === 'N4' ? 'N3' : null;
+      const hierarchyIsValid =
+        level === 'N2'
+          ? parentBackgroundId === null
+          : parentBackgroundId !== null && catalogBackground.parentLevel === expectedParentLevel;
+      if (!hierarchyIsValid)
+        throw new AppError(
+          'INVALID_BACKGROUND_CATALOG_HIERARCHY',
+          `La configuración del catálogo para "${input.name}" no define correctamente su nivel o antecedente padre.`,
+          422,
+        );
+    }
+    let parentId = parentBackgroundId
       ? (parentIds.get(parentBackgroundId) ??
         (
           await client.query<{ id: string }>(
@@ -372,6 +392,47 @@ export class PostgresManagementRepository implements ManagementRepository {
         ).rows[0]?.id ??
         null)
       : null;
+    if (parentBackgroundId && !parentId) {
+      const parentCatalog = (
+        await client.query<{
+          backgroundId: string;
+          name: string;
+          level: ManagementBackgroundCreateInput['level'];
+          parentBackgroundId: string | null;
+          category: 'requerido' | 'complementario';
+        }>(
+          `SELECT gea.id_antecedente::text AS "backgroundId", a.nombre AS name,
+                  gea.nivel AS level, gea.id_antecedente_padre::text AS "parentBackgroundId",
+                  CASE WHEN a.categoria = 'complementario'
+                    THEN 'complementario' ELSE 'requerido' END AS category
+           FROM gestion g
+           JOIN gestion_especifica_antecedente gea
+             ON gea.id_gestion_especifica = g.id_gestion_especifica
+           JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
+           WHERE g.codigo = $1 AND gea.id_antecedente::text = $2
+           LIMIT 1`,
+          [managementId, parentBackgroundId],
+        )
+      ).rows[0];
+      if (parentCatalog) {
+        const parent = await this.insertBackground(
+          client,
+          managementId,
+          {
+            backgroundId: parentCatalog.backgroundId,
+            parentBackgroundId: parentCatalog.parentBackgroundId,
+            level: parentCatalog.level,
+            name: parentCatalog.name,
+            category: parentCatalog.category,
+            required: parentCatalog.category === 'requerido',
+          },
+          parentIds,
+        );
+        parentIds.set(parentCatalog.backgroundId, parent.id);
+        parentIds.set(parentCatalog.name, parent.id);
+        parentId = parent.id;
+      }
+    }
     if (parentBackgroundId && !parentId)
       throw new AppError(
         'BACKGROUND_PARENT_NOT_FOUND',
