@@ -19,6 +19,12 @@ function createRepository(catalog?: CatalogFixture, parentCatalog?: CatalogFixtu
       if (sql === 'BEGIN' || sql === 'COMMIT' || sql === 'ROLLBACK') return { rows: [] };
       if (sql.startsWith('SELECT')) {
         if (sql.includes('FROM antecedente_gestion')) return { rows: [] };
+        if (
+          parentCatalog &&
+          values?.[1] === parentCatalog.backgroundId &&
+          sql.includes('NULLIF($2::text,')
+        )
+          return { rows: [parentCatalog] };
         if (parentCatalog && sql.includes('gea.id_antecedente::text = $2'))
           return { rows: [parentCatalog] };
         if (sql.includes('FROM gestion g') && sql.includes('gestion_especifica_antecedente'))
@@ -98,9 +104,11 @@ describe('PostgresManagementRepository antecedentes', () => {
   });
 
   it.each(['N2', 'N3', 'N4'] as const)('persiste el nivel %s recibido', async (level) => {
+    const parentBackgroundId = level === 'N2' ? null : '10';
     const { repository, client } = createRepository({
       level,
-      parentBackgroundId: null,
+      parentBackgroundId,
+      parentLevel: level === 'N3' ? 'N2' : level === 'N4' ? 'N3' : null,
       backgroundId: '100',
       name: `Antecedente ${level}`,
     });
@@ -121,7 +129,12 @@ describe('PostgresManagementRepository antecedentes', () => {
           parentIds: Map<string, string>,
         ) => Promise<{ level: string }>;
       }
-    ).insertBackground(client as unknown as PoolClient, 'N1-PAT-001', input, new Map());
+    ).insertBackground(
+      client as unknown as PoolClient,
+      'N1-PAT-001',
+      input,
+      new Map(parentBackgroundId ? [[parentBackgroundId, '1']] : []),
+    );
 
     expect(result.level).toBe(level);
     const insertCall = client.query.mock.calls.find(([sql]: [unknown, ...unknown[]]) =>
@@ -131,18 +144,14 @@ describe('PostgresManagementRepository antecedentes', () => {
     expect(insertCall?.[0]).not.toContain("'N2'");
     expect(insertCall?.[1]).toEqual([
       'N1-PAT-001',
-      null,
+      parentBackgroundId ? '1' : null,
       '100',
       `Antecedente ${level}`,
       level,
       'requerido',
       true,
-      null,
-      '',
       '',
       'Pendiente',
-      null,
-      null,
       null,
     ]);
   });
