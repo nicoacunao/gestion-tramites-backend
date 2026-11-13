@@ -48,7 +48,7 @@ infrastructure/persistence/postgres/{config,connection,errors}
 modules/
   estaciones/       ambitos/          tipos-gestion/
   antecedentes/     etapas/           gestiones-especificas/
-  campos-adicionales/ identidad/       gestiones/       bitacora/
+  identidad/       gestiones/       bitacora/
 ```
 
 `catalogos` permanece como fachada de compatibilidad para sus rutas antiguas.

@@ -1070,34 +1070,6 @@
               "required": ["name"]
             }
           },
-          "additionalData": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "fieldId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "fieldCode": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "value": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 500
-                }
-              },
-              "required": ["value"]
-            }
-          },
-          "datosAdicionales": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
           "subtramitesAsociados": {
             "type": "array",
             "items": {
@@ -1202,56 +1174,6 @@
           }
         },
         "required": ["id", "managementTypeId", "code", "name", "active", "backgrounds"]
-      },
-      "AdditionalField": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "managementTypeId": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "controlType": {
-            "type": "string",
-            "enum": ["text", "select"]
-          },
-          "required": {
-            "type": "boolean"
-          },
-          "options": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "string"
-                },
-                "order": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "exclusiveMinimum": true
-                }
-              },
-              "required": ["value", "order"]
-            }
-          }
-        },
-        "required": [
-          "id",
-          "managementTypeId",
-          "code",
-          "label",
-          "controlType",
-          "required",
-          "options"
-        ]
       },
       "LogEntryListResponse": {
         "type": "object",
@@ -3033,89 +2955,6 @@
         }
       }
     },
-    "/api/v1/gestiones/items/{id}/additional-data": {
-      "post": {
-        "tags": ["gestiones"],
-        "operationId": "gestionesCreateAdditionalData",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            },
-            "required": true,
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "fieldId": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "fieldCode": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "value": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 500
-                  }
-                },
-                "required": ["value"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Dato adicional creado.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "nullable": true
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/ApiMeta"
-                    }
-                  },
-                  "required": ["meta"]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin permiso.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No encontrada.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/estaciones/items": {
       "get": {
         "tags": ["estaciones"],
@@ -3597,68 +3436,6 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/SpecificManagement"
-                      }
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/ApiMeta"
-                    }
-                  },
-                  "required": ["data", "meta"]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Filtro inválido.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin permiso.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/campos-adicionales/items": {
-      "get": {
-        "tags": ["campos-adicionales"],
-        "operationId": "camposadicionalesList",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 80
-            },
-            "required": false,
-            "name": "managementTypeId",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Catálogo.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/AdditionalField"
                       }
                     },
                     "meta": {

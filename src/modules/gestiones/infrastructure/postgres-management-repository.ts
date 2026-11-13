@@ -5,7 +5,6 @@ import type { ManagementRepository } from '../application/ports';
 import type {
   CompleteManagementInput,
   Management,
-  ManagementAdditionalDataCreateInput,
   ManagementBackground,
   ManagementBackgroundCreateInput,
   ManagementStage,
@@ -230,8 +229,6 @@ export class PostgresManagementRepository implements ManagementRepository {
         parentIds.set(background.name, created.id);
       }
       for (const stage of input.stages ?? []) await this.insertStage(client, management.id, stage);
-      for (const data of input.additionalData ?? [])
-        await this.insertAdditionalData(client, management.id, data);
       for (const specificId of input.associatedSpecificManagementIds ?? [])
         await client.query(
           `INSERT INTO gestion_subtramite (id_gestion, id_gestion_especifica)
@@ -264,15 +261,6 @@ export class PostgresManagementRepository implements ManagementRepository {
     input: ManagementStageCreateInput,
   ): Promise<ManagementStage> {
     return this.inTransaction(async (client) => this.insertStage(client, managementId, input));
-  }
-
-  async createAdditionalData(
-    managementId: string,
-    input: ManagementAdditionalDataCreateInput,
-  ): Promise<void> {
-    await this.inTransaction(async (client) =>
-      this.insertAdditionalData(client, managementId, input),
-    );
   }
 
   private async inTransaction<T>(operation: (client: PoolClient) => Promise<T>): Promise<T> {
@@ -347,8 +335,28 @@ export class PostgresManagementRepository implements ManagementRepository {
     input: ManagementBackgroundCreateInput,
     parentIds: Map<string, string>,
   ): Promise<ManagementBackground> {
-    const parentId = input.parentBackgroundId
-      ? (parentIds.get(input.parentBackgroundId) ??
+    const catalogBackground = (
+      await client.query<{
+        level: ManagementBackgroundCreateInput['level'];
+        parentBackgroundId: string | null;
+      }>(
+        `SELECT gea.nivel AS level, gea.id_antecedente_padre::text AS "parentBackgroundId"
+         FROM gestion g
+         JOIN gestion_especifica_antecedente gea
+           ON gea.id_gestion_especifica = g.id_gestion_especifica
+         JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
+         WHERE g.codigo = $1
+           AND (gea.id_antecedente::text = NULLIF($2::text, '') OR a.nombre = $3)
+         LIMIT 1`,
+        [managementId, input.backgroundId ?? '', input.name],
+      )
+    ).rows[0];
+    const level = catalogBackground?.level ?? input.level;
+    const parentBackgroundId = catalogBackground
+      ? catalogBackground.parentBackgroundId
+      : input.parentBackgroundId;
+    const parentId = parentBackgroundId
+      ? (parentIds.get(parentBackgroundId) ??
         (
           await client.query<{ id: string }>(
             `SELECT id_antecedente_gestion::text AS id
@@ -359,15 +367,15 @@ export class PostgresManagementRepository implements ManagementRepository {
                  OR ag.nombre_mostrado = $2)
              ORDER BY ag.id_antecedente_gestion
              LIMIT 1`,
-            [managementId, input.parentBackgroundId],
+            [managementId, parentBackgroundId],
           )
         ).rows[0]?.id ??
         null)
       : null;
-    if (input.parentBackgroundId && !parentId)
+    if (parentBackgroundId && !parentId)
       throw new AppError(
         'BACKGROUND_PARENT_NOT_FOUND',
-        `No se encontró el antecedente padre "${input.parentBackgroundId}".`,
+        `No se encontró el antecedente padre "${parentBackgroundId}".`,
         422,
       );
     const result = await client.query<ManagementBackground & { version: string }>(
@@ -394,7 +402,7 @@ export class PostgresManagementRepository implements ManagementRepository {
         parentId,
         input.backgroundId ?? '',
         input.name,
-        input.level,
+        level,
         input.category,
         input.required,
         input.requestedBy ?? null,
@@ -443,20 +451,5 @@ export class PostgresManagementRepository implements ManagementRepository {
     const row = result.rows[0];
     if (!row) throw new Error('La etapa no pudo ser creada.');
     return { ...row, version: Number(row.version) };
-  }
-
-  private async insertAdditionalData(
-    client: PoolClient,
-    managementId: string,
-    input: ManagementAdditionalDataCreateInput,
-  ): Promise<void> {
-    await client.query(
-      `INSERT INTO gestion_dato_adicional (id_gestion, id_campo_adicional, valor)
-       VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
-        (SELECT id_campo_adicional FROM campo_adicional_tipo
-          WHERE (id_campo_adicional::text = NULLIF($2::text, '') OR codigo::text = $3::text)
-            AND id_tipo_gestion = (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1)), $4)`,
-      [managementId, input.fieldId ?? '', input.fieldCode ?? '', input.value],
-    );
   }
 }

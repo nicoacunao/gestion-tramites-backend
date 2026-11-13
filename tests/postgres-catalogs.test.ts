@@ -6,10 +6,8 @@ import {
   createAntecedentesModule,
 } from '../src/modules/antecedentes';
 import { PostgresGestionesEspecificasRepository } from '../src/modules/gestiones-especificas';
-import { PostgresCamposAdicionalesRepository } from '../src/modules/campos-adicionales';
 import { StationService } from '../src/modules/estaciones/application/service';
 import { createGestionesEspecificasModule } from '../src/modules/gestiones-especificas';
-import { createCamposAdicionalesModule } from '../src/modules/campos-adicionales';
 import { createCatalogosModule } from '../src/modules/catalogos';
 
 const stationRow = {
@@ -150,11 +148,6 @@ describe('repositorios PostgreSQL de catálogos', () => {
       { id: '1', name: 'Formulario de ingreso', level: 'N3', parentBackgroundId: null },
       { id: '2', name: 'Certificado', level: 'N3', parentBackgroundId: null },
     ]);
-    const fields = database([]);
-    await new PostgresCamposAdicionalesRepository(fields.executor).list();
-    expect(fields.query.mock.calls[0]?.[1]).toEqual([null]);
-    expect(fields.query.mock.calls[0]?.[0]).toContain('opcion_campo_adicional');
-    expect(fields.query.mock.calls[0]?.[0]).toContain('ORDER BY o.orden');
   });
 });
 
@@ -199,23 +192,6 @@ describe('rutas de catálogos separados', () => {
       data: [{ id: '1', active: true, managementTypeId: 'patentes' }],
     });
     expect((await app.request('/items?managementTypeId=')).status).toBe(400);
-  });
-
-  it('expone las opciones de campos como parte del catálogo, respetando el orden', async () => {
-    const item = {
-      id: '2',
-      managementTypeId: 'patentes',
-      code: 'municipio',
-      label: 'Municipio',
-      controlType: 'select' as const,
-      required: true,
-      options: [{ value: 'Santiago', order: 1 }],
-    };
-    const app = createCamposAdicionalesModule({
-      repository: { list: async () => [item] },
-      authorize: () => true,
-    });
-    expect(await (await app.request('/items')).json()).toMatchObject({ data: [item] });
   });
 
   it('retira type-relations de la fachada legada sin afectar health', async () => {

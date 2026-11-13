@@ -2,8 +2,15 @@
 -- Mapeo: tiposTramite -> tipo_gestion; tramitesEspecificos -> gestion_especifica;
 -- antecedentes -> antecedente + gestion_especifica_antecedente.
 -- Script idempotente para PostgreSQL. Ejecutar después de docs/data/schema.sql.
+-- Después ejecutar docs/data/migrations/20261113_antecedente-niveles.sql para
+-- materializar explícitamente padres N2, hijos N3 y sus relaciones.
 
 BEGIN;
+
+-- Las relaciones se normalizan con niveles y padres explícitos en la migración
+-- de jerarquía que se ejecuta al finalizar este seed.
+ALTER TABLE gestion_especifica_antecedente
+    ALTER COLUMN nivel SET DEFAULT 'N3';
 
 -- 1) Tipos de trámite (gestiones mayores)
 INSERT INTO tipo_gestion (id_tipo_gestion, nombre, etiqueta_segundo_nivel, requiere_seleccion_segundo_nivel_principal) VALUES ('patente-comercial', 'Patente comercial', 'Subtrámite o gestión asociada', FALSE) ON CONFLICT (id_tipo_gestion) DO UPDATE SET nombre=EXCLUDED.nombre, etiqueta_segundo_nivel=EXCLUDED.etiqueta_segundo_nivel, requiere_seleccion_segundo_nivel_principal=EXCLUDED.requiere_seleccion_segundo_nivel_principal;
@@ -175,17 +182,8 @@ INSERT INTO gestion_especifica_antecedente (id_gestion_especifica, id_antecedent
 INSERT INTO gestion_especifica_antecedente (id_gestion_especifica, id_antecedente, orden) SELECT ge.id_gestion_especifica, a.id_antecedente, 6 FROM gestion_especifica ge CROSS JOIN antecedente a WHERE ge.codigo='recepcion-permiso-obra-menor' AND a.nombre='Aprobaciones Serviu / MOP' ON CONFLICT (id_gestion_especifica, id_antecedente) DO UPDATE SET orden=EXCLUDED.orden;
 INSERT INTO gestion_especifica_antecedente (id_gestion_especifica, id_antecedente, orden) SELECT ge.id_gestion_especifica, a.id_antecedente, 7 FROM gestion_especifica ge CROSS JOIN antecedente a WHERE ge.codigo='recepcion-permiso-obra-menor' AND a.nombre='Planos de construcción As Built' ON CONFLICT (id_gestion_especifica, id_antecedente) DO UPDATE SET orden=EXCLUDED.orden;
 
--- 5) Campos adicionales definidos en el catálogo anterior
-INSERT INTO campo_adicional_tipo (id_tipo_gestion, codigo, etiqueta, tipo_control, requerido) VALUES ('patente-comercial', 'municipalidadCompetente', 'Municipalidad competente', 'text', TRUE) ON CONFLICT (id_tipo_gestion, codigo) DO UPDATE SET etiqueta=EXCLUDED.etiqueta, tipo_control=EXCLUDED.tipo_control, requerido=EXCLUDED.requerido;
-INSERT INTO campo_adicional_tipo (id_tipo_gestion, codigo, etiqueta, tipo_control, requerido) VALUES ('patente-comercial', 'tipoPatente', 'Tipo de patente', 'select', TRUE) ON CONFLICT (id_tipo_gestion, codigo) DO UPDATE SET etiqueta=EXCLUDED.etiqueta, tipo_control=EXCLUDED.tipo_control, requerido=EXCLUDED.requerido;
-INSERT INTO opcion_campo_adicional (id_campo_adicional, valor, orden) SELECT c.id_campo_adicional, 'Provisoria', 1 FROM campo_adicional_tipo c WHERE c.id_tipo_gestion='patente-comercial' AND c.codigo='tipoPatente' ON CONFLICT (id_campo_adicional, valor) DO UPDATE SET orden=EXCLUDED.orden;
-INSERT INTO opcion_campo_adicional (id_campo_adicional, valor, orden) SELECT c.id_campo_adicional, 'Definitiva', 2 FROM campo_adicional_tipo c WHERE c.id_tipo_gestion='patente-comercial' AND c.codigo='tipoPatente' ON CONFLICT (id_campo_adicional, valor) DO UPDATE SET orden=EXCLUDED.orden;
-INSERT INTO opcion_campo_adicional (id_campo_adicional, valor, orden) SELECT c.id_campo_adicional, 'Transferencia', 3 FROM campo_adicional_tipo c WHERE c.id_tipo_gestion='patente-comercial' AND c.codigo='tipoPatente' ON CONFLICT (id_campo_adicional, valor) DO UPDATE SET orden=EXCLUDED.orden;
-INSERT INTO campo_adicional_tipo (id_tipo_gestion, codigo, etiqueta, tipo_control, requerido) VALUES ('resolucion-sanitaria-alimentos', 'seremiCompetente', 'Seremi de Salud competente', 'text', TRUE) ON CONFLICT (id_tipo_gestion, codigo) DO UPDATE SET etiqueta=EXCLUDED.etiqueta, tipo_control=EXCLUDED.tipo_control, requerido=EXCLUDED.requerido;
-INSERT INTO campo_adicional_tipo (id_tipo_gestion, codigo, etiqueta, tipo_control, requerido) VALUES ('resolucion-sanitaria-alimentos', 'superficieInstalacion', 'Superficie de la instalación (m²)', 'text', FALSE) ON CONFLICT (id_tipo_gestion, codigo) DO UPDATE SET etiqueta=EXCLUDED.etiqueta, tipo_control=EXCLUDED.tipo_control, requerido=EXCLUDED.requerido;
-INSERT INTO campo_adicional_tipo (id_tipo_gestion, codigo, etiqueta, tipo_control, requerido) VALUES ('informe-sanitario-establecimientos', 'actividadEconomica', 'Actividad económica del establecimiento', 'text', TRUE) ON CONFLICT (id_tipo_gestion, codigo) DO UPDATE SET etiqueta=EXCLUDED.etiqueta, tipo_control=EXCLUDED.tipo_control, requerido=EXCLUDED.requerido;
-INSERT INTO campo_adicional_tipo (id_tipo_gestion, codigo, etiqueta, tipo_control, requerido) VALUES ('regularizacion-obras', 'domCompetente', 'Dirección de Obras Municipales competente', 'text', TRUE) ON CONFLICT (id_tipo_gestion, codigo) DO UPDATE SET etiqueta=EXCLUDED.etiqueta, tipo_control=EXCLUDED.tipo_control, requerido=EXCLUDED.requerido;
-INSERT INTO campo_adicional_tipo (id_tipo_gestion, codigo, etiqueta, tipo_control, requerido) VALUES ('regularizacion-obras', 'rolAvaluo', 'Rol de avalúo', 'text', FALSE) ON CONFLICT (id_tipo_gestion, codigo) DO UPDATE SET etiqueta=EXCLUDED.etiqueta, tipo_control=EXCLUDED.tipo_control, requerido=EXCLUDED.requerido;
+ALTER TABLE gestion_especifica_antecedente
+    ALTER COLUMN nivel DROP DEFAULT;
 
 COMMIT;
 

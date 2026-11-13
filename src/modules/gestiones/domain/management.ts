@@ -118,12 +118,6 @@ export interface ManagementStageCreateInput {
   notes?: string | null;
 }
 
-export interface ManagementAdditionalDataCreateInput {
-  fieldId?: string | null;
-  fieldCode?: string | null;
-  value: string;
-}
-
 export interface CompleteManagementInput extends Omit<ManagementInput, 'id' | 'sequence'> {
   id: string;
   sequence?: number;
@@ -133,9 +127,6 @@ export interface CompleteManagementInput extends Omit<ManagementInput, 'id' | 's
   requiredBackgrounds?: ManagementBackgroundCreateInput[];
   complementaryBackgrounds?: ManagementBackgroundCreateInput[];
   stages?: ManagementStageCreateInput[];
-  additionalData?: ManagementAdditionalDataCreateInput[];
-  /** Payload legado del formulario TramiteNuevo mientras migra a la API tipada. */
-  datosAdicionales?: Record<string, string>;
   subtramitesAsociados?: string[];
   antecedentesConfigurados?: string[];
   antecedentesComplementariosConfigurados?: string[];

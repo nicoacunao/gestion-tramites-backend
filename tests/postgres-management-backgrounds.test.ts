@@ -4,10 +4,14 @@ import { PostgresManagementRepository } from '../src/modules/gestiones/infrastru
 import type { ManagementBackgroundCreateInput } from '../src/modules/gestiones/domain/management';
 import type { SqlExecutor } from '../src/infrastructure/persistence/postgres/connection';
 
-function createRepository() {
+function createRepository(catalog?: {
+  level: 'N2' | 'N3' | 'N4';
+  parentBackgroundId: string | null;
+}) {
   const client = {
     query: vi.fn(async (sql: string, values?: unknown[]) => {
       if (sql === 'BEGIN' || sql === 'COMMIT' || sql === 'ROLLBACK') return { rows: [] };
+      if (sql.startsWith('SELECT')) return { rows: catalog ? [catalog] : [] };
       return {
         rows: [
           {
@@ -114,5 +118,33 @@ describe('PostgresManagementRepository antecedentes', () => {
       String(sql).includes('INSERT'),
     );
     expect(insertCall?.[1]).toEqual(expect.arrayContaining(['1', 'N3']));
+  });
+
+  it('usa el nivel del catálogo aunque el payload informe otro nivel', async () => {
+    const { repository, client } = createRepository({ level: 'N3', parentBackgroundId: null });
+    const input: ManagementBackgroundCreateInput = {
+      backgroundId: '100',
+      level: 'N2',
+      name: 'Formulario de ingreso',
+      category: 'requerido',
+      required: true,
+    };
+
+    const result = await (
+      repository as unknown as {
+        insertBackground: (
+          client: PoolClient,
+          managementId: string,
+          input: ManagementBackgroundCreateInput,
+          parentIds: Map<string, string>,
+        ) => Promise<{ level: string }>;
+      }
+    ).insertBackground(client as unknown as PoolClient, 'N1-PAT-001', input, new Map());
+
+    expect(result.level).toBe('N3');
+    const insertCall = client.query.mock.calls.find(([sql]: [unknown, ...unknown[]]) =>
+      String(sql).includes('INSERT'),
+    );
+    expect(insertCall?.[1]).toEqual(expect.arrayContaining(['N3']));
   });
 });

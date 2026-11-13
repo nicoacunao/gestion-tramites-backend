@@ -1,7 +1,6 @@
 import type {
   CompleteManagementInput,
   Management,
-  ManagementAdditionalDataCreateInput,
   ManagementBackground,
   ManagementBackgroundCreateInput,
   ManagementStage,
@@ -20,10 +19,6 @@ export interface ManagementRepository {
     input: ManagementBackgroundCreateInput,
   ): Promise<ManagementBackground>;
   createStage?(managementId: string, input: ManagementStageCreateInput): Promise<ManagementStage>;
-  createAdditionalData?(
-    managementId: string,
-    input: ManagementAdditionalDataCreateInput,
-  ): Promise<void>;
   updateBackground?(
     id: string,
     input: Omit<ManagementBackground, 'id' | 'version'>,

@@ -7,7 +7,6 @@ import { presentManagement } from '../application/presentation';
 import type {
   CompleteManagementInput,
   Management,
-  ManagementAdditionalDataCreateInput,
   ManagementBackgroundCreateInput,
   ManagementStageCreateInput,
 } from '../domain/management';
@@ -133,16 +132,6 @@ const ManagementWriteSchema = ManagementSchema.omit({ version: true })
         }),
       )
       .optional(),
-    additionalData: z
-      .array(
-        z.object({
-          fieldId: z.string().nullable().optional(),
-          fieldCode: z.string().nullable().optional(),
-          value: z.string().trim().min(1).max(500),
-        }),
-      )
-      .optional(),
-    datosAdicionales: z.record(z.string(), z.string()).optional(),
     subtramitesAsociados: z.array(z.string().trim().min(1)).optional(),
     antecedentesConfigurados: z.array(z.string().trim().min(1)).optional(),
     antecedentesComplementariosConfigurados: z.array(z.string().trim().min(1)).optional(),
@@ -447,8 +436,6 @@ export function createGestionesRouter(
       input.requiredBackgrounds ||
       input.complementaryBackgrounds ||
       input.stages ||
-      input.additionalData ||
-      input.datosAdicionales ||
       input.subtramitesAsociados ||
       input.antecedentesConfigurados ||
       input.antecedentesComplementariosConfigurados ||
@@ -484,12 +471,6 @@ export function createGestionesRouter(
           input.etapasConfiguradas?.map((name) => ({
             name,
             status: 'Pendiente' as const,
-          })),
-        additionalData:
-          input.additionalData ??
-          Object.entries(input.datosAdicionales ?? {}).map(([fieldCode, value]) => ({
-            fieldCode,
-            value,
           })),
       } as CompleteManagementInput;
       const item = await deps.repository.createComplete(completeInput);
@@ -753,63 +734,6 @@ export function createGestionesRouter(
         context.req.valid('json') as ManagementStageCreateInput,
       );
       return context.json({ data: item, meta: { requestId: context.get('requestId') } }, 201);
-    },
-  );
-  router.openapi(
-    createRoute({
-      method: 'post',
-      path: '/items/{id}/additional-data',
-      tags: ['gestiones'],
-      operationId: 'gestionesCreateAdditionalData',
-      request: {
-        params: z.object({ id: z.string().min(1) }),
-        body: {
-          content: {
-            'application/json': {
-              schema: z.object({
-                fieldId: z.string().nullable().optional(),
-                fieldCode: z.string().nullable().optional(),
-                value: z.string().trim().min(1).max(500),
-              }),
-            },
-          },
-        },
-      },
-      responses: {
-        201: {
-          content: { 'application/json': { schema: relationResponse } },
-          description: 'Dato adicional creado.',
-        },
-        403: {
-          content: { 'application/json': { schema: ApiErrorSchema } },
-          description: 'Sin permiso.',
-        },
-        404: {
-          content: { 'application/json': { schema: ApiErrorSchema } },
-          description: 'No encontrada.',
-        },
-      },
-    }),
-    async (context) => {
-      const deps = resolve(context.env);
-      await ensureAuthorized(deps, context.req.raw);
-      if (!deps.repository.createAdditionalData)
-        throw new AppError(
-          'NOT_IMPLEMENTED',
-          'El alta de datos adicionales no está disponible.',
-          503,
-        );
-      const id = context.req.valid('param').id;
-      if (!(await deps.repository.findById(id)))
-        throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
-      await deps.repository.createAdditionalData(
-        id,
-        context.req.valid('json') as ManagementAdditionalDataCreateInput,
-      );
-      return context.json(
-        { data: { managementId: id }, meta: { requestId: context.get('requestId') } },
-        201,
-      );
     },
   );
   return router;

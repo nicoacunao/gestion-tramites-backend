@@ -101,57 +101,11 @@ CREATE TABLE gestion_especifica (
         ON DELETE RESTRICT
 );
 
-CREATE TABLE campo_adicional_tipo (
-    id_campo_adicional BIGINT GENERATED ALWAYS AS IDENTITY,
-
-    id_tipo_gestion VARCHAR(80) NOT NULL,
-    codigo VARCHAR(80) NOT NULL,
-    etiqueta VARCHAR(150) NOT NULL,
-    tipo_control VARCHAR(20) NOT NULL,
-    requerido BOOLEAN NOT NULL DEFAULT FALSE,
-
-    CONSTRAINT pk_campo_adicional_tipo
-        PRIMARY KEY (id_campo_adicional),
-
-    CONSTRAINT uq_campo_adicional_tipo_codigo
-        UNIQUE (id_tipo_gestion, codigo),
-
-    CONSTRAINT ck_campo_adicional_tipo_control
-        CHECK (tipo_control IN ('text', 'select')),
-
-    CONSTRAINT fk_campo_adicional_tipo_gestion
-        FOREIGN KEY (id_tipo_gestion)
-        REFERENCES tipo_gestion (id_tipo_gestion)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
-);
-
-CREATE TABLE opcion_campo_adicional (
-    id_campo_adicional BIGINT NOT NULL,
-    valor VARCHAR(150) NOT NULL,
-    orden INTEGER NOT NULL,
-
-    CONSTRAINT pk_opcion_campo_adicional
-        PRIMARY KEY (id_campo_adicional, valor),
-
-    CONSTRAINT uq_opcion_campo_adicional_orden
-        UNIQUE (id_campo_adicional, orden),
-
-    CONSTRAINT ck_opcion_campo_adicional_orden
-        CHECK (orden > 0),
-
-    CONSTRAINT fk_opcion_campo_adicional_campo
-        FOREIGN KEY (id_campo_adicional)
-        REFERENCES campo_adicional_tipo (id_campo_adicional)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
-);
-
 CREATE TABLE gestion_especifica_antecedente (
     id_gestion_especifica BIGINT NOT NULL,
     id_antecedente BIGINT NOT NULL,
     id_antecedente_padre BIGINT,
-    nivel VARCHAR(2) NOT NULL DEFAULT 'N3',
+    nivel VARCHAR(2) NOT NULL,
     orden INTEGER NOT NULL,
 
     CONSTRAINT pk_gestion_especifica_antecedente
@@ -286,30 +240,6 @@ CREATE TABLE gestion (
     CONSTRAINT fk_gestion_usuario_responsable
         FOREIGN KEY (id_usuario_responsable)
         REFERENCES usuario (id_usuario)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
-);
-
-CREATE TABLE gestion_dato_adicional (
-    id_gestion BIGINT NOT NULL,
-    id_campo_adicional BIGINT NOT NULL,
-    valor VARCHAR(500) NOT NULL,
-
-    CONSTRAINT pk_gestion_dato_adicional
-        PRIMARY KEY (id_gestion, id_campo_adicional),
-
-    CONSTRAINT ck_gestion_dato_adicional_valor
-        CHECK (length(btrim(valor)) > 0),
-
-    CONSTRAINT fk_gestion_dato_adicional_gestion
-        FOREIGN KEY (id_gestion)
-        REFERENCES gestion (id_gestion)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-
-    CONSTRAINT fk_gestion_dato_adicional_campo
-        FOREIGN KEY (id_campo_adicional)
-        REFERENCES campo_adicional_tipo (id_campo_adicional)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );

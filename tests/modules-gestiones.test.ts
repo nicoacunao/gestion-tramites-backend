@@ -116,7 +116,6 @@ describe('gestiones', () => {
       headers: { ...auth, 'content-type': 'application/json' },
       body: JSON.stringify({
         ...input,
-        datosAdicionales: { nombreConcesionario: 'Acme' },
         subtramitesAsociados: ['Recepción definitiva'],
         antecedentesConfigurados: ['Certificado de dominio vigente'],
         antecedentesComplementariosConfigurados: ['Fotografías'],
@@ -130,7 +129,6 @@ describe('gestiones', () => {
       requiredBackgrounds: [{ name: 'Certificado de dominio vigente', required: true }],
       complementaryBackgrounds: [{ name: 'Fotografías', required: false }],
       stages: [{ name: 'Consulta y definición de antecedentes', status: 'Pendiente' }],
-      additionalData: [{ fieldCode: 'nombreConcesionario', value: 'Acme' }],
     });
   });
 

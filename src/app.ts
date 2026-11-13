@@ -22,10 +22,6 @@ import {
   createGestionesEspecificasModule,
   postgresGestionesEspecificasDependencies,
 } from './modules/gestiones-especificas';
-import {
-  createCamposAdicionalesModule,
-  postgresCamposAdicionalesDependencies,
-} from './modules/campos-adicionales';
 import { AppError } from './shared/errors/app-error';
 import type { AppEnv } from './shared/config/bindings';
 import { corsMiddleware } from './shared/middleware/cors';
@@ -53,10 +49,6 @@ export function createApp(): OpenAPIHono<AppEnv> {
   app.route(
     '/api/v1/gestiones-especificas',
     createGestionesEspecificasModule(postgresGestionesEspecificasDependencies),
-  );
-  app.route(
-    '/api/v1/campos-adicionales',
-    createCamposAdicionalesModule(postgresCamposAdicionalesDependencies),
   );
   app.route('/api/v1/archivos', archivosModule);
   app.route('/api/v1/archivos', createArchivosRouter(postgresArchivosDependencies));
