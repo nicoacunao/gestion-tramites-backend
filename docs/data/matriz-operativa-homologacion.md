@@ -8,38 +8,38 @@ una migración de datos.
 
 ## N1
 
-| Matriz | `tipo_gestion.id_tipo_gestion` | Estado |
-| --- | --- | --- |
-| PATENTE COMERCIAL | `patente-comercial` | Coincide |
-| RESOLUCION SANITARIA ALIMENTOS | `resolucion-sanitaria-alimentos` | Coincide |
+| Matriz                                                          | `tipo_gestion.id_tipo_gestion`       | Estado   |
+| --------------------------------------------------------------- | ------------------------------------ | -------- |
+| PATENTE COMERCIAL                                               | `patente-comercial`                  | Coincide |
+| RESOLUCION SANITARIA ALIMENTOS                                  | `resolucion-sanitaria-alimentos`     | Coincide |
 | INFORME SANITARIO ESTABLECIMIENTOS INDUSTRIALES Y/O COMERCIALES | `informe-sanitario-establecimientos` | Coincide |
-| REGULARIZACION OBRAS | `regularizacion-obras` | Coincide |
+| REGULARIZACION OBRAS                                            | `regularizacion-obras`               | Coincide |
 
 ## N2 incluidos en la matriz
 
-| N1 | N2 de la matriz | ID existente | Código existente | Estado |
-| --- | --- | ---: | --- | --- |
-| Patente comercial | Informe de obras para patente comercial | 1 | `informe-obras-patente-comercial` | Coincide |
-| Patente comercial | Solicitud de patente EDS | 2 | `solicitud-patente-eds` | Coincide |
-| Patente comercial | Documentación extraordinaria | 3 | `documentacion-extraordinaria` | Coincide |
-| Patente comercial | Solicitud de patente PRONTO | 4 | `solicitud-patente-pronto` | Coincide |
-| Patente comercial | Traspaso de patente provisoria a definitiva | 5 | `traspaso-patente-definitiva` | Coincide |
-| Resolución sanitaria | Local de elaboración de alimentos con consumo al paso | 7 | `local-elaboracion-consumo-paso` | Homologar nombre |
-| Resolución sanitaria | Local de expendio de alimentos con consumo al paso | 8 | `local-expendio-consumo-paso` | Homologar nombre |
-| Resolución sanitaria | Local de expendio de alimentos | 9 | `local-expendio-alimentos` | Homologar nombre |
-| Regularización de obras | Permiso de obra menor DOM | 12 | `permiso-obra-menor-dom` | Homologar formato |
-| Regularización de obras | Recepción de permiso de obra menor | 13 | `recepcion-permiso-obra-menor` | Homologar formato |
+| N1                      | N2 de la matriz                                       | ID existente | Código existente                  | Estado            |
+| ----------------------- | ----------------------------------------------------- | -----------: | --------------------------------- | ----------------- |
+| Patente comercial       | Informe de obras para patente comercial               |            1 | `informe-obras-patente-comercial` | Coincide          |
+| Patente comercial       | Solicitud de patente EDS                              |            2 | `solicitud-patente-eds`           | Coincide          |
+| Patente comercial       | Documentación extraordinaria                          |            3 | `documentacion-extraordinaria`    | Coincide          |
+| Patente comercial       | Solicitud de patente PRONTO                           |            4 | `solicitud-patente-pronto`        | Coincide          |
+| Patente comercial       | Traspaso de patente provisoria a definitiva           |            5 | `traspaso-patente-definitiva`     | Coincide          |
+| Resolución sanitaria    | Local de elaboración de alimentos con consumo al paso |            7 | `local-elaboracion-consumo-paso`  | Homologar nombre  |
+| Resolución sanitaria    | Local de expendio de alimentos con consumo al paso    |            8 | `local-expendio-consumo-paso`     | Homologar nombre  |
+| Resolución sanitaria    | Local de expendio de alimentos                        |            9 | `local-expendio-alimentos`        | Homologar nombre  |
+| Regularización de obras | Permiso de obra menor DOM                             |           12 | `permiso-obra-menor-dom`          | Homologar formato |
+| Regularización de obras | Recepción de permiso de obra menor                    |           13 | `recepcion-permiso-obra-menor`    | Homologar formato |
 
 ## Gestiones específicas existentes fuera de la matriz explícita
 
 Estas gestiones existen en el catálogo, pero no tienen una fila N2 explícita en
 la hoja revisada y no deben modificarse automáticamente:
 
-| ID | Gestión específica | Motivo |
-| ---: | --- | --- |
-| 6 | Elaboración | No aparece como N2 explícito en la hoja |
-| 10 | Carros | No aparece como N2 explícito en la hoja |
-| 11 | Informe sanitario de establecimiento | La matriz muestra N3 directos bajo el N1 |
+|  ID | Gestión específica                   | Motivo                                   |
+| --: | ------------------------------------ | ---------------------------------------- |
+|   6 | Elaboración                          | No aparece como N2 explícito en la hoja  |
+|  10 | Carros                               | No aparece como N2 explícito en la hoja  |
+|  11 | Informe sanitario de establecimiento | La matriz muestra N3 directos bajo el N1 |
 
 ## Regla de catálogo N2
 
