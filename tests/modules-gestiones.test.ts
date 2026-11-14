@@ -106,6 +106,105 @@ describe('gestiones', () => {
     expect(await detail.json()).toMatchObject({ data: { priority: 'Alta' } });
   });
 
+  it('devuelve la gestión específica N2 y sus antecedentes requeridos N3', async () => {
+    const specific = {
+      ...management,
+      specificManagementId: '4',
+      specificManagementName: 'Solicitud de patente PRONTO',
+      managementTypeName: 'Patente comercial',
+      managementTypeCode: 'patente-comercial',
+      creationMode: 'subtramite' as const,
+      level: 'N2' as const,
+    };
+    const background = {
+      id: '20',
+      managementId: '1001',
+      parentManagementBackgroundId: null,
+      managementTypeId: 'patente-comercial',
+      backgroundId: '30',
+      level: 'N3' as const,
+      required: true,
+      responsibleUserId: null,
+      status: 'Pendiente',
+      fileReference: null,
+      uploadedAt: null,
+      version: 1,
+    };
+    const router = app(repository([specific], [background]));
+    const detail = await router.request('/items/1001', { headers: auth });
+    const backgrounds = await router.request('/items/1001/backgrounds', { headers: auth });
+
+    expect(detail.status).toBe(200);
+    expect(await detail.json()).toMatchObject({
+      data: {
+        level: 'N2',
+        specificManagementId: '4',
+        specificManagementName: 'Solicitud de patente PRONTO',
+        managementTypeId: 'patente-comercial',
+        managementTypeName: 'Patente comercial',
+        managementTypeCode: 'patente-comercial',
+        descripcion: 'Solicitud de patente PRONTO',
+      },
+    });
+    expect(backgrounds.status).toBe(200);
+    expect(await backgrounds.json()).toMatchObject({
+      data: [{ backgroundId: '30', level: 'N3', parentManagementBackgroundId: null }],
+    });
+  });
+
+  it('preserva el vínculo N2 al crear automáticamente antecedentes y etapas', async () => {
+    const repo = repository([]);
+    let received: Record<string, unknown> | undefined;
+    repo.createComplete = async (input) => {
+      received = input as unknown as Record<string, unknown>;
+      return {
+        ...management,
+        id: input.id,
+        level: 'N2',
+        creationMode: input.creationMode,
+        specificManagementId: input.specificManagementId,
+        specificManagementName: 'Solicitud de patente PRONTO',
+        managementTypeName: 'Patente comercial',
+        managementTypeCode: 'patente-comercial',
+        version: 1,
+      };
+    };
+    const input = { ...management, id: 'BACKEND-N2-N3-001', level: 'N2' as const };
+    delete (input as Partial<Management>).version;
+    const response = await app(repo).request('/items', {
+      method: 'POST',
+      headers: { ...auth, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        ...input,
+        stationId: '00000',
+        scopeCode: 'DOM',
+        sequence: 1200,
+        priority: 'Media',
+        requesterName: 'Prueba N2 N3',
+        status: 'Borrador',
+        creationMode: 'subtramite',
+        specificManagementId: '4',
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    expect(received).toMatchObject({
+      id: 'BACKEND-N2-N3-001',
+      creationMode: 'subtramite',
+      specificManagementId: '4',
+    });
+    expect(received?.requiredBackgrounds).toBeUndefined();
+    expect(received?.complementaryBackgrounds).toBeUndefined();
+    expect(received?.stages).toBeUndefined();
+    expect(await response.json()).toMatchObject({
+      data: {
+        level: 'N2',
+        specificManagementId: '4',
+        specificManagementName: 'Solicitud de patente PRONTO',
+      },
+    });
+  });
+
   it('filtra por el usuario autenticado y no por un userId enviado', async () => {
     const otherManagement = { ...management, id: '1002', responsibleUserId: 'u-2' };
     const router = app(repository([management, otherManagement]));

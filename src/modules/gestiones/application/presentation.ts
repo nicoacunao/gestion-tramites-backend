@@ -81,7 +81,7 @@ export function presentManagement(management: Management): Management & Manageme
     rutRepresentanteLegal: management.legalRepresentativeRut ?? 'Sin registrar',
     concesionario: companyDisplayName(legalName),
     descripcion:
-      management.specificManagementId ??
+      management.specificManagementName ??
       management.managementTypeName ??
       management.managementTypeId,
   };

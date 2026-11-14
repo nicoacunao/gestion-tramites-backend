@@ -46,6 +46,7 @@ const ManagementSchema = z
     responsibleName: z.string().nullable().optional(),
     managementTypeName: z.string().nullable().optional(),
     managementTypeCode: z.string().nullable().optional(),
+    specificManagementName: z.string().nullable().optional(),
     commune: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
     legalRut: z.string().nullable().optional(),

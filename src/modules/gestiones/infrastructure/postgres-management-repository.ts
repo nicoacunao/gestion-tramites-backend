@@ -22,7 +22,8 @@ const projection = `codigo AS id, id_estacion AS "stationId", id_tipo_gestion AS
   (SELECT concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido)
      FROM usuario u WHERE u.id_usuario = gestion.id_usuario_responsable) AS "responsibleName",
   (SELECT t.nombre FROM tipo_gestion t WHERE t.id_tipo_gestion = gestion.id_tipo_gestion) AS "managementTypeName",
-  (SELECT ge.codigo FROM gestion_especifica ge WHERE ge.id_gestion_especifica = gestion.id_gestion_especifica) AS "managementTypeCode",
+  (SELECT t.id_tipo_gestion FROM tipo_gestion t WHERE t.id_tipo_gestion = gestion.id_tipo_gestion) AS "managementTypeCode",
+  (SELECT ge.nombre FROM gestion_especifica ge WHERE ge.id_gestion_especifica = gestion.id_gestion_especifica) AS "specificManagementName",
   (SELECT a.nombre FROM ambito_gestion a WHERE a.codigo_ambito = gestion.codigo_ambito) AS "scopeName",
   (SELECT e.comuna FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS commune,
   (SELECT e.direccion FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS address,
@@ -129,7 +130,9 @@ export class PostgresManagementRepository implements ManagementRepository {
           WHERE f.id_antecedente_gestion = a.id_antecedente_gestion
           ORDER BY f.fecha_carga DESC LIMIT 1) AS "uploadedAt", a.xmin::text AS version
        FROM antecedente_gestion a JOIN gestion g ON g.id_gestion = a.id_gestion
-       WHERE g.codigo = $1 ORDER BY a.id_antecedente_gestion`,
+       WHERE g.codigo = $1
+         AND a.nivel IN ('N3', 'N4')
+       ORDER BY a.id_antecedente_gestion`,
       [managementId],
     );
     return result.rows.map((row) => ({ ...row, version: Number(row.version) }));

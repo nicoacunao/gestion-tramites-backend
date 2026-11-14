@@ -588,6 +588,10 @@
             "type": "string",
             "nullable": true
           },
+          "specificManagementName": {
+            "type": "string",
+            "nullable": true
+          },
           "commune": {
             "type": "string",
             "nullable": true
@@ -797,6 +801,10 @@
             "nullable": true
           },
           "managementTypeCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "specificManagementName": {
             "type": "string",
             "nullable": true
           },

@@ -31,6 +31,7 @@ export interface Management {
   responsibleName?: string | null | undefined;
   managementTypeName?: string | null | undefined;
   managementTypeCode?: string | null | undefined;
+  specificManagementName?: string | null | undefined;
   scopeName?: string | null | undefined;
   commune?: string | null | undefined;
   address?: string | null | undefined;

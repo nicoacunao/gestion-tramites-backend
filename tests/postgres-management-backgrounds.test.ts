@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { PoolClient } from 'pg';
 import { PostgresManagementRepository } from '../src/modules/gestiones/infrastructure/postgres-management-repository';
-import type { ManagementBackgroundCreateInput } from '../src/modules/gestiones/domain/management';
+import type {
+  CompleteManagementInput,
+  ManagementBackgroundCreateInput,
+} from '../src/modules/gestiones/domain/management';
 import type { SqlExecutor } from '../src/infrastructure/persistence/postgres/connection';
 
 type CatalogFixture = {
@@ -60,6 +63,105 @@ function createRepository(catalog?: CatalogFixture, parentCatalog?: CatalogFixtu
 }
 
 describe('PostgresManagementRepository antecedentes', () => {
+  it('persiste la relación N2 con la gestión específica sin crear un antecedente N2', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ next_sequence: '1200' }] })
+      .mockResolvedValueOnce({
+        rows: [{ id: 'BACKEND-N2-N3-001', responsibleUserId: '2', version: '1' }],
+      });
+    const database = { query } as unknown as SqlExecutor;
+    const repository = new PostgresManagementRepository(database);
+    const client = { query } as unknown as PoolClient;
+    const input = {
+      id: 'BACKEND-N2-N3-001',
+      stationId: '00000',
+      managementTypeId: 'patente-comercial',
+      scopeCode: 'DOM',
+      responsibleUserId: '2',
+      level: 'N2',
+      sequence: 1200,
+      openedOn: '2026-11-13',
+      estimatedCompletionOn: null,
+      lastReviewedOn: null,
+      priority: 'Media',
+      requesterName: 'Prueba N2 N3',
+      status: 'Borrador',
+      creationMode: 'subtramite',
+      specificManagementId: '4',
+    } as CompleteManagementInput;
+
+    await (
+      repository as unknown as {
+        insertManagement: (client: PoolClient, input: CompleteManagementInput) => Promise<unknown>;
+      }
+    ).insertManagement(client, input);
+
+    const [sql, values] = query.mock.calls[1] as [string, unknown[]];
+    expect(sql).toContain('id_gestion_especifica');
+    expect(sql).toContain('modalidad_creacion');
+    expect(values).toContain('4');
+    expect(values).toContain('N2');
+    expect(values).toContain('subtramite');
+    expect(sql).not.toContain('INSERT INTO antecedente_gestion');
+  });
+
+  it('hace rollback si falla la generación automática de antecedentes', async () => {
+    const client = {
+      query: vi.fn(async (sql: string) => {
+        if (sql === 'BEGIN' || sql === 'ROLLBACK') return { rows: [] };
+        if (sql.startsWith('SELECT (COALESCE')) return { rows: [{ next_sequence: '1' }] };
+        if (sql.startsWith('INSERT INTO gestion '))
+          return { rows: [{ id: 'BACKEND-N2-N3-001', responsibleUserId: '2', version: '1' }] };
+        if (sql.includes('SELECT gea.id_antecedente::text AS "backgroundId"'))
+          return {
+            rows: [
+              {
+                backgroundId: '30',
+                level: 'N3',
+                name: 'Documento requerido',
+                category: 'requerido',
+                required: true,
+              },
+            ],
+          };
+        if (sql.includes('SELECT gea.nivel AS level'))
+          return { rows: [{ level: 'N3', parentBackgroundId: null, parentLevel: null }] };
+        if (sql.startsWith('INSERT INTO antecedente_gestion')) return { rows: [] };
+        return { rows: [] };
+      }),
+      release: vi.fn(),
+    };
+    const database = {
+      query: vi.fn(),
+      connect: vi.fn().mockResolvedValue(client),
+    } as unknown as SqlExecutor;
+    const repository = new PostgresManagementRepository(database);
+    const input = {
+      id: 'BACKEND-N2-N3-001',
+      stationId: '00000',
+      managementTypeId: 'patente-comercial',
+      scopeCode: 'DOM',
+      responsibleUserId: '2',
+      level: 'N2',
+      sequence: 1200,
+      openedOn: '2026-11-13',
+      estimatedCompletionOn: null,
+      lastReviewedOn: null,
+      priority: 'Media',
+      requesterName: 'Prueba N2 N3',
+      status: 'Borrador',
+      creationMode: 'subtramite',
+      specificManagementId: '4',
+    } as CompleteManagementInput;
+
+    await expect(repository.createComplete(input)).rejects.toThrow(
+      'El antecedente no pudo ser creado.',
+    );
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query).not.toHaveBeenCalledWith('COMMIT');
+  });
+
   it('usa un parámetro separado para uploadedAt y la versión al actualizar', async () => {
     const query = vi.fn().mockResolvedValue({
       rows: [
