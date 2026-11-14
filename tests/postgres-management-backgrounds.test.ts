@@ -39,11 +39,12 @@ function createRepository(catalog?: CatalogFixture, parentCatalog?: CatalogFixtu
           {
             id: '2',
             managementId: 'N1-PAT-001',
-            parentManagementBackgroundId: values?.[1] ?? null,
+            parentManagementBackgroundId: values?.[2] ?? null,
             managementTypeId: 'patente-comercial',
-            backgroundId: String(values?.[2] ?? ''),
-            level: values?.[4],
-            required: values?.[6],
+            specificManagementId: values?.[1] ?? null,
+            backgroundId: String(values?.[3] ?? ''),
+            level: values?.[5],
+            required: values?.[7],
             responsibleUserId: '',
             status: 'Pendiente',
             fileReference: null,
@@ -63,6 +64,179 @@ function createRepository(catalog?: CatalogFixture, parentCatalog?: CatalogFixtu
 }
 
 describe('PostgresManagementRepository antecedentes', () => {
+  it('devuelve antecedentes N2 y N3 con su relación específica', async () => {
+    const query = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          id: '20',
+          managementId: 'PRUEBA-N1-FRONT-001',
+          parentManagementBackgroundId: null,
+          managementTypeId: 'patente-comercial',
+          specificManagementId: '4',
+          backgroundId: '4',
+          level: 'N2',
+          required: true,
+          responsibleUserId: null,
+          status: 'Pendiente',
+          fileReference: null,
+          uploadedAt: null,
+          version: '1',
+        },
+        {
+          id: '21',
+          managementId: 'PRUEBA-N1-FRONT-001',
+          parentManagementBackgroundId: '20',
+          managementTypeId: 'patente-comercial',
+          specificManagementId: '4',
+          backgroundId: '30',
+          level: 'N3',
+          required: true,
+          responsibleUserId: null,
+          status: 'Pendiente',
+          fileReference: null,
+          uploadedAt: null,
+          version: '1',
+        },
+      ],
+    });
+    const repository = new PostgresManagementRepository({ query } as unknown as SqlExecutor);
+
+    const backgrounds = await repository.listBackgrounds('PRUEBA-N1-FRONT-001');
+
+    expect(backgrounds.map((background) => background.level)).toEqual(['N2', 'N3']);
+    expect(backgrounds[1]).toMatchObject({
+      specificManagementId: '4',
+      parentManagementBackgroundId: '20',
+    });
+    expect(query.mock.calls[0]?.[0]).not.toContain("a.nivel IN ('N3', 'N4')");
+  });
+
+  it('persiste subtrámites N2 y genera sus antecedentes N3', async () => {
+    const client = {
+      query: vi.fn(async (sql: string, _values?: unknown[]) => {
+        if (sql === 'BEGIN' || sql === 'COMMIT' || sql === 'ROLLBACK') return { rows: [] };
+        if (sql.startsWith('SELECT (COALESCE')) return { rows: [{ next_sequence: '1' }] };
+        if (sql.startsWith('INSERT INTO gestion '))
+          return {
+            rows: [
+              {
+                id: 'PRUEBA-N1-FRONT-001',
+                responsibleUserId: '2',
+                specificManagementId: null,
+                version: '1',
+              },
+            ],
+          };
+        if (sql.startsWith('SELECT id_gestion_especifica::text AS id'))
+          return { rows: [{ id: '4' }] };
+        if (sql.startsWith('SELECT gea.id_antecedente::text AS "backgroundId"'))
+          return {
+            rows: [
+              {
+                backgroundId: '30',
+                level: 'N3',
+                name: 'Informe de Bomberos',
+                category: 'requerido',
+                required: true,
+                specificManagementId: '4',
+              },
+            ],
+          };
+        if (sql.startsWith('SELECT gea.id_gestion_especifica::text AS "specificManagementId"'))
+          return {
+            rows: [
+              {
+                specificManagementId: '4',
+                level: 'N3',
+                parentBackgroundId: null,
+                parentLevel: null,
+              },
+            ],
+          };
+        if (sql.startsWith('INSERT INTO antecedente_gestion'))
+          return {
+            rows: [
+              {
+                id: '25',
+                managementId: 'PRUEBA-N1-FRONT-001',
+                specificManagementId: '4',
+                parentManagementBackgroundId: null,
+                managementTypeId: 'patente-comercial',
+                backgroundId: '30',
+                level: 'N3',
+                required: true,
+                responsibleUserId: null,
+                status: 'Pendiente',
+                fileReference: null,
+                uploadedAt: null,
+                version: '1',
+              },
+            ],
+          };
+        if (sql.startsWith('SELECT nombre AS name FROM etapa'))
+          return { rows: [{ name: 'Inicio' }] };
+        if (sql.startsWith('INSERT INTO etapa_gestion'))
+          return {
+            rows: [
+              {
+                id: '40',
+                managementId: 'PRUEBA-N1-FRONT-001',
+                stageId: '1',
+                stageName: 'Inicio',
+                percentage: 0,
+                status: 'Pendiente',
+                estimatedOn: null,
+                completedOn: null,
+                responsible: null,
+                notes: null,
+                version: '1',
+              },
+            ],
+          };
+        return { rows: [] };
+      }),
+      release: vi.fn(),
+    };
+    const database = {
+      query: vi.fn(),
+      connect: vi.fn().mockResolvedValue(client),
+    } as unknown as SqlExecutor;
+    const repository = new PostgresManagementRepository(database);
+    const input = {
+      id: 'PRUEBA-N1-FRONT-001',
+      stationId: '00000',
+      managementTypeId: 'patente-comercial',
+      scopeCode: 'DOM',
+      responsibleUserId: '2',
+      level: 'N1',
+      sequence: 1200,
+      openedOn: '2026-11-13',
+      estimatedCompletionOn: null,
+      lastReviewedOn: null,
+      priority: 'Media',
+      requesterName: 'Prueba N1 N2 N3',
+      status: 'Borrador',
+      creationMode: 'principal',
+      associatedSpecificManagementIds: ['4'],
+    } as CompleteManagementInput;
+
+    await repository.createComplete(input);
+
+    const relationCall = client.query.mock.calls.find(([sql]) =>
+      String(sql).startsWith('INSERT INTO gestion_subtramite'),
+    );
+    expect(relationCall?.[1]).toEqual(['PRUEBA-N1-FRONT-001', '4']);
+    const backgroundCall = client.query.mock.calls.find(([sql]) =>
+      String(sql).startsWith('INSERT INTO antecedente_gestion'),
+    );
+    expect(backgroundCall?.[1]).toEqual(expect.arrayContaining(['4', 'N3', 'requerido', true]));
+    expect(
+      client.query.mock.calls.filter(([sql]) =>
+        String(sql).startsWith('INSERT INTO etapa_gestion'),
+      ),
+    ).toHaveLength(1);
+  });
+
   it('persiste la relación N2 con la gestión específica sin crear un antecedente N2', async () => {
     const query = vi
       .fn()
@@ -112,13 +286,27 @@ describe('PostgresManagementRepository antecedentes', () => {
         if (sql === 'BEGIN' || sql === 'ROLLBACK') return { rows: [] };
         if (sql.startsWith('SELECT (COALESCE')) return { rows: [{ next_sequence: '1' }] };
         if (sql.startsWith('INSERT INTO gestion '))
-          return { rows: [{ id: 'BACKEND-N2-N3-001', responsibleUserId: '2', version: '1' }] };
-        if (sql.includes('SELECT gea.id_antecedente::text AS "backgroundId"'))
+          return {
+            rows: [
+              {
+                id: 'BACKEND-N2-N3-001',
+                responsibleUserId: '2',
+                specificManagementId: '4',
+                version: '1',
+              },
+            ],
+          };
+        if (
+          sql.includes('SELECT gea.id_antecedente::text AS "backgroundId"') ||
+          sql.includes('SELECT gea.id_gestion_especifica::text AS "specificManagementId"')
+        )
           return {
             rows: [
               {
                 backgroundId: '30',
                 level: 'N3',
+                parentBackgroundId: null,
+                parentLevel: null,
                 name: 'Documento requerido',
                 category: 'requerido',
                 required: true,
@@ -242,10 +430,11 @@ describe('PostgresManagementRepository antecedentes', () => {
     const insertCall = client.query.mock.calls.find(([sql]: [unknown, ...unknown[]]) =>
       String(sql).includes('INSERT'),
     );
-    expect(insertCall?.[0]).toContain('$5::varchar');
+    expect(insertCall?.[0]).toContain('$6::varchar');
     expect(insertCall?.[0]).not.toContain("'N2'");
     expect(insertCall?.[1]).toEqual([
       'N1-PAT-001',
+      '',
       parentBackgroundId ? '1' : null,
       '100',
       `Antecedente ${level}`,

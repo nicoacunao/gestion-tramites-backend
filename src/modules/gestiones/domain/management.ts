@@ -11,6 +11,15 @@ export type ManagementStatus =
   | 'Terminado aprobado'
   | 'Terminado desfavorable';
 
+export interface SpecificManagementSummary {
+  id: string;
+  name: string;
+  code: string;
+  level: 'N2';
+  managementTypeId: string;
+  managementTypeName: string;
+}
+
 export interface Management {
   id: string;
   stationId: string;
@@ -32,6 +41,8 @@ export interface Management {
   managementTypeName?: string | null | undefined;
   managementTypeCode?: string | null | undefined;
   specificManagementName?: string | null | undefined;
+  specificManagement?: SpecificManagementSummary | null | undefined;
+  specificManagements?: SpecificManagementSummary[] | undefined;
   scopeName?: string | null | undefined;
   commune?: string | null | undefined;
   address?: string | null | undefined;
@@ -68,6 +79,7 @@ export interface ManagementBackground {
   managementId: string;
   parentManagementBackgroundId: string | null;
   managementTypeId: string;
+  specificManagementId?: string | null;
   backgroundId: string;
   level: Exclude<ManagementLevel, 'N1'>;
   required: boolean;
@@ -102,6 +114,7 @@ export interface ManagementBackgroundCreateInput {
   required: boolean;
   responsibleUserId?: string | null;
   responsibleName?: string | null;
+  specificManagementId?: string | null;
   status?: 'Pendiente' | 'Recibido' | 'Recibido conforme';
   observations?: string | null;
 }

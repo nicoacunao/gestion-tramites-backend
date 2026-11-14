@@ -24,6 +24,43 @@ const projection = `codigo AS id, id_estacion AS "stationId", id_tipo_gestion AS
   (SELECT t.nombre FROM tipo_gestion t WHERE t.id_tipo_gestion = gestion.id_tipo_gestion) AS "managementTypeName",
   (SELECT t.id_tipo_gestion FROM tipo_gestion t WHERE t.id_tipo_gestion = gestion.id_tipo_gestion) AS "managementTypeCode",
   (SELECT ge.nombre FROM gestion_especifica ge WHERE ge.id_gestion_especifica = gestion.id_gestion_especifica) AS "specificManagementName",
+  (SELECT json_build_object(
+      'id', ge.id_gestion_especifica::text,
+      'name', ge.nombre,
+      'code', ge.codigo,
+      'level', 'N2',
+      'managementTypeId', ge.id_tipo_gestion,
+      'managementTypeName', t.nombre
+    )
+   FROM gestion_especifica ge
+   JOIN tipo_gestion t ON t.id_tipo_gestion = ge.id_tipo_gestion
+   WHERE ge.id_gestion_especifica = gestion.id_gestion_especifica) AS "specificManagement",
+  CASE WHEN gestion.nivel = 'N1' THEN COALESCE((
+    SELECT json_agg(json_build_object(
+      'id', specific.id::text,
+      'name', specific.name,
+      'code', specific.code,
+      'level', specific.level,
+      'managementTypeId', specific.management_type_id,
+      'managementTypeName', specific.management_type_name
+    ) ORDER BY specific.name, specific.id)
+    FROM (
+      SELECT ge.id_gestion_especifica AS id, ge.nombre AS name, ge.codigo AS code,
+             ge.nivel AS level, ge.id_tipo_gestion AS management_type_id,
+             t.nombre AS management_type_name
+      FROM gestion_subtramite gs
+      JOIN gestion_especifica ge ON ge.id_gestion_especifica = gs.id_gestion_especifica
+      JOIN tipo_gestion t ON t.id_tipo_gestion = ge.id_tipo_gestion
+      WHERE gs.id_gestion = gestion.id_gestion
+      UNION
+      SELECT ge.id_gestion_especifica AS id, ge.nombre AS name, ge.codigo AS code,
+             ge.nivel AS level, ge.id_tipo_gestion AS management_type_id,
+             t.nombre AS management_type_name
+      FROM gestion_especifica ge
+      JOIN tipo_gestion t ON t.id_tipo_gestion = ge.id_tipo_gestion
+      WHERE ge.id_gestion_especifica = gestion.id_gestion_especifica
+    ) specific
+  ), '[]'::json) ELSE '[]'::json END AS "specificManagements",
   (SELECT a.nombre FROM ambito_gestion a WHERE a.codigo_ambito = gestion.codigo_ambito) AS "scopeName",
   (SELECT e.comuna FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS commune,
   (SELECT e.direccion FROM estacion e WHERE e.id_estacion = gestion.id_estacion) AS address,
@@ -121,6 +158,7 @@ export class PostgresManagementRepository implements ManagementRepository {
     >(
       `SELECT a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
         a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
+        a.id_gestion_especifica::text AS "specificManagementId",
         COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
         a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
         (SELECT f.referencia_almacenamiento FROM archivo_gestion f
@@ -131,7 +169,6 @@ export class PostgresManagementRepository implements ManagementRepository {
           ORDER BY f.fecha_carga DESC LIMIT 1) AS "uploadedAt", a.xmin::text AS version
        FROM antecedente_gestion a JOIN gestion g ON g.id_gestion = a.id_gestion
        WHERE g.codigo = $1
-         AND a.nivel IN ('N3', 'N4')
        ORDER BY a.id_antecedente_gestion`,
       [managementId],
     );
@@ -161,6 +198,7 @@ export class PostgresManagementRepository implements ManagementRepository {
     >(
       `SELECT a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
         a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
+        a.id_gestion_especifica::text AS "specificManagementId",
         COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
         a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
         (SELECT f.referencia_almacenamiento FROM archivo_gestion f
@@ -205,6 +243,7 @@ export class PostgresManagementRepository implements ManagementRepository {
          AND a.xmin = $4::text::xid
        RETURNING a.id_antecedente_gestion::text AS id, g.codigo AS "managementId",
          a.id_antecedente_padre::text AS "parentManagementBackgroundId", g.id_tipo_gestion AS "managementTypeId",
+         a.id_gestion_especifica::text AS "specificManagementId",
          COALESCE(a.id_antecedente::text, '') AS "backgroundId", a.nivel AS level, a.flag_obligatorio AS required,
          a.id_usuario_responsable::text AS "responsibleUserId", a.estado AS status,
          (SELECT f.referencia_almacenamiento FROM archivo_gestion f
@@ -280,48 +319,82 @@ export class PostgresManagementRepository implements ManagementRepository {
     try {
       await client.query('BEGIN');
       const management = await this.insertManagement(client, input);
-      for (const specificId of input.associatedSpecificManagementIds ?? [])
+      const associatedSpecificManagementIds: string[] = [];
+      for (const specificReference of input.associatedSpecificManagementIds ?? []) {
+        const specific = await client.query<{ id: string }>(
+          `SELECT id_gestion_especifica::text AS id
+           FROM gestion_especifica
+           WHERE id_gestion_especifica::text = $1::text
+              OR codigo::text = $1::text
+              OR nombre::text = $1::text
+           LIMIT 1`,
+          [specificReference],
+        );
+        const specificId = specific.rows[0]?.id;
+        if (!specificId)
+          throw new AppError(
+            'SPECIFIC_MANAGEMENT_NOT_FOUND',
+            `La gestión específica "${specificReference}" no existe.`,
+            422,
+          );
+        associatedSpecificManagementIds.push(specificId);
         await client.query(
           `INSERT INTO gestion_subtramite (id_gestion, id_gestion_especifica)
-           VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1),
-             (SELECT id_gestion_especifica FROM gestion_especifica
-               WHERE id_gestion_especifica::text = $2::text OR nombre::text = $2::text))`,
+           VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), $2::bigint)`,
           [management.id, specificId],
         );
-      let backgrounds = [
+      }
+      const specificManagementIds =
+        input.level === 'N1'
+          ? associatedSpecificManagementIds
+          : management.specificManagementId
+            ? [management.specificManagementId]
+            : [];
+      const manualBackgrounds = [
         ...(input.requiredBackgrounds ?? []),
         ...(input.complementaryBackgrounds ?? []),
       ];
-      if (backgrounds.length === 0 && input.specificManagementId) {
-        const catalog = await client.query<{
-          backgroundId: string;
-          level: ManagementBackgroundCreateInput['level'];
-          name: string;
-          category: ManagementBackgroundCreateInput['category'];
-          required: boolean;
-        }>(
-          `SELECT gea.id_antecedente::text AS "backgroundId", gea.nivel AS level,
-                  a.nombre AS name,
-                  CASE WHEN a.categoria = 'complementario'
-                    THEN 'complementario' ELSE 'requerido' END AS category,
-                  (a.categoria = 'requerido') AS required
-           FROM gestion_especifica_antecedente gea
-           JOIN gestion_especifica ge
-             ON ge.id_gestion_especifica = gea.id_gestion_especifica
-           JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
-           WHERE ge.id_gestion_especifica::text = $1::text
-              OR ge.codigo = $1::text
-              OR ge.nombre = $1::text
-           ORDER BY gea.orden`,
-          [input.specificManagementId],
+      const backgrounds: ManagementBackgroundCreateInput[] = [];
+      const backgroundKeys = new Set<string>();
+      const addBackground = (background: ManagementBackgroundCreateInput, specificId?: string) => {
+        const effectiveSpecificId = specificId ?? background.specificManagementId ?? '';
+        const key = `${effectiveSpecificId}:${background.backgroundId ?? background.name}`;
+        if (backgroundKeys.has(key)) return;
+        backgroundKeys.add(key);
+        backgrounds.push(
+          effectiveSpecificId && !background.specificManagementId
+            ? { ...background, specificManagementId: effectiveSpecificId }
+            : background,
         );
-        backgrounds = catalog.rows;
+      };
+      for (const background of manualBackgrounds)
+        addBackground(
+          background,
+          background.specificManagementId
+            ? undefined
+            : specificManagementIds.length === 1
+              ? specificManagementIds[0]
+              : undefined,
+        );
+      if (specificManagementIds.length > 0) {
+        for (const specificManagementId of specificManagementIds) {
+          const catalog = await this.listCatalogBackgrounds(client, specificManagementId);
+          for (const background of catalog) addBackground(background, specificManagementId);
+        }
       }
-      const parentIds = new Map<string, string>();
+      const parentIdsBySpecificManagement = new Map<string, Map<string, string>>();
       for (const background of backgrounds) {
-        const backgroundKey = background.backgroundId ?? background.name;
-        if (parentIds.has(backgroundKey) || parentIds.has(background.name)) continue;
-        const created = await this.insertBackground(client, management.id, background, parentIds);
+        const specificId = background.specificManagementId ?? '';
+        const parentIds =
+          parentIdsBySpecificManagement.get(specificId) ?? new Map<string, string>();
+        parentIdsBySpecificManagement.set(specificId, parentIds);
+        const created = await this.insertBackground(
+          client,
+          management.id,
+          background,
+          parentIds,
+          background.specificManagementId ?? undefined,
+        );
         parentIds.set(background.backgroundId ?? background.name, created.id);
         parentIds.set(background.name, created.id);
       }
@@ -348,8 +421,34 @@ export class PostgresManagementRepository implements ManagementRepository {
     input: ManagementBackgroundCreateInput,
   ): Promise<ManagementBackground> {
     return this.inTransaction(async (client) =>
-      this.insertBackground(client, managementId, input, new Map()),
+      this.insertBackground(
+        client,
+        managementId,
+        input,
+        new Map(),
+        input.specificManagementId ?? undefined,
+      ),
     );
+  }
+
+  private async listCatalogBackgrounds(
+    client: PoolClient,
+    specificManagementId: string,
+  ): Promise<ManagementBackgroundCreateInput[]> {
+    const catalog = await client.query<ManagementBackgroundCreateInput>(
+      `SELECT gea.id_antecedente::text AS "backgroundId", gea.nivel AS level,
+              a.nombre AS name,
+              CASE WHEN a.categoria = 'complementario'
+                THEN 'complementario' ELSE 'requerido' END AS category,
+              (a.categoria = 'requerido') AS required,
+              gea.id_gestion_especifica::text AS "specificManagementId"
+       FROM gestion_especifica_antecedente gea
+       JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
+       WHERE gea.id_gestion_especifica = $1::bigint
+       ORDER BY CASE gea.nivel WHEN 'N2' THEN 1 WHEN 'N3' THEN 2 ELSE 3 END, gea.orden`,
+      [specificManagementId],
+    );
+    return catalog.rows;
   }
 
   async createStage(
@@ -426,14 +525,17 @@ export class PostgresManagementRepository implements ManagementRepository {
     managementId: string,
     input: ManagementBackgroundCreateInput,
     parentIds: Map<string, string>,
+    specificManagementId?: string,
   ): Promise<ManagementBackground> {
     const catalogBackground = (
       await client.query<{
+        specificManagementId: string;
         level: ManagementBackgroundCreateInput['level'];
         parentBackgroundId: string | null;
         parentLevel: ManagementBackgroundCreateInput['level'] | null;
       }>(
-        `SELECT gea.nivel AS level, gea.id_antecedente_padre::text AS "parentBackgroundId",
+        `SELECT gea.id_gestion_especifica::text AS "specificManagementId",
+                gea.nivel AS level, gea.id_antecedente_padre::text AS "parentBackgroundId",
                 parent_gea.nivel AS "parentLevel"
          FROM gestion g
          JOIN gestion_especifica_antecedente gea
@@ -448,9 +550,10 @@ export class PostgresManagementRepository implements ManagementRepository {
            ON parent_gea.id_gestion_especifica = gea.id_gestion_especifica
           AND parent_gea.id_antecedente = gea.id_antecedente_padre
          WHERE g.codigo = $1
+           AND ($4::text IS NULL OR gea.id_gestion_especifica::text = $4::text)
            AND (gea.id_antecedente::text = NULLIF($2::text, '') OR a.nombre = $3)
          LIMIT 1`,
-        [managementId, input.backgroundId ?? '', input.name],
+        [managementId, input.backgroundId ?? '', input.name, specificManagementId ?? null],
       )
     ).rows[0];
     if (!catalogBackground)
@@ -486,12 +589,13 @@ export class PostgresManagementRepository implements ManagementRepository {
              FROM antecedente_gestion ag JOIN gestion g ON g.id_gestion = ag.id_gestion
              JOIN antecedente a ON a.id_antecedente = ag.id_antecedente
              WHERE g.codigo = $1
+               AND ($3::text IS NULL OR ag.id_gestion_especifica::text = $3::text)
                AND (ag.id_antecedente_gestion::text = $2
                  OR ag.id_antecedente::text = $2
                  OR a.nombre = $2)
              ORDER BY ag.id_antecedente_gestion
              LIMIT 1`,
-            [managementId, parentBackgroundId],
+            [managementId, parentBackgroundId, specificManagementId ?? null],
           )
         ).rows[0]?.id ??
         null)
@@ -504,9 +608,11 @@ export class PostgresManagementRepository implements ManagementRepository {
           level: ManagementBackgroundCreateInput['level'];
           parentBackgroundId: string | null;
           category: 'requerido' | 'complementario';
+          specificManagementId: string;
         }>(
           `SELECT gea.id_antecedente::text AS "backgroundId", a.nombre AS name,
                   gea.nivel AS level, gea.id_antecedente_padre::text AS "parentBackgroundId",
+                  gea.id_gestion_especifica::text AS "specificManagementId",
                   CASE WHEN a.categoria = 'complementario'
                     THEN 'complementario' ELSE 'requerido' END AS category
            FROM gestion g
@@ -518,9 +624,11 @@ export class PostgresManagementRepository implements ManagementRepository {
                  AND gs.id_gestion_especifica = gea.id_gestion_especifica
              )
            JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
-           WHERE g.codigo = $1 AND gea.id_antecedente::text = $2
+           WHERE g.codigo = $1
+             AND gea.id_gestion_especifica::text = $3::text
+             AND gea.id_antecedente::text = $2
            LIMIT 1`,
-          [managementId, parentBackgroundId],
+          [managementId, parentBackgroundId, specificManagementId ?? null],
         )
       ).rows[0];
       if (parentCatalog) {
@@ -534,8 +642,10 @@ export class PostgresManagementRepository implements ManagementRepository {
             name: parentCatalog.name,
             category: parentCatalog.category,
             required: parentCatalog.category === 'requerido',
+            specificManagementId: parentCatalog.specificManagementId,
           },
           parentIds,
+          specificManagementId,
         );
         parentIds.set(parentCatalog.backgroundId, parent.id);
         parentIds.set(parentCatalog.name, parent.id);
@@ -549,21 +659,23 @@ export class PostgresManagementRepository implements ManagementRepository {
         422,
       );
     const result = await client.query<ManagementBackground & { version: string }>(
-      `INSERT INTO antecedente_gestion (id_gestion, id_antecedente_padre, id_antecedente, nivel, categoria,
+      `INSERT INTO antecedente_gestion (id_gestion, id_gestion_especifica, id_antecedente_padre, id_antecedente, nivel, categoria,
         flag_obligatorio, id_usuario_responsable, estado, observaciones)
-       VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), $2::bigint,
+       VALUES ((SELECT id_gestion FROM gestion WHERE codigo = $1), NULLIF($2::text, '')::bigint, $3::bigint,
         (SELECT id_antecedente FROM antecedente
-          WHERE id_antecedente::text = NULLIF($3::text, '') OR nombre::text = $4::text),
-        $5::varchar, $6::varchar, $7::boolean,
-        NULLIF($8::text, '')::bigint, $9::varchar, $10::varchar)
+          WHERE id_antecedente::text = NULLIF($4::text, '') OR nombre::text = $5::text),
+        $6::varchar, $7::varchar, $8::boolean,
+        NULLIF($9::text, '')::bigint, $10::varchar, $11::varchar)
        RETURNING id_antecedente_gestion::text AS id, $1::text AS "managementId",
         id_antecedente_padre::text AS "parentManagementBackgroundId",
         (SELECT id_tipo_gestion FROM gestion WHERE codigo = $1) AS "managementTypeId",
+        id_gestion_especifica::text AS "specificManagementId",
         COALESCE(id_antecedente::text, '') AS "backgroundId", nivel AS level,
         flag_obligatorio AS required, id_usuario_responsable::text AS "responsibleUserId",
         estado AS status, NULL::varchar AS "fileReference", NULL::timestamptz AS "uploadedAt", xmin::text AS version`,
       [
         managementId,
+        specificManagementId ?? catalogBackground.specificManagementId ?? '',
         parentId,
         input.backgroundId ?? '',
         input.name,

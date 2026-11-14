@@ -59,6 +59,8 @@ export function presentManagement(management: Management): Management & Manageme
 
   return {
     ...management,
+    specificManagement: management.specificManagement ?? null,
+    specificManagements: management.specificManagements ?? [],
     codigo: management.id,
     nivel: management.level,
     ambito: management.scopeName ?? management.scopeCode,

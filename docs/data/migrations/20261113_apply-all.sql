@@ -9,6 +9,7 @@
 
 \ir 20261113_antecedente-niveles.sql
 \ir 20261113_reparar-niveles-catalogo-antecedentes.sql
+\ir 20261113_antecedente-gestion-especifica.sql
 \ir 20261113_normalizacion-operacional.sql
 \ir 20261113_bitacora-snapshot.sql
 \ir 20261113_borrado-agregado-gestion.sql

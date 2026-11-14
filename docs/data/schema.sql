@@ -265,6 +265,7 @@ CREATE TABLE antecedente_gestion (
     id_antecedente_gestion BIGINT GENERATED ALWAYS AS IDENTITY,
 
     id_gestion BIGINT NOT NULL,
+    id_gestion_especifica BIGINT,
     id_antecedente_padre BIGINT,
     id_antecedente BIGINT NOT NULL,
 
@@ -303,6 +304,12 @@ CREATE TABLE antecedente_gestion (
         ON UPDATE CASCADE
         ON DELETE CASCADE,
 
+    CONSTRAINT fk_antecedente_gestion_especifica
+        FOREIGN KEY (id_gestion_especifica)
+        REFERENCES gestion_especifica (id_gestion_especifica)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+
     CONSTRAINT fk_antecedente_gestion_padre
         FOREIGN KEY (id_antecedente_padre)
         REFERENCES antecedente_gestion (id_antecedente_gestion)
@@ -316,7 +323,7 @@ CREATE TABLE antecedente_gestion (
         ON DELETE RESTRICT,
 
     CONSTRAINT uq_antecedente_gestion_gestion_antecedente
-        UNIQUE (id_gestion, id_antecedente),
+        UNIQUE (id_gestion, id_gestion_especifica, id_antecedente),
 
     CONSTRAINT uq_antecedente_gestion_id_gestion
         UNIQUE (id_antecedente_gestion, id_gestion),

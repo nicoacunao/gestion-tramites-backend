@@ -592,6 +592,60 @@
             "type": "string",
             "nullable": true
           },
+          "specificManagement": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              },
+              "level": {
+                "type": "string",
+                "enum": ["N2"]
+              },
+              "managementTypeId": {
+                "type": "string"
+              },
+              "managementTypeName": {
+                "type": "string"
+              }
+            },
+            "required": ["id", "name", "code", "level", "managementTypeId", "managementTypeName"]
+          },
+          "specificManagements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["N2"]
+                },
+                "managementTypeId": {
+                  "type": "string"
+                },
+                "managementTypeName": {
+                  "type": "string"
+                }
+              },
+              "required": ["id", "name", "code", "level", "managementTypeId", "managementTypeName"]
+            }
+          },
           "commune": {
             "type": "string",
             "nullable": true
@@ -808,6 +862,60 @@
             "type": "string",
             "nullable": true
           },
+          "specificManagement": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              },
+              "level": {
+                "type": "string",
+                "enum": ["N2"]
+              },
+              "managementTypeId": {
+                "type": "string"
+              },
+              "managementTypeName": {
+                "type": "string"
+              }
+            },
+            "required": ["id", "name", "code", "level", "managementTypeId", "managementTypeName"]
+          },
+          "specificManagements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["N2"]
+                },
+                "managementTypeId": {
+                  "type": "string"
+                },
+                "managementTypeName": {
+                  "type": "string"
+                }
+              },
+              "required": ["id", "name", "code", "level", "managementTypeId", "managementTypeName"]
+            }
+          },
           "commune": {
             "type": "string",
             "nullable": true
@@ -921,6 +1029,10 @@
                   "type": "string",
                   "nullable": true
                 },
+                "specificManagementId": {
+                  "type": "string",
+                  "nullable": true
+                },
                 "level": {
                   "type": "string",
                   "enum": ["N2", "N3", "N4"]
@@ -969,6 +1081,10 @@
                   "nullable": true
                 },
                 "parentBackgroundId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "specificManagementId": {
                   "type": "string",
                   "nullable": true
                 },
@@ -2443,6 +2559,10 @@
                           "managementTypeId": {
                             "type": "string"
                           },
+                          "specificManagementId": {
+                            "type": "string",
+                            "nullable": true
+                          },
                           "backgroundId": {
                             "type": "string"
                           },
@@ -2546,6 +2666,10 @@
                     "nullable": true
                   },
                   "parentBackgroundId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "specificManagementId": {
                     "type": "string",
                     "nullable": true
                   },

@@ -84,7 +84,8 @@ describe('gestiones', () => {
     const detail = await router.request('/items/1001', { headers: auth });
 
     expect(list.status).toBe(200);
-    expect(await list.json()).toMatchObject({
+    const listBody = await list.json();
+    expect(listBody).toMatchObject({
       data: [
         {
           id: '1001',
@@ -104,6 +105,7 @@ describe('gestiones', () => {
     });
     expect(detail.status).toBe(200);
     expect(await detail.json()).toMatchObject({ data: { priority: 'Alta' } });
+    expect(listBody).toMatchObject({ data: [{ specificManagement: null }] });
   });
 
   it('devuelve la gestión específica N2 y sus antecedentes requeridos N3', async () => {
@@ -111,6 +113,14 @@ describe('gestiones', () => {
       ...management,
       specificManagementId: '4',
       specificManagementName: 'Solicitud de patente PRONTO',
+      specificManagement: {
+        id: '4',
+        name: 'Solicitud de patente PRONTO',
+        code: 'solicitud-patente-pronto',
+        level: 'N2' as const,
+        managementTypeId: 'patente-comercial',
+        managementTypeName: 'Patente comercial',
+      },
       managementTypeName: 'Patente comercial',
       managementTypeCode: 'patente-comercial',
       creationMode: 'subtramite' as const,
@@ -140,6 +150,14 @@ describe('gestiones', () => {
         level: 'N2',
         specificManagementId: '4',
         specificManagementName: 'Solicitud de patente PRONTO',
+        specificManagement: {
+          id: '4',
+          name: 'Solicitud de patente PRONTO',
+          code: 'solicitud-patente-pronto',
+          level: 'N2',
+          managementTypeId: 'patente-comercial',
+          managementTypeName: 'Patente comercial',
+        },
         managementTypeId: 'patente-comercial',
         managementTypeName: 'Patente comercial',
         managementTypeCode: 'patente-comercial',
@@ -149,6 +167,24 @@ describe('gestiones', () => {
     expect(backgrounds.status).toBe(200);
     expect(await backgrounds.json()).toMatchObject({
       data: [{ backgroundId: '30', level: 'N3', parentManagementBackgroundId: null }],
+    });
+  });
+
+  it('devuelve todas las gestiones específicas N2 asociadas a una gestión N1', async () => {
+    const specific = {
+      id: '4',
+      name: 'Solicitud de patente PRONTO',
+      code: 'solicitud-patente-pronto',
+      level: 'N2' as const,
+      managementTypeId: 'patente-comercial',
+      managementTypeName: 'Patente comercial',
+    };
+    const principal = { ...management, specificManagements: [specific] };
+    const response = await app(repository([principal])).request('/items/1001', { headers: auth });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      data: { level: 'N1', specificManagement: null, specificManagements: [specific] },
     });
   });
 
@@ -164,6 +200,14 @@ describe('gestiones', () => {
         creationMode: input.creationMode,
         specificManagementId: input.specificManagementId,
         specificManagementName: 'Solicitud de patente PRONTO',
+        specificManagement: {
+          id: '4',
+          name: 'Solicitud de patente PRONTO',
+          code: 'solicitud-patente-pronto',
+          level: 'N2',
+          managementTypeId: 'patente-comercial',
+          managementTypeName: 'Patente comercial',
+        },
         managementTypeName: 'Patente comercial',
         managementTypeCode: 'patente-comercial',
         version: 1,

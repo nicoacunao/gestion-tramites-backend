@@ -47,6 +47,29 @@ const ManagementSchema = z
     managementTypeName: z.string().nullable().optional(),
     managementTypeCode: z.string().nullable().optional(),
     specificManagementName: z.string().nullable().optional(),
+    specificManagement: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        code: z.string(),
+        level: z.literal('N2'),
+        managementTypeId: z.string(),
+        managementTypeName: z.string(),
+      })
+      .nullable()
+      .optional(),
+    specificManagements: z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          code: z.string(),
+          level: z.literal('N2'),
+          managementTypeId: z.string(),
+          managementTypeName: z.string(),
+        }),
+      )
+      .optional(),
     commune: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
     legalRut: z.string().nullable().optional(),
@@ -87,6 +110,7 @@ const ManagementWriteSchema = ManagementSchema.omit({ version: true })
         z.object({
           backgroundId: z.string().nullable().optional(),
           parentBackgroundId: z.string().nullable().optional(),
+          specificManagementId: z.string().nullable().optional(),
           level: z.enum(['N2', 'N3', 'N4']),
           name: z.string().trim().min(1).max(300),
           category: z.literal('requerido').default('requerido'),
@@ -103,6 +127,7 @@ const ManagementWriteSchema = ManagementSchema.omit({ version: true })
         z.object({
           backgroundId: z.string().nullable().optional(),
           parentBackgroundId: z.string().nullable().optional(),
+          specificManagementId: z.string().nullable().optional(),
           level: z.enum(['N2', 'N3', 'N4']),
           name: z.string().trim().min(1).max(300),
           category: z.literal('complementario').default('complementario'),
@@ -265,6 +290,7 @@ const BackgroundSchema = z.object({
   managementId: z.string(),
   parentManagementBackgroundId: z.string().nullable(),
   managementTypeId: z.string(),
+  specificManagementId: z.string().nullable().optional(),
   backgroundId: z.string(),
   level: z.enum(['N2', 'N3', 'N4']),
   required: z.boolean(),
@@ -672,6 +698,7 @@ export function createGestionesRouter(
               schema: z.object({
                 backgroundId: z.string().nullable().optional(),
                 parentBackgroundId: z.string().nullable().optional(),
+                specificManagementId: z.string().nullable().optional(),
                 level: z.enum(['N2', 'N3', 'N4']),
                 name: z.string().trim().min(1).max(300),
                 category: z.enum(['requerido', 'complementario', 'adicional']),
