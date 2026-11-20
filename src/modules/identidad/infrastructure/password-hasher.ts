@@ -1,4 +1,5 @@
-const ITERATIONS = 310_000;
+const ITERATIONS = 100_000;
+const HASH_PREFIX = 'pbkdf2-sha256$';
 const encoder = new TextEncoder();
 
 function encode(bytes: ArrayBuffer): string {
@@ -21,11 +22,11 @@ export class Pbkdf2PasswordHasher {
     return `pbkdf2-sha256$${ITERATIONS}$${encode(salt.buffer)}$${encode(key)}`;
   }
 
-  isHash(passwordHash: string): boolean {
-    return this.parse(passwordHash) !== null;
+  isHash(passwordHash: unknown): boolean {
+    return typeof passwordHash === 'string' && passwordHash.startsWith(HASH_PREFIX);
   }
 
-  async verify(plainText: string, passwordHash: string): Promise<boolean> {
+  async verify(plainText: string, passwordHash: unknown): Promise<boolean> {
     const parsed = this.parse(passwordHash);
     if (!parsed) return false;
     const { iterations, salt, expected } = parsed;
@@ -37,15 +38,17 @@ export class Pbkdf2PasswordHasher {
     return difference === 0;
   }
 
-  private parse(passwordHash: string): {
+  private parse(passwordHash: unknown): {
     iterations: number;
     salt: Uint8Array;
     expected: Uint8Array;
   } | null {
+    if (typeof passwordHash !== 'string') return null;
     const [algorithm, iterationText, saltText, expectedText] = passwordHash.split('$');
     if (algorithm !== 'pbkdf2-sha256' || !iterationText || !saltText || !expectedText) return null;
     const iterations = Number(iterationText);
-    if (!Number.isSafeInteger(iterations) || iterations < 100_000) return null;
+    if (!Number.isSafeInteger(iterations) || iterations < 100_000 || iterations > ITERATIONS)
+      return null;
     try {
       const salt = decode(saltText);
       const expected = decode(expectedText);
@@ -56,22 +59,15 @@ export class Pbkdf2PasswordHasher {
     }
   }
 
-  private async derive(
-    plainText: string,
-    salt: Uint8Array,
-    iterations: number,
-  ): Promise<ArrayBuffer> {
-    const material = await crypto.subtle.importKey(
-      'raw',
-      encoder.encode(plainText),
-      'PBKDF2',
-      false,
-      ['deriveBits'],
-    );
-    return crypto.subtle.deriveBits(
-      { name: 'PBKDF2', salt: salt as BufferSource, iterations, hash: 'SHA-256' },
-      material,
-      256,
-    );
+  private derive(plainText: string, salt: Uint8Array, iterations: number): Promise<ArrayBuffer> {
+    return crypto.subtle
+      .importKey('raw', encoder.encode(plainText), 'PBKDF2', false, ['deriveBits'])
+      .then((material) =>
+        crypto.subtle.deriveBits(
+          { name: 'PBKDF2', salt: salt as unknown as BufferSource, iterations, hash: 'SHA-256' },
+          material,
+          256,
+        ),
+      );
   }
 }

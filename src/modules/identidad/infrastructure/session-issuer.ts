@@ -2,6 +2,8 @@ import type { AuthSession } from '../domain/user';
 import type { SessionIssuer } from '../application/ports';
 
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
+const HMAC_IMPORT_ALGORITHM = { name: 'HMAC', hash: { name: 'SHA-256' } } as const;
+const HMAC_SIGN_ALGORITHM = { name: 'HMAC' } as const;
 
 function encode(value: string): string {
   return btoa(value).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
@@ -20,13 +22,15 @@ export class HmacSessionIssuer implements SessionIssuer {
     const key = await crypto.subtle.importKey(
       'raw',
       new TextEncoder().encode(this.secret),
-      { name: 'HMAC', hash: 'SHA-256' },
+      HMAC_IMPORT_ALGORITHM,
       false,
       ['sign'],
     );
     const signature = encode(
       String.fromCharCode(
-        ...new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))),
+        ...new Uint8Array(
+          await crypto.subtle.sign(HMAC_SIGN_ALGORITHM, key, new TextEncoder().encode(payload)),
+        ),
       ),
     );
     return { userId, token: `${payload}.${signature}`, expiresAt };
@@ -45,13 +49,15 @@ export class HmacSessionVerifier {
     const key = await crypto.subtle.importKey(
       'raw',
       new TextEncoder().encode(this.secret),
-      { name: 'HMAC', hash: 'SHA-256' },
+      HMAC_IMPORT_ALGORITHM,
       false,
       ['sign'],
     );
     const expected = encode(
       String.fromCharCode(
-        ...new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))),
+        ...new Uint8Array(
+          await crypto.subtle.sign(HMAC_SIGN_ALGORITHM, key, new TextEncoder().encode(payload)),
+        ),
       ),
     );
     if (expected !== suppliedSignature) return null;

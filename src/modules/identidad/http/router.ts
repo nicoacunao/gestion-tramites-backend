@@ -79,6 +79,12 @@ const profileWriteSchema = z.object({
   version: z.number().int().nonnegative(),
 });
 
+function safeDiagnosticText(value: string | undefined): string | undefined {
+  return value
+    ?.replace(/postgres(?:ql)?:\/\/[^\s]+/gi, 'postgresql://[REDACTED]')
+    .replace(/(authorization\s*[:=]\s*bearer\s+)[^\s]+/gi, '$1[REDACTED]');
+}
+
 function publicUser(user: Awaited<ReturnType<typeof authenticatedUser>>) {
   return {
     id: user.id,
@@ -101,8 +107,16 @@ export function createLoginRouter(
   const router = new OpenAPIHono<AppEnv>();
   router.openapi(route, async (context) => {
     const body = context.req.valid('json');
+    let stage = 'start';
+
     try {
-      const result = await login(body.rut.toUpperCase(), body.password, dependencies(context.env));
+      stage = 'create-dependencies';
+      const identityDependencies = dependencies(context.env);
+
+      stage = 'find-and-verify-user';
+      const result = await login(body.rut.toUpperCase(), body.password, identityDependencies);
+
+      stage = 'serialize-success-response';
       return context.json(
         {
           data: {
@@ -117,6 +131,26 @@ export function createLoginRouter(
     } catch (error) {
       if (error instanceof InvalidCredentialsError)
         throw new AppError('INVALID_CREDENTIALS', 'RUT o contraseña inválidos.', 401);
+
+      const diagnostic =
+        error instanceof Error
+          ? {
+              errorName: error.name,
+              errorMessage: safeDiagnosticText(error.message),
+              errorStack: safeDiagnosticText(error.stack?.split('\n').slice(0, 5).join('\n')),
+            }
+          : { errorType: typeof error };
+
+      console.error(
+        JSON.stringify({
+          level: 'error',
+          event: 'identity_login_failed',
+          requestId: context.get('requestId'),
+          stage,
+          ...diagnostic,
+        }),
+      );
+
       throw error;
     }
   });
