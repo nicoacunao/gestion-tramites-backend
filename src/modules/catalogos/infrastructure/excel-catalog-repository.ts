@@ -69,9 +69,9 @@ export class ExcelCatalogRepository implements CatalogRepository {
 
   async listScopes(): Promise<readonly ManagementScope[]> {
     return (await this.source.readTable('tbl_ambitos_gestion')).map((row) => ({
-      code: text(row, 'codigo_ambito'),
+      id: text(row, 'id_ambito_gestion'),
+      code: text(row, 'codigo'),
       name: text(row, 'nombre'),
-      version: numberValue(row, 'version'),
     }));
   }
   async listManagementTypes(): Promise<readonly ManagementType[]> {

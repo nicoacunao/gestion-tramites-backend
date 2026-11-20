@@ -9,9 +9,7 @@ import {
 
 const responseSchema = z.object({
   data: z.array(
-    z
-      .object({ code: z.string(), name: z.string(), version: z.number().int().nonnegative() })
-      .openapi('ManagementScope'),
+    z.object({ id: z.string(), code: z.string(), name: z.string() }).openapi('ManagementScope'),
   ),
   meta: ApiMetaSchema,
 });
