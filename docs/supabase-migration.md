@@ -7,7 +7,11 @@ SQL en controladores.
 
 ## Probar localmente
 
-1. Copia `.env.example` a `.env`.
+1. Para desarrollo local, copia `.env.test.example` a `.env.test` y
+   `.dev.vars.test.example` a `.dev.vars.test`. El comando `npm run dev` usa
+   prueba por defecto. Conserva `.env.production` separado y usa
+   `npm run dev:production` solo cuando necesites apuntar explícitamente a
+   producción.
 2. Para producción en Cloudflare Workers, crea un Hyperdrive apuntando a la
    cadena de Supabase y agrega el binding `HYPERDRIVE` a `wrangler.jsonc`:
    `npx wrangler hyperdrive create gestion-tramites-db` con
@@ -16,12 +20,13 @@ SQL en controladores.
    Esto evita el certificado no conforme que actualmente entrega el pooler
    compartido de Supabase a la validación TLS estricta de Workers.
 3. Para desarrollo local sin Hyperdrive, pega en `DATABASE_URL` la cadena del
-   panel **Connect** de Supabase y usa `DATABASE_SSL_MODE=disable`. Esta
-   excepción está permitida solo con `APP_ENV=development`; no la uses en
-   staging ni producción porque la conexión cliente→pooler no tendrá TLS.
+   panel **Connect** de Supabase y usa `DATABASE_SSL_MODE=disable` solo si es
+   estrictamente necesario. Esta excepción está permitida para `APP_ENV=test`
+   y `APP_ENV=development`; no la uses en staging ni producción porque la
+   conexión cliente→pooler no tendrá TLS.
 4. Si el certificado de tu entorno lo requiere, pega su PEM en
    `DATABASE_SSL_CA` (los saltos pueden escribirse como `\\n`).
-5. Ejecuta `node --env-file=.env --import tsx scripts/check-db.ts`.
+5. Ejecuta `npm run db:check:test`.
 6. Ejecuta `npm run dev` y consulta `http://localhost:8787/openapi.json`.
 
 No se registra `DATABASE_URL`, errores de `pg` ni parámetros SQL. En Cloudflare,

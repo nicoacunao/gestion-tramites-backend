@@ -1,0 +1,5 @@
+# Copiar como .dev.vars.test para Wrangler local.
+DATABASE_URL=postgresql://usuario:contraseña@host-de-test:5432/postgres
+DATABASE_SSL_MODE=verify-full
+DATABASE_SSL_CA="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+AUTH_TOKEN_SECRET=replace-with-a-test-secret

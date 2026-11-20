@@ -17,18 +17,50 @@ El pool se crea de forma lazy por solicitud, se comparte entre los repositorios
 que atienden esa solicitud y se cierra al terminar. Las credenciales no se
 guardan en Git.
 
-## Inicio rápido
+## Cómo ejecutar localmente
 
 Requisitos: Node.js 22.13+ y npm 11+.
 
 ```bash
 npm install
-cp .env.example .env
-# Completa DATABASE_URL, DATABASE_SSL_CA y AUTH_TOKEN_SECRET
+cp .env.test.example .env.test
+cp .dev.vars.test.example .dev.vars.test
+# Completa las credenciales de la base Supabase de prueba en ambos archivos.
 npm run types:bindings
-node --env-file=.env --import tsx scripts/check-db.ts
+npm run db:check:test
 npm run dev
 ```
+
+La API queda disponible normalmente en `http://localhost:8787`. Para comprobar
+que el Worker responde:
+
+```bash
+curl http://localhost:8787/openapi.json
+curl http://localhost:8787/api/v1/catalogos/health
+```
+
+Detén el proceso con `Ctrl + C`.
+
+El desarrollo local usa la base de prueba por defecto. La base de producción
+solo se selecciona explícitamente:
+
+```bash
+cp .env.production.example .env.production
+cp .dev.vars.production.example .dev.vars.production
+npm run db:check:production
+npm run dev:production
+```
+
+Convención de ambientes:
+
+- `.env.test`: scripts Node como verificaciones y migraciones contra prueba.
+- `.dev.vars.test`: secretos que Wrangler inyecta al Worker local de prueba.
+- `.env.production`: scripts Node contra producción.
+- `.dev.vars.production`: secretos para ejecutar Wrangler explícitamente contra producción.
+
+Los archivos con credenciales están ignorados por Git. No reutilices el `.env`
+antiguo para probar cambios: déjalo fuera del flujo normal o úsalo solo como
+respaldo local de producción.
 
 El Worker queda normalmente en `http://localhost:8787`. La configuración de
 Supabase está en [docs/supabase-migration.md](./docs/supabase-migration.md).
@@ -49,7 +81,7 @@ y antes de cargar o crear gestiones:
 Con `psql` se pueden ejecutar todas mediante el runner:
 
 ```bash
-PG_CONN_STRING="$(node --env-file=.env -e 'process.stdout.write(process.env.DATABASE_URL)')"
+PG_CONN_STRING="$(node --env-file=.env.test -e 'process.stdout.write(process.env.DATABASE_URL)')"
 psql "$PG_CONN_STRING" -v ON_ERROR_STOP=1 \
   -f docs/data/migrations/20261113_apply-all.sql
 unset PG_CONN_STRING
@@ -61,7 +93,7 @@ en el orden anterior; el editor no interpreta los comandos `\\ir` de `psql`.
 Luego cargar el catálogo:
 
 ```bash
-PG_CONN_STRING="$(node --env-file=.env -e 'process.stdout.write(process.env.DATABASE_URL)')"
+PG_CONN_STRING="$(node --env-file=.env.test -e 'process.stdout.write(process.env.DATABASE_URL)')"
 psql "$PG_CONN_STRING" -v ON_ERROR_STOP=1 \
   -f docs/data/seed-catalogo-tramites.sql
 psql "$PG_CONN_STRING" -v ON_ERROR_STOP=1 \
@@ -74,17 +106,21 @@ solo deben crearse en entornos de prueba.
 
 ## Comandos
 
-| Comando                    | Descripción                                  |
-| -------------------------- | -------------------------------------------- |
-| `npm run dev`              | Desarrollo local con Wrangler.               |
-| `npm run typecheck`        | TypeScript estricto.                         |
-| `npm run lint`             | ESLint.                                      |
-| `npm run boundaries`       | Límites y ciclos entre módulos.              |
-| `npm run format`           | Verificación Prettier.                       |
-| `npm test`                 | Pruebas dentro de `workerd`.                 |
-| `npm run build`            | Dry-run del despliegue.                      |
-| `npm run openapi:generate` | Regenera `openapi/openapi.json`.             |
-| `npm run check`            | Ejecuta todas las comprobaciones anteriores. |
+| Comando                       | Descripción                                   |
+| ----------------------------- | --------------------------------------------- |
+| `npm run dev`                 | Desarrollo local contra la base de prueba.    |
+| `npm run dev:test`            | Desarrollo local contra la base de prueba.    |
+| `npm run dev:production`      | Desarrollo local explícito contra producción. |
+| `npm run db:check:test`       | Verifica la conexión de prueba.               |
+| `npm run db:check:production` | Verifica la conexión de producción.           |
+| `npm run typecheck`           | TypeScript estricto.                          |
+| `npm run lint`                | ESLint.                                       |
+| `npm run boundaries`          | Límites y ciclos entre módulos.               |
+| `npm run format`              | Verificación Prettier.                        |
+| `npm test`                    | Pruebas dentro de `workerd`.                  |
+| `npm run build`               | Dry-run del despliegue.                       |
+| `npm run openapi:generate`    | Regenera `openapi/openapi.json`.              |
+| `npm run check`               | Ejecuta todas las comprobaciones anteriores.  |
 
 ## Estructura de un módulo
 

@@ -55,7 +55,8 @@ export function readDatabaseConfig(env: DatabaseEnvironment): PoolConfig {
   // staging and production must use TLS (preferably through Hyperdrive).
   if (
     sslMode === 'disable' &&
-    (env.APP_ENV === 'production' || (!local && env.APP_ENV !== 'development'))
+    (env.APP_ENV === 'production' ||
+      (!local && !['development', 'test'].includes(env.APP_ENV ?? '')))
   )
     return invalidConfiguration();
 

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const RuntimeConfigSchema = z.object({
-  APP_ENV: z.enum(['development', 'staging', 'production']).default('development'),
+  APP_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   CORS_ORIGINS: z.string().default('http://localhost:4200'),
   DATA_ADAPTER: z.enum(['placeholder', 'excel-graph', 'sql']).default('sql'),

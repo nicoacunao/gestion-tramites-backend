@@ -16,6 +16,16 @@
     "GRAPH_AUTH_MODE": "disabled",
   },
   "env": {
+    "test": {
+      "name": "gestion-tramites-api-test",
+      "vars": {
+        "APP_ENV": "test",
+        "LOG_LEVEL": "debug",
+        "CORS_ORIGINS": "http://localhost:4200",
+        "DATA_ADAPTER": "sql",
+        "GRAPH_AUTH_MODE": "disabled",
+      },
+    },
     "staging": {
       "name": "gestion-tramites-api-staging",
       "vars": {

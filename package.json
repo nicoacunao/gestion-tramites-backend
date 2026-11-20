@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --env test",
+    "dev:test": "wrangler dev --env test",
+    "dev:production": "wrangler dev --env production",
     "build": "wrangler deploy --dry-run --outdir dist --env=\"\"",
     "deploy": "wrangler deploy",
     "types:bindings": "wrangler types --env-interface CloudflareBindings",
@@ -15,7 +17,10 @@
     "format:write": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "migrate:passwords": "APP_ENV=development node --env-file=.env --import tsx scripts/migrate-passwords.ts",
+    "db:check:test": "APP_ENV=test node --env-file=.env.test --import tsx scripts/check-db.ts",
+    "db:check:production": "APP_ENV=production node --env-file=.env.production --import tsx scripts/check-db.ts",
+    "migrate:passwords:test": "APP_ENV=test node --env-file=.env.test --import tsx scripts/migrate-passwords.ts",
+    "migrate:passwords:production": "APP_ENV=production node --env-file=.env.production --import tsx scripts/migrate-passwords.ts",
     "openapi:generate": "tsx scripts/generate-openapi.ts && prettier --write openapi/openapi.json",
     "check": "npm run typecheck && npm run lint && npm run boundaries && npm run format && npm test && npm run build",
     "prepare": "husky"

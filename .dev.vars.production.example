@@ -1,0 +1,5 @@
+# Copiar como .dev.vars.production solo para ejecutar Wrangler contra producción.
+DATABASE_URL=postgresql://usuario:contraseña@host-de-produccion:5432/postgres
+DATABASE_SSL_MODE=verify-full
+DATABASE_SSL_CA="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+AUTH_TOKEN_SECRET=replace-with-the-production-secret
