@@ -402,18 +402,17 @@
       "ManagementScope": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "code": {
             "type": "string"
           },
           "name": {
             "type": "string"
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 0
           }
         },
-        "required": ["code", "name", "version"]
+        "required": ["id", "code", "name"]
       },
       "ManagementType": {
         "type": "object",
