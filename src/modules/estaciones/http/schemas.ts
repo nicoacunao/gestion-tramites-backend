@@ -3,25 +3,21 @@ import { ApiMetaSchema } from '../../../shared/api/schemas';
 
 export const StationSchema = z
   .object({
-    id: z.string().trim().min(1).max(20),
-    name: z.string().trim().max(150).nullable().optional(),
+    id: z.string().trim().regex(/^\d+$/).max(19),
     address: z.string().trim().min(1).max(250),
     commune: z.string().trim().min(1).max(100),
     legalName: z.string().trim().min(1).max(150),
-    zoneManager: z.string().trim().min(1).max(150),
-    commercialManager: z.string().trim().min(1).max(150),
-    companyRut: z.string().trim().min(1).max(12),
-    legalRepresentative: z.string().trim().min(1).max(150),
+    zoneManager: z.string().trim().max(150).nullable().optional(),
+    commercialManager: z.string().trim().max(150).nullable().optional(),
+    companyRut: z.string().trim().max(12).nullable().optional(),
+    legalRepresentative: z.string().trim().max(150).nullable().optional(),
     legalRepresentativeRut: z.string().trim().max(12).nullable().optional(),
-    status: z.string().trim().min(1).max(30),
-    version: z.number().int().nonnegative(),
+    estado: z.string().trim().min(1).max(30),
   })
   .openapi('Station');
 
-export const StationWriteSchema = StationSchema.omit({ version: true }).openapi('StationWrite');
-export const StationUpdateSchema = StationWriteSchema.extend({
-  version: z.number().int().positive(),
-}).openapi('StationUpdate');
+export const StationWriteSchema = StationSchema.openapi('StationWrite');
+export const StationUpdateSchema = StationWriteSchema.openapi('StationUpdate');
 
 export const StationResponseSchema = z
   .object({ data: StationSchema, meta: ApiMetaSchema })

@@ -5,7 +5,7 @@ import { AppError } from '../../../shared/errors/app-error';
 export interface StationFilters {
   eds?: string | undefined;
   commune?: string | undefined;
-  status?: string | undefined;
+  estado?: string | undefined;
   legalName?: string | undefined;
 }
 
@@ -18,7 +18,7 @@ export class StationService {
         (!query.eds || item.id === query.eds) &&
         (!query.commune ||
           item.commune.toLocaleLowerCase().includes(query.commune.toLocaleLowerCase())) &&
-        (!query.status || item.status === query.status) &&
+        (!query.estado || item.estado === query.estado) &&
         (!query.legalName ||
           item.legalName.toLocaleLowerCase().includes(query.legalName.toLocaleLowerCase())),
     );
@@ -52,13 +52,8 @@ export class StationService {
   }
 
   async update(station: Station): Promise<Station> {
-    const current = await this.get(station.id);
-    if (station.version !== current.version)
-      throw new AppError('VERSION_CONFLICT', 'La estación fue modificada por otro usuario.', 409, {
-        expectedVersion: current.version,
-      });
-    const updated = { ...station, version: current.version + 1 };
-    return (await this.repository.saveStation(updated, current.version)) ?? updated;
+    await this.get(station.id);
+    return (await this.repository.saveStation(station)) ?? station;
   }
 
   async import(stations: readonly Station[], rejected = 0): Promise<StationImportSummary> {

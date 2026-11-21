@@ -20,7 +20,7 @@ const stationRow = {
   rut_sociedad: null,
   nombre_representante_legal: null,
   rut_representante_legal: null,
-  version: '456',
+  estado: 'No',
 };
 function database(rows: unknown[] = [stationRow]) {
   const query = vi.fn().mockResolvedValue({ rows });
@@ -39,7 +39,7 @@ describe('repositorios PostgreSQL de catálogos', () => {
     expect(db.query.mock.calls[0]?.[1]).toEqual(['complementario']);
   });
 
-  it('parametriza el identificador y conserva xmin sin convertir BIGINT a number', async () => {
+  it('parametriza el identificador sin convertir BIGINT a number', async () => {
     const db = database();
     const id = "60001' OR 1=1 --";
     const item = await new PostgresStationRepository(db.executor).findStationById(id);
@@ -48,13 +48,11 @@ describe('repositorios PostgreSQL de catálogos', () => {
     expect(db.query.mock.calls[0]?.[1]).toEqual([id]);
     expect(item).toMatchObject({
       id: '60001',
-      name: null,
-      status: 'active',
-      version: 456,
-      zoneManager: '',
-      commercialManager: '',
-      companyRut: '',
-      legalRepresentative: '',
+      estado: 'No',
+      zoneManager: null,
+      commercialManager: null,
+      companyRut: null,
+      legalRepresentative: null,
     });
   });
 
@@ -72,14 +70,14 @@ describe('repositorios PostgreSQL de catálogos', () => {
     expect(query.mock.calls[1]?.[1]).toEqual([5, 5]);
   });
 
-  it('escribe sólo columnas existentes y devuelve la versión real de PostgreSQL', async () => {
+  it('escribe sólo columnas existentes', async () => {
     const db = database();
     const repository = new PostgresStationRepository(db.executor);
     const current = (await repository.findStationById('60001'))!;
     const updated = await new StationService(repository).update(current);
-    expect(updated.version).toBe(456);
+    expect(updated.estado).toBe('No');
     const call = db.query.mock.calls.at(-1)!;
-    expect(call[0]).toContain('AND xmin::text = $10');
+    expect(call[0]).toContain('ON CONFLICT (id_estacion) DO UPDATE');
     expect(call[1]).toEqual([
       '60001',
       'Dirección',
@@ -90,36 +88,10 @@ describe('repositorios PostgreSQL de catálogos', () => {
       null,
       null,
       null,
-      '456',
+      'No',
     ]);
     expect(call[0]).not.toMatch(/SET[\s\S]*\bversion\s*=/);
   });
-
-  it('detecta una actualización concurrente en el UPDATE, incluso después de la lectura', async () => {
-    const db = database();
-    const repository = new PostgresStationRepository(db.executor);
-    const current = (await repository.findStationById('60001'))!;
-    db.query.mockResolvedValueOnce({ rows: [] });
-    await expect(repository.saveStation(current, 456)).rejects.toMatchObject({
-      code: 'VERSION_CONFLICT',
-      status: 409,
-    });
-  });
-
-  it.each([{ name: 'No persistible' }, { status: 'inactive' }])(
-    'rechaza campos sin almacenamiento: %o',
-    async (change) => {
-      const db = database();
-      const repository = new PostgresStationRepository(db.executor);
-      const current = (await repository.findStationById('60001'))!;
-      db.query.mockClear();
-      await expect(repository.saveStation({ ...current, ...change })).rejects.toMatchObject({
-        code: 'UNSUPPORTED_STATION_FIELDS',
-        status: 422,
-      });
-      expect(db.query).not.toHaveBeenCalled();
-    },
-  );
 
   it('parametriza filtros en los nuevos catálogos y deja IDs BIGINT como strings', async () => {
     const rows = [

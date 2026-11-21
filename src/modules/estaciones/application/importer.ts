@@ -13,7 +13,7 @@ const HEADERS = [
   'RUT SOCIEDAD',
   'Socio 1 Representante Legal',
   'RUT REPRESENTANTE LEGAL',
-  'STATUS',
+  'ESTADO',
 ] as const;
 
 const FIELD_LIMITS = [
@@ -26,7 +26,7 @@ const FIELD_LIMITS = [
   { index: 6, name: 'RUT SOCIEDAD', max: 12 },
   { index: 7, name: 'Socio 1 Representante Legal', max: 150 },
   { index: 8, name: 'RUT REPRESENTANTE LEGAL', max: 12 },
-  { index: 9, name: 'STATUS', max: 30 },
+  { index: 9, name: 'ESTADO', max: 30 },
 ] as const;
 
 export interface StationImportParseResult {
@@ -95,7 +95,7 @@ export async function parseStationImport(file: File): Promise<StationImportParse
     const companyRut = value(6);
     const legalRepresentative = value(7);
     const legalRepresentativeRut = value(8);
-    const status = value(9);
+    const estado = value(9);
     const rowErrors: Array<{ row: number; message: string }> = [];
     if (!id) rowErrors.push({ row: index + 2, message: 'EDS es obligatorio.' });
     else if (ids.has(id)) rowErrors.push({ row: index + 2, message: `EDS duplicado: ${id}.` });
@@ -118,19 +118,16 @@ export async function parseStationImport(file: File): Promise<StationImportParse
     ids.add(id);
     stations.push({
       id,
-      name: null,
       legalName,
       address,
       commune,
-      zoneManager,
-      commercialManager,
-      companyRut,
-      legalRepresentative,
+      zoneManager: zoneManager || null,
+      commercialManager: commercialManager || null,
+      companyRut: companyRut || null,
+      legalRepresentative: legalRepresentative || null,
       legalRepresentativeRut: legalRepresentativeRut || null,
-      // La fuente histórica deja STATUS vacío en muchas filas. El contrato de
-      // estaciones usa active como estado derivado por defecto.
-      status: status || 'active',
-      version: 1,
+      // La fuente histórica deja ESTADO vacío en muchas filas.
+      estado: estado || 'No',
     });
   });
   if (stations.length === 0 && errors.length > 0)

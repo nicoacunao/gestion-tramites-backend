@@ -32,9 +32,11 @@ export class StationController {
     await this.authorize(request);
     return this.service.create({
       ...input,
-      name: input.name ?? null,
+      zoneManager: input.zoneManager ?? null,
+      commercialManager: input.commercialManager ?? null,
+      companyRut: input.companyRut ?? null,
+      legalRepresentative: input.legalRepresentative ?? null,
       legalRepresentativeRut: input.legalRepresentativeRut ?? null,
-      version: 1,
     });
   }
   async update(request: Request, id: string, input: z.infer<typeof StationUpdateSchema>) {
@@ -42,7 +44,10 @@ export class StationController {
     return this.service.update({
       ...input,
       id,
-      name: input.name ?? null,
+      zoneManager: input.zoneManager ?? null,
+      commercialManager: input.commercialManager ?? null,
+      companyRut: input.companyRut ?? null,
+      legalRepresentative: input.legalRepresentative ?? null,
       legalRepresentativeRut: input.legalRepresentativeRut ?? null,
     });
   }

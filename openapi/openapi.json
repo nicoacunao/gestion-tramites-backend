@@ -227,13 +227,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 20
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "maxLength": 150
+            "maxLength": 19,
+            "pattern": "^\\d+$"
           },
           "address": {
             "type": "string",
@@ -252,22 +247,22 @@
           },
           "zoneManager": {
             "type": "string",
-            "minLength": 1,
+            "nullable": true,
             "maxLength": 150
           },
           "commercialManager": {
             "type": "string",
-            "minLength": 1,
+            "nullable": true,
             "maxLength": 150
           },
           "companyRut": {
             "type": "string",
-            "minLength": 1,
+            "nullable": true,
             "maxLength": 12
           },
           "legalRepresentative": {
             "type": "string",
-            "minLength": 1,
+            "nullable": true,
             "maxLength": 150
           },
           "legalRepresentativeRut": {
@@ -275,28 +270,13 @@
             "nullable": true,
             "maxLength": 12
           },
-          "status": {
+          "estado": {
             "type": "string",
             "minLength": 1,
             "maxLength": 30
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 0
           }
         },
-        "required": [
-          "id",
-          "address",
-          "commune",
-          "legalName",
-          "zoneManager",
-          "commercialManager",
-          "companyRut",
-          "legalRepresentative",
-          "status",
-          "version"
-        ]
+        "required": ["id", "address", "commune", "legalName", "estado"]
       },
       "StationResponse": {
         "type": "object",
@@ -315,13 +295,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 20
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "maxLength": 150
+            "maxLength": 19,
+            "pattern": "^\\d+$"
           },
           "address": {
             "type": "string",
@@ -340,22 +315,22 @@
           },
           "zoneManager": {
             "type": "string",
-            "minLength": 1,
+            "nullable": true,
             "maxLength": 150
           },
           "commercialManager": {
             "type": "string",
-            "minLength": 1,
+            "nullable": true,
             "maxLength": 150
           },
           "companyRut": {
             "type": "string",
-            "minLength": 1,
+            "nullable": true,
             "maxLength": 12
           },
           "legalRepresentative": {
             "type": "string",
-            "minLength": 1,
+            "nullable": true,
             "maxLength": 150
           },
           "legalRepresentativeRut": {
@@ -363,41 +338,69 @@
             "nullable": true,
             "maxLength": 12
           },
-          "status": {
+          "estado": {
             "type": "string",
             "minLength": 1,
             "maxLength": 30
           }
         },
-        "required": [
-          "id",
-          "address",
-          "commune",
-          "legalName",
-          "zoneManager",
-          "commercialManager",
-          "companyRut",
-          "legalRepresentative",
-          "status"
-        ]
+        "required": ["id", "address", "commune", "legalName", "estado"]
       },
       "StationUpdate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/StationWrite"
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^\\d+$"
           },
-          {
-            "type": "object",
-            "properties": {
-              "version": {
-                "type": "integer",
-                "minimum": 0,
-                "exclusiveMinimum": true
-              }
-            },
-            "required": ["version"]
+          "address": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 250
+          },
+          "commune": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "legalName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "zoneManager": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 150
+          },
+          "commercialManager": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 150
+          },
+          "companyRut": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 12
+          },
+          "legalRepresentative": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 150
+          },
+          "legalRepresentativeRut": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 12
+          },
+          "estado": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
           }
-        ]
+        },
+        "required": ["id", "address", "commune", "legalName", "estado"]
       },
       "ManagementScope": {
         "type": "object",
@@ -1828,7 +1831,7 @@
               "type": "string"
             },
             "required": false,
-            "name": "status",
+            "name": "estado",
             "in": "query"
           },
           {
@@ -2063,16 +2066,6 @@
           },
           "404": {
             "description": "No encontrada.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflicto de versión.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3224,7 +3217,7 @@
               "type": "string"
             },
             "required": false,
-            "name": "status",
+            "name": "estado",
             "in": "query"
           },
           {
@@ -3459,16 +3452,6 @@
           },
           "404": {
             "description": "No encontrada.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflicto de versión.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4142,22 +4125,26 @@
                             "type": "string"
                           },
                           "zoneManager": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "commercialManager": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "companyRut": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "legalRepresentative": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "legalRepresentativeRut": {
                             "type": "string",
                             "nullable": true
                           },
-                          "status": {
+                          "estado": {
                             "type": "string"
                           }
                         },
@@ -4171,7 +4158,7 @@
                           "companyRut",
                           "legalRepresentative",
                           "legalRepresentativeRut",
-                          "status"
+                          "estado"
                         ]
                       }
                     },
@@ -4263,22 +4250,26 @@
                             "type": "string"
                           },
                           "zoneManager": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "commercialManager": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "companyRut": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "legalRepresentative": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "legalRepresentativeRut": {
                             "type": "string",
                             "nullable": true
                           },
-                          "status": {
+                          "estado": {
                             "type": "string"
                           }
                         },
@@ -4292,7 +4283,7 @@
                           "companyRut",
                           "legalRepresentative",
                           "legalRepresentativeRut",
-                          "status"
+                          "estado"
                         ]
                       }
                     },

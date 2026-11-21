@@ -22,7 +22,7 @@ const stationListRoute = createRoute({
     query: z.object({
       eds: z.string().optional(),
       commune: z.string().optional(),
-      status: z.string().optional(),
+      estado: z.string().optional(),
       legalName: z.string().optional(),
     }),
   },
@@ -124,10 +124,6 @@ const stationUpdateRoute = createRoute({
     404: {
       content: { 'application/json': { schema: ApiErrorSchema } },
       description: 'No encontrada.',
-    },
-    409: {
-      content: { 'application/json': { schema: ApiErrorSchema } },
-      description: 'Conflicto de versión.',
     },
   },
 });

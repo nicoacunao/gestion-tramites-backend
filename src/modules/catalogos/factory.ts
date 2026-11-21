@@ -18,7 +18,7 @@ export function postgresCatalogosDependencies(env: AppBindings): CatalogosDepend
     repository: {
       listStations: () => stations.repository.listStations(),
       findStationById: (id) => stations.repository.findStationById(id),
-      saveStation: (station, version) => stations.repository.saveStation(station, version),
+      saveStation: (station) => stations.repository.saveStation(station),
       listScopes: () => scopes.listScopes(),
       listManagementTypes: () => types.listManagementTypes(),
       listBackgrounds: () => backgrounds.listBackgrounds(),

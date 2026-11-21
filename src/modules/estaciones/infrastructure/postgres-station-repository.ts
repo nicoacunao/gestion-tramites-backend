@@ -14,48 +14,46 @@ interface StationRow {
   rut_sociedad: string | null;
   nombre_representante_legal: string | null;
   rut_representante_legal: string | null;
-  status: string;
-  version: string;
+  estado: string;
 }
+
 function fromRow(row: StationRow): Station {
   return {
     id: row.id_estacion,
-    name: null,
     address: row.direccion,
     commune: row.comuna,
     legalName: row.razon_social,
-    zoneManager: row.jefe_zona ?? '',
-    commercialManager: row.jefe_comercial ?? '',
-    companyRut: row.rut_sociedad ?? '',
-    legalRepresentative: row.nombre_representante_legal ?? '',
+    zoneManager: row.jefe_zona,
+    commercialManager: row.jefe_comercial,
+    companyRut: row.rut_sociedad,
+    legalRepresentative: row.nombre_representante_legal,
     legalRepresentativeRut: row.rut_representante_legal,
-    status: row.status ?? 'active',
-    version: Number(row.version),
+    estado: row.estado,
   };
 }
 
+const STATION_COLUMNS = `
+  id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
+  rut_sociedad, nombre_representante_legal, rut_representante_legal, estado`;
+
 export class PostgresStationRepository implements StationRepository {
   constructor(private readonly database: SqlExecutor) {}
+
   async listStations(): Promise<readonly Station[]> {
     const result = await this.database.query<StationRow>(
-      `
-      SELECT id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
-             rut_sociedad, nombre_representante_legal, rut_representante_legal, status, xmin::text AS version
-      FROM estacion ORDER BY id_estacion`,
+      `SELECT ${STATION_COLUMNS} FROM estacion ORDER BY id_estacion`,
       [],
     );
     return result.rows.map(fromRow);
   }
+
   async listStationsPage(page: number, pageSize: number): Promise<StationPage> {
     const offset = (page - 1) * pageSize;
     const [countResult, rowsResult] = await Promise.all([
       this.database.query<{ total: string }>('SELECT COUNT(*)::text AS total FROM estacion', []),
       this.database.query<StationRow>(
-        `
-        SELECT id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
-               rut_sociedad, nombre_representante_legal, rut_representante_legal, status,
-               xmin::text AS version
-        FROM estacion ORDER BY id_estacion LIMIT $1 OFFSET $2`,
+        `SELECT ${STATION_COLUMNS}
+         FROM estacion ORDER BY id_estacion LIMIT $1 OFFSET $2`,
         [pageSize, offset],
       ),
     ]);
@@ -68,58 +66,47 @@ export class PostgresStationRepository implements StationRepository {
       totalPages: Math.ceil(total / pageSize),
     };
   }
+
   async findStationById(id: string): Promise<Station | null> {
     const result = await this.database.query<StationRow>(
-      `
-      SELECT id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
-             rut_sociedad, nombre_representante_legal, rut_representante_legal, status, xmin::text AS version
-      FROM estacion WHERE id_estacion = $1`,
+      `SELECT ${STATION_COLUMNS} FROM estacion WHERE id_estacion = $1`,
       [id],
     );
     return result.rows[0] ? fromRow(result.rows[0]) : null;
   }
-  async saveStation(station: Station, expectedVersion?: number): Promise<Station> {
-    if (station.name !== null || station.status !== 'active')
-      throw new AppError(
-        'UNSUPPORTED_STATION_FIELDS',
-        'El esquema admite name=null y status=active; no existe almacenamiento para otros valores.',
-        422,
-      );
-    const values = [
-      station.id,
-      station.address,
-      station.commune,
-      station.legalName,
-      station.zoneManager || null,
-      station.commercialManager || null,
-      station.companyRut || null,
-      station.legalRepresentative || null,
-      station.legalRepresentativeRut,
-    ];
-    const result =
-      expectedVersion === undefined
-        ? await this.database.query<StationRow>(
-            `
-          INSERT INTO estacion (id_estacion, direccion, comuna, razon_social, jefe_zona,
-            jefe_comercial, rut_sociedad, nombre_representante_legal, rut_representante_legal)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          RETURNING id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
-            rut_sociedad, nombre_representante_legal, rut_representante_legal, status, xmin::text AS version`,
-            values,
-          )
-        : await this.database.query<StationRow>(
-            `
-          UPDATE estacion SET direccion = $2, comuna = $3, razon_social = $4, jefe_zona = $5,
-            jefe_comercial = $6, rut_sociedad = $7, nombre_representante_legal = $8,
-            rut_representante_legal = $9
-          WHERE id_estacion = $1 AND xmin::text = $10
-          RETURNING id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
-            rut_sociedad, nombre_representante_legal, rut_representante_legal, status, xmin::text AS version`,
-            [...values, String(expectedVersion)],
-          );
+
+  async saveStation(station: Station): Promise<Station> {
+    const result = await this.database.query<StationRow>(
+      `INSERT INTO estacion (
+         id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
+         rut_sociedad, nombre_representante_legal, rut_representante_legal, estado
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       ON CONFLICT (id_estacion) DO UPDATE SET
+         direccion = EXCLUDED.direccion,
+         comuna = EXCLUDED.comuna,
+         razon_social = EXCLUDED.razon_social,
+         jefe_zona = EXCLUDED.jefe_zona,
+         jefe_comercial = EXCLUDED.jefe_comercial,
+         rut_sociedad = EXCLUDED.rut_sociedad,
+         nombre_representante_legal = EXCLUDED.nombre_representante_legal,
+         rut_representante_legal = EXCLUDED.rut_representante_legal,
+         estado = EXCLUDED.estado
+       RETURNING ${STATION_COLUMNS}`,
+      [
+        station.id,
+        station.address,
+        station.commune,
+        station.legalName,
+        station.zoneManager,
+        station.commercialManager,
+        station.companyRut,
+        station.legalRepresentative,
+        station.legalRepresentativeRut,
+        station.estado,
+      ],
+    );
     const row = result.rows[0];
-    if (!row)
-      throw new AppError('VERSION_CONFLICT', 'La estación fue modificada por otro usuario.', 409);
+    if (!row) throw new AppError('STATION_SAVE_FAILED', 'La estación no fue persistida.', 500);
     return fromRow(row);
   }
 
@@ -134,30 +121,32 @@ export class PostgresStationRepository implements StationRepository {
         );
         const wasExisting = existing.rows[0]?.exists === true;
         const result = await client.query<StationRow>(
-          `INSERT INTO estacion (id_estacion, direccion, comuna, razon_social, jefe_zona,
-             jefe_comercial, rut_sociedad, nombre_representante_legal, rut_representante_legal, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-           ON CONFLICT (id_estacion) DO UPDATE SET direccion = EXCLUDED.direccion,
-             comuna = EXCLUDED.comuna, razon_social = EXCLUDED.razon_social,
-             jefe_zona = EXCLUDED.jefe_zona, jefe_comercial = EXCLUDED.jefe_comercial,
+          `INSERT INTO estacion (
+             id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
+             rut_sociedad, nombre_representante_legal, rut_representante_legal, estado
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           ON CONFLICT (id_estacion) DO UPDATE SET
+             direccion = EXCLUDED.direccion,
+             comuna = EXCLUDED.comuna,
+             razon_social = EXCLUDED.razon_social,
+             jefe_zona = EXCLUDED.jefe_zona,
+             jefe_comercial = EXCLUDED.jefe_comercial,
              rut_sociedad = EXCLUDED.rut_sociedad,
              nombre_representante_legal = EXCLUDED.nombre_representante_legal,
              rut_representante_legal = EXCLUDED.rut_representante_legal,
-             status = EXCLUDED.status
-           RETURNING id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
-             rut_sociedad, nombre_representante_legal, rut_representante_legal, status,
-             xmin::text AS version`,
+             estado = EXCLUDED.estado
+           RETURNING ${STATION_COLUMNS}`,
           [
             station.id,
             station.address,
             station.commune,
             station.legalName,
-            station.zoneManager || null,
-            station.commercialManager || null,
-            station.companyRut || null,
-            station.legalRepresentative || null,
+            station.zoneManager,
+            station.commercialManager,
+            station.companyRut,
+            station.legalRepresentative,
             station.legalRepresentativeRut,
-            station.status,
+            station.estado,
           ],
         );
         if (wasExisting) updated += 1;
@@ -165,9 +154,7 @@ export class PostgresStationRepository implements StationRepository {
         if (!result.rows[0]) throw new Error('La estación no fue persistida.');
       }
       const listed = await client.query<StationRow>(
-        `SELECT id_estacion, direccion, comuna, razon_social, jefe_zona, jefe_comercial,
-           rut_sociedad, nombre_representante_legal, rut_representante_legal, status,
-           xmin::text AS version FROM estacion ORDER BY id_estacion`,
+        `SELECT ${STATION_COLUMNS} FROM estacion ORDER BY id_estacion`,
         [],
       );
       return { created, updated, rejected: 0, stations: listed.rows.map(fromRow) };

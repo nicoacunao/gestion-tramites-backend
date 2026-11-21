@@ -4,7 +4,7 @@ export interface StationRepository {
   listStations(): Promise<readonly Station[]>;
   listStationsPage?(page: number, pageSize: number): Promise<StationPage>;
   findStationById(id: string): Promise<Station | null>;
-  saveStation(station: Station, expectedVersion?: number): Promise<Station | void>;
+  saveStation(station: Station): Promise<Station | void>;
   importStations?(stations: readonly Station[]): Promise<StationImportSummary>;
 }
 

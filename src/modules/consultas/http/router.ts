@@ -57,12 +57,12 @@ export function createConsultasModule(
     legalName: z.string(),
     address: z.string(),
     comuna: z.string(),
-    zoneManager: z.string(),
-    commercialManager: z.string(),
-    companyRut: z.string(),
-    legalRepresentative: z.string(),
+    zoneManager: z.string().nullable(),
+    commercialManager: z.string().nullable(),
+    companyRut: z.string().nullable(),
+    legalRepresentative: z.string().nullable(),
     legalRepresentativeRut: z.string().nullable(),
-    status: z.string(),
+    estado: z.string(),
   });
   const importRowError = z.object({ row: z.number(), message: z.string() });
   app.openapi(
@@ -121,7 +121,7 @@ export function createConsultasModule(
             companyRut: item.companyRut,
             legalRepresentative: item.legalRepresentative,
             legalRepresentativeRut: item.legalRepresentativeRut,
-            status: item.status,
+            estado: item.estado,
           })),
           meta: {
             requestId: c.get('requestId'),
@@ -208,7 +208,7 @@ export function createConsultasModule(
             companyRut: item.companyRut,
             legalRepresentative: item.legalRepresentative,
             legalRepresentativeRut: item.legalRepresentativeRut,
-            status: item.status,
+            estado: item.estado,
           })),
           meta: {
             requestId: c.get('requestId'),

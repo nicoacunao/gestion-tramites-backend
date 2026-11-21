@@ -12,7 +12,7 @@ const headers = [
   'RUT SOCIEDAD',
   'Socio 1 Representante Legal',
   'RUT REPRESENTANTE LEGAL',
-  'STATUS',
+  'ESTADO',
 ];
 
 function workbookFile(rows: unknown[][], name = 'stations.xlsx'): File {
@@ -23,7 +23,7 @@ function workbookFile(rows: unknown[][], name = 'stations.xlsx'): File {
 }
 
 describe('parseStationImport', () => {
-  it('accepts blank STATUS and applies the default station status', async () => {
+  it('accepts blank ESTADO and applies the default station state', async () => {
     const stations = await parseStationImport(
       workbookFile([
         [
@@ -42,7 +42,7 @@ describe('parseStationImport', () => {
     );
 
     expect(stations.stations).toHaveLength(1);
-    expect(stations.stations[0]?.status).toBe('active');
+    expect(stations.stations[0]?.estado).toBe('No');
   });
 
   it('skips incomplete rows and reports them separately', async () => {
@@ -88,7 +88,7 @@ describe('parseStationImport', () => {
     expect(stations.stations[0]).toMatchObject({
       id: '60003',
       commune: 'Puente Alto',
-      status: 'NO',
+      estado: 'NO',
     });
   });
 

@@ -6,7 +6,6 @@ import { AppError } from '../src/shared/errors/app-error';
 
 const station: Station = {
   id: '60001',
-  name: null,
   address: 'Huechuraba',
   commune: 'Huechuraba',
   legalName: 'Comercial y Servicios Soar Limitada',
@@ -15,8 +14,7 @@ const station: Station = {
   companyRut: '77.618.579-5',
   legalRepresentative: 'Ana Pérez',
   legalRepresentativeRut: null,
-  status: 'active',
-  version: 1,
+  estado: 'No',
 };
 
 function repository(initial: Station[] = [station]): CatalogRepository {
@@ -24,10 +22,8 @@ function repository(initial: Station[] = [station]): CatalogRepository {
   return {
     listStations: async () => items,
     findStationById: async (id) => items.find((item) => item.id === id) ?? null,
-    saveStation: async (value, expectedVersion) => {
+    saveStation: async (value) => {
       const index = items.findIndex((item) => item.id === value.id);
-      if (index >= 0 && expectedVersion !== undefined && items[index]?.version !== expectedVersion)
-        throw new AppError('VERSION_CONFLICT', 'conflicto', 409);
       if (index >= 0) items[index] = value;
       else items.push(value);
     },
@@ -73,7 +69,7 @@ describe('catálogos de estaciones', () => {
       body: JSON.stringify({ ...station }),
     });
     expect(response.status).toBe(201);
-    expect(await response.json()).toMatchObject({ data: { version: 1, id: '60001' } });
+    expect(await response.json()).toMatchObject({ data: { estado: 'No', id: '60001' } });
   });
 
   it('rechaza un body inválido y una solicitud sin autorización', async () => {
@@ -87,14 +83,14 @@ describe('catálogos de estaciones', () => {
     expect(unauthorized.status).toBe(403);
   });
 
-  it('devuelve no encontrado y detecta conflicto de versión', async () => {
+  it('devuelve no encontrado y actualiza una estación', async () => {
     const missing = await app(repository()).request('/items/missing', { headers: auth });
     expect(missing.status).toBe(404);
-    const conflict = await app(repository()).request('/items/60001', {
+    const updated = await app(repository()).request('/items/60001', {
       method: 'PUT',
       headers: { ...auth, 'content-type': 'application/json' },
-      body: JSON.stringify({ ...station, version: 9 }),
+      body: JSON.stringify({ ...station, id: '60001', estado: 'Operativa' }),
     });
-    expect(conflict.status).toBe(409);
+    expect(updated.status).toBe(200);
   });
 });

@@ -94,20 +94,17 @@ async function verifyStations(database: Pool) {
   const injection = "x'; DROP TABLE usuario; --";
   const station: Station = {
     id: '60001',
-    name: null,
     address: injection,
     commune: 'Santiago',
     legalName: 'Empresa de prueba',
-    zoneManager: '',
-    commercialManager: '',
-    companyRut: '',
-    legalRepresentative: '',
+    zoneManager: null,
+    commercialManager: null,
+    companyRut: null,
+    legalRepresentative: null,
     legalRepresentativeRut: null,
-    status: 'active',
-    version: 0,
+    estado: 'No',
   };
   const inserted = await repository.saveStation(station);
-  assert(inserted.version > 0);
   assert.equal(inserted.address, injection);
   assert.deepEqual(await repository.findStationById(inserted.id), inserted);
   assert.equal(await repository.findStationById("' OR true --"), null);
@@ -118,15 +115,8 @@ async function verifyStations(database: Pool) {
   );
   assert.equal(raw.rows[0]?.jefe_zona, null);
   assert.equal(raw.rows[0]?.nombre_representante_legal, null);
-  const updated = await repository.saveStation(
-    { ...inserted, address: 'Nueva dirección' },
-    inserted.version,
-  );
-  assert.notEqual(updated.version, inserted.version);
-  await assert.rejects(
-    () => repository.saveStation({ ...inserted, address: 'Cambio obsoleto' }, inserted.version),
-    { code: 'VERSION_CONFLICT' },
-  );
+  const updated = await repository.saveStation({ ...inserted, address: 'Nueva dirección' });
+  assert.equal(updated.address, 'Nueva dirección');
   assert.equal((await repository.findStationById(station.id))?.address, 'Nueva dirección');
   await assert.rejects(() => repository.saveStation(station), { code: '23505' });
   assert.equal(

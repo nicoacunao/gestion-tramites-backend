@@ -22,7 +22,6 @@ function numberValue(row: TabularRow, key: string): number {
 function stationFromRow(row: TabularRow): Station {
   return {
     id: text(row, 'id_estacion') || text(row, 'eds'),
-    name: nullableText(row, 'nombre'),
     address: text(row, 'direccion'),
     commune: text(row, 'comuna'),
     legalName: text(row, 'razon_social'),
@@ -31,15 +30,13 @@ function stationFromRow(row: TabularRow): Station {
     companyRut: text(row, 'rut_sociedad'),
     legalRepresentative: text(row, 'representante_legal'),
     legalRepresentativeRut: nullableText(row, 'rut_representante_legal'),
-    status: text(row, 'status'),
-    version: numberValue(row, 'version'),
+    estado: text(row, 'estado'),
   };
 }
 
 function stationToRow(station: Station): TabularRow {
   return {
     id_estacion: station.id,
-    nombre: station.name,
     direccion: station.address,
     comuna: station.commune,
     razon_social: station.legalName,
@@ -48,8 +45,7 @@ function stationToRow(station: Station): TabularRow {
     rut_sociedad: station.companyRut,
     representante_legal: station.legalRepresentative,
     rut_representante_legal: station.legalRepresentativeRut,
-    status: station.status,
-    version: station.version,
+    estado: station.estado,
   };
 }
 
@@ -63,8 +59,8 @@ export class ExcelCatalogRepository implements CatalogRepository {
     const row = await this.source.findRow('tbl_estaciones', id);
     return row ? stationFromRow(row) : null;
   }
-  async saveStation(station: Station, expectedVersion?: number): Promise<void> {
-    await this.source.upsertRow('tbl_estaciones', stationToRow(station), expectedVersion);
+  async saveStation(station: Station): Promise<void> {
+    await this.source.upsertRow('tbl_estaciones', stationToRow(station));
   }
 
   async listScopes(): Promise<readonly ManagementScope[]> {
