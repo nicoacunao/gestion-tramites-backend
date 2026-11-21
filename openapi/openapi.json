@@ -474,13 +474,9 @@
             "type": "integer",
             "minimum": 0,
             "exclusiveMinimum": true
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 0
           }
         },
-        "required": ["id", "name", "percentage", "order", "version"]
+        "required": ["id", "name", "percentage", "order"]
       },
       "ManagementListResponse": {
         "type": "object",

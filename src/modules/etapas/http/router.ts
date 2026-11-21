@@ -15,7 +15,6 @@ const responseSchema = z.object({
         name: z.string(),
         percentage: z.number().int().min(0).max(100),
         order: z.number().int().positive(),
-        version: z.number().int().nonnegative(),
       })
       .openapi('StageCatalogItem'),
   ),

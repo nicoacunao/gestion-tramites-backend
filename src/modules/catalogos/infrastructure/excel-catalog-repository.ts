@@ -93,7 +93,6 @@ export class ExcelCatalogRepository implements CatalogRepository {
       name: text(row, 'nombre'),
       percentage: numberValue(row, 'porcentaje'),
       order: numberValue(row, 'orden'),
-      version: numberValue(row, 'version'),
     }));
   }
 }

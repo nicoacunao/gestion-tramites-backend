@@ -3,5 +3,4 @@ export interface StageCatalogItem {
   name: string;
   percentage: number;
   order: number;
-  version: number;
 }
