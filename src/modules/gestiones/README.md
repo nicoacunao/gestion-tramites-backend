@@ -1,8 +1,8 @@
 # Módulo gestiones
 
-Dueño del agregado operacional `Gestion`, la jerarquía de
-`Antecedente_gestion` y la ejecución de etapas.
+Dueño del agregado operacional `Gestion` y de la ejecución de etapas.
 
-- Responsables de gestión y antecedentes: usuarios internos obligatorios.
-- Responsable de etapa: pendiente de definición.
+- Responsable de gestión: usuario interno obligatorio.
+- Las gestiones específicas se administran en el módulo `gestiones-especificas`.
+- Los archivos antecedentes se asocian mediante `gestion_especifica.url_archivo`.
 - Health: `GET /api/v1/gestiones/health`.

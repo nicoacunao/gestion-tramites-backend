@@ -175,7 +175,7 @@ try {
   await verifyStations(database);
   await verifyCatalogs(database);
   console.info(
-    'PostgreSQL real: estaciones, catálogos, BIGINT, parámetros SQL, NULL, defaults y conflicto xmin verificados.',
+    'PostgreSQL real: estaciones, catálogos, BIGINT, parámetros SQL, NULL y defaults verificados.',
   );
 } finally {
   try {
