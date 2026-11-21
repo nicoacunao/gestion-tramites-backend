@@ -1,5 +1,5 @@
-export type ManagementLevel = 'N1' | 'N2' | 'N3' | 'N4';
 export type ManagementPriority = 'Alta' | 'Media' | 'Baja';
+export type ManagementLevel = 'N1' | 'N2' | 'N3' | 'N4';
 export type ManagementStatus =
   | 'Borrador'
   | 'Pendiente'
@@ -11,83 +11,30 @@ export type ManagementStatus =
   | 'Terminado aprobado'
   | 'Terminado desfavorable';
 
-export interface SpecificManagementSummary {
-  id: string;
-  name: string;
-  code: string;
-  level: 'N2';
-  managementTypeId: string;
-  managementTypeName: string;
-}
-
 export interface Management {
   id: string;
   stationId: string;
-  managementTypeId: string;
-  scopeCode: string;
   responsibleUserId: string;
-  level: ManagementLevel;
-  sequence: number;
+  createdAt?: string;
   openedOn: string;
   estimatedCompletionOn: string | null;
   lastReviewedOn: string | null;
   priority: ManagementPriority;
+  status: ManagementStatus;
   requesterName: string;
-  status: ManagementStatus | null;
-  version: number;
-  stationName?: string | null | undefined;
-  legalName?: string | null | undefined;
-  responsibleName?: string | null | undefined;
-  managementTypeName?: string | null | undefined;
-  managementTypeCode?: string | null | undefined;
-  specificManagementName?: string | null | undefined;
-  specificManagement?: SpecificManagementSummary | null | undefined;
-  specificManagements?: SpecificManagementSummary[] | undefined;
-  scopeName?: string | null | undefined;
-  commune?: string | null | undefined;
-  address?: string | null | undefined;
-  legalRut?: string | null | undefined;
-  legalRepresentative?: string | null | undefined;
-  legalRepresentativeRut?: string | null | undefined;
-  codigo?: string | undefined;
-  ambito?: string | undefined;
-  codigoAmbito?: string | undefined;
-  correlativo?: number | undefined;
-  semaforo?: 'al-dia' | 'proximo-vencer' | 'atrasado' | undefined;
-  semaforoEtiqueta?: string | undefined;
-  fechaInicio?: string | undefined;
-  fechaIngreso?: string | undefined;
-  fechaIngresoOrden?: string | undefined;
-  fechaEstimadaTermino?: string | undefined;
-  responsableInterno?: string | undefined;
-  idEstacion?: string | undefined;
-  estacionServicio?: string | undefined;
-  direccion?: string | undefined;
-  comuna?: string | undefined;
-  rutRazonSocial?: string | undefined;
-  razonSocial?: string | undefined;
-  representanteLegal?: string | undefined;
-  rutRepresentanteLegal?: string | undefined;
-  concesionario?: string | undefined;
-  descripcion?: string | undefined;
-  creationMode?: 'principal' | 'subtramite' | undefined;
-  specificManagementId?: string | null | undefined;
-}
-
-export interface ManagementBackground {
-  id: string;
-  managementId: string;
-  parentManagementBackgroundId: string | null;
-  managementTypeId: string;
-  specificManagementId?: string | null;
-  backgroundId: string;
-  level: Exclude<ManagementLevel, 'N1'>;
-  required: boolean;
-  responsibleUserId: string | null;
-  status: string;
-  fileReference: string | null;
-  uploadedAt: string | null;
-  version: number;
+  version?: number;
+  managementTypeId?: string;
+  scopeCode?: string;
+  level?: ManagementLevel;
+  sequence?: number;
+  stationName?: string | null;
+  legalName?: string | null;
+  responsibleName?: string | null;
+  commune?: string | null;
+  address?: string | null;
+  legalRut?: string | null;
+  legalRepresentative?: string | null;
+  legalRepresentativeRut?: string | null;
 }
 
 export interface ManagementStage {
@@ -100,29 +47,14 @@ export interface ManagementStage {
   estimatedOn: string | null;
   completedOn: string | null;
   responsible: string | null;
-  responsibleUserId?: string | null;
+  responsibleUserId: string | null;
   notes: string | null;
-  version: number;
-}
-
-export interface ManagementBackgroundCreateInput {
-  backgroundId?: string | null;
-  parentBackgroundId?: string | null;
-  level: Exclude<ManagementLevel, 'N1'>;
-  name: string;
-  category: 'requerido' | 'complementario' | 'adicional';
-  required: boolean;
-  responsibleUserId?: string | null;
-  responsibleName?: string | null;
-  specificManagementId?: string | null;
-  status?: 'Pendiente' | 'Recibido' | 'Recibido conforme';
-  observations?: string | null;
 }
 
 export interface ManagementStageCreateInput {
   stageId?: string | null;
   name: string;
-  status?: 'Pendiente' | 'En curso' | 'Completado';
+  status?: string;
   estimatedOn?: string | null;
   completedOn?: string | null;
   responsibleUserId?: string | null;
@@ -130,19 +62,32 @@ export interface ManagementStageCreateInput {
   notes?: string | null;
 }
 
-export interface CompleteManagementInput extends Omit<ManagementInput, 'id' | 'sequence'> {
+export interface ManagementBackground {
   id: string;
-  sequence?: number;
-  creationMode: 'principal' | 'subtramite';
-  specificManagementId?: string | null;
-  associatedSpecificManagementIds?: string[];
-  requiredBackgrounds?: ManagementBackgroundCreateInput[];
-  complementaryBackgrounds?: ManagementBackgroundCreateInput[];
-  stages?: ManagementStageCreateInput[];
-  subtramitesAsociados?: string[];
-  antecedentesConfigurados?: string[];
-  antecedentesComplementariosConfigurados?: string[];
-  etapasConfiguradas?: string[];
+  managementId: string;
+  parentManagementBackgroundId: string | null;
+  managementTypeId: string;
+  backgroundId: string;
+  level: Exclude<ManagementLevel, 'N1'>;
+  required: boolean;
+  responsibleUserId: string | null;
+  status: string;
+  fileReference: string | null;
+  uploadedAt: string | null;
+  version: number;
 }
 
-export type ManagementInput = Omit<Management, 'version'> & { version?: number };
+export interface ManagementBackgroundCreateInput extends Partial<
+  Omit<ManagementBackground, 'id' | 'version'>
+> {
+  name: string;
+  category?: 'requerido' | 'complementario' | 'adicional';
+  parentBackgroundId?: string | null;
+}
+
+export type CompleteManagementInput = ManagementInput & {
+  creationMode?: 'principal' | 'subtramite';
+  specificManagementId?: string | null;
+};
+
+export type ManagementInput = Omit<Management, 'id'> & { id?: string };

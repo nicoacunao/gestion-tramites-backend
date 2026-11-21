@@ -84,15 +84,14 @@ CREATE TABLE gestion (
     fecha_estimada_termino DATE,
     fecha_ultima_revision   DATE,
     prioridad               VARCHAR(10) NOT NULL,
+    estado                  VARCHAR(30) NOT NULL,
     nombre_solicitante      VARCHAR(150) NOT NULL,
     flag_eliminado          BOOLEAN NOT NULL DEFAULT FALSE,
-    codigo                  VARCHAR(30) NOT NULL,
     CONSTRAINT pk_gestion PRIMARY KEY (id_gestion),
     CONSTRAINT fk_gestion_estacion FOREIGN KEY (id_estacion)
         REFERENCES estacion (id_estacion) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_gestion_usuario_responsable FOREIGN KEY (id_usuario_responsable)
         REFERENCES usuario (id_usuario) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT uq_gestion_codigo UNIQUE (codigo),
     CONSTRAINT ck_gestion_fechas CHECK (
         fecha_estimada_termino IS NULL OR fecha_estimada_termino >= fecha_apertura
     )
