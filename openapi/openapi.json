@@ -418,15 +418,27 @@
           "id": {
             "type": "string"
           },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "scopeId": {
+            "type": "string",
+            "nullable": true
+          },
           "name": {
             "type": "string"
           },
-          "version": {
+          "level": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "required": {
+            "type": "boolean"
           }
         },
-        "required": ["id", "name", "version"]
+        "required": ["id", "parentId", "scopeId", "name", "level", "required"]
       },
       "BackgroundCatalogItem": {
         "type": "object",

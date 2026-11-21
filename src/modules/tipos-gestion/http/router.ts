@@ -10,7 +10,14 @@ import {
 const responseSchema = z.object({
   data: z.array(
     z
-      .object({ id: z.string(), name: z.string(), version: z.number().int().nonnegative() })
+      .object({
+        id: z.string(),
+        parentId: z.string().nullable(),
+        scopeId: z.string().nullable(),
+        name: z.string(),
+        level: z.number().int().positive(),
+        required: z.boolean(),
+      })
       .openapi('ManagementType'),
   ),
   meta: ApiMetaSchema,

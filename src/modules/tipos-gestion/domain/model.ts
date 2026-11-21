@@ -1,5 +1,8 @@
 export interface ManagementType {
   id: string;
+  parentId: string | null;
+  scopeId: string | null;
   name: string;
-  version: number;
+  level: number;
+  required: boolean;
 }

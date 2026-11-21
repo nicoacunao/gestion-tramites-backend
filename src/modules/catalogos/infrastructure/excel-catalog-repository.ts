@@ -73,8 +73,11 @@ export class ExcelCatalogRepository implements CatalogRepository {
   async listManagementTypes(): Promise<readonly ManagementType[]> {
     return (await this.source.readTable('tbl_tipos_gestion')).map((row) => ({
       id: text(row, 'id_tipo_gestion'),
+      parentId: nullableText(row, 'id_gestion_padre'),
+      scopeId: nullableText(row, 'id_ambito_gestion'),
       name: text(row, 'nombre'),
-      version: numberValue(row, 'version'),
+      level: numberValue(row, 'nivel'),
+      required: row.flag_requerida === true || text(row, 'flag_requerida').toUpperCase() === 'TRUE',
     }));
   }
   async listBackgrounds(): Promise<readonly BackgroundCatalogItem[]> {
