@@ -187,10 +187,6 @@
           "organization": {
             "type": "string",
             "nullable": true
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 0
           }
         },
         "required": [
@@ -203,8 +199,7 @@
           "phone",
           "description",
           "role",
-          "organization",
-          "version"
+          "organization"
         ]
       },
       "StationListResponse": {
@@ -1674,10 +1669,6 @@
                     "type": "string",
                     "nullable": true,
                     "maxLength": 500
-                  },
-                  "version": {
-                    "type": "integer",
-                    "minimum": 0
                   }
                 },
                 "required": [
@@ -1686,8 +1677,7 @@
                   "secondSurname",
                   "email",
                   "phone",
-                  "description",
-                  "version"
+                  "description"
                 ]
               }
             }
@@ -1715,16 +1705,6 @@
           },
           "401": {
             "description": "No autenticado.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflicto de versión.",
             "content": {
               "application/json": {
                 "schema": {

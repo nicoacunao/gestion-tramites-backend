@@ -22,7 +22,7 @@ const dependencies: LoginDependencies = {
             role: 'analista',
             organization: null,
             active: true,
-            version: 1,
+            lastSessionAt: null,
           }
         : null,
     save: async () => undefined,
@@ -86,7 +86,7 @@ describe('POST /login de identidad', () => {
 
 describe('migración de contraseñas legadas', () => {
   it('convierte una contraseña plana válida en hash después de autenticar', async () => {
-    let upgrade: { id: string; hash: string; version?: number | undefined } | undefined;
+    let upgrade: { id: string; hash: string } | undefined;
     const legacyUser = {
       id: 'u-legacy',
       rut: '12.345.678-9',
@@ -100,15 +100,15 @@ describe('migración de contraseñas legadas', () => {
       role: 'analista',
       organization: null,
       active: true,
-      version: 7,
+      lastSessionAt: null,
     };
     const result = await login('12.345.678-9', 'secreto-legado', {
       users: {
         findById: async () => null,
         findByRut: async () => legacyUser,
         save: async () => undefined,
-        upgradePasswordHash: async (id, hash, version) => {
-          upgrade = { id, hash, version };
+        upgradePasswordHash: async (id, hash) => {
+          upgrade = { id, hash };
         },
       },
       passwords: {
@@ -129,7 +129,6 @@ describe('migración de contraseñas legadas', () => {
     expect(upgrade).toEqual({
       id: 'u-legacy',
       hash: 'pbkdf2-sha256$310000$generated$hash',
-      version: 7,
     });
   });
 });

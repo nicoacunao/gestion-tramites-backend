@@ -3,8 +3,9 @@ import type { AuthSession, User } from '../domain/user';
 export interface UserRepository {
   findById(id: string): Promise<User | null>;
   findByRut(rut: string): Promise<User | null>;
-  upgradePasswordHash?(id: string, passwordHash: string, expectedVersion?: number): Promise<void>;
-  save(user: User, expectedVersion?: number): Promise<void>;
+  upgradePasswordHash?(id: string, passwordHash: string): Promise<void>;
+  save(user: User): Promise<void>;
+  touchLastSession?(id: string): Promise<void>;
   list?(): Promise<readonly User[]>;
 }
 

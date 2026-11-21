@@ -66,7 +66,6 @@ const publicUserSchema = z
     description: z.string().nullable(),
     role: z.string(),
     organization: z.string().nullable(),
-    version: z.number().int().nonnegative(),
   })
   .openapi('UserProfile');
 const profileWriteSchema = z.object({
@@ -76,7 +75,6 @@ const profileWriteSchema = z.object({
   email: z.string().email().max(254),
   phone: z.string().trim().max(30).nullable(),
   description: z.string().trim().max(500).nullable(),
-  version: z.number().int().nonnegative(),
 });
 
 function safeDiagnosticText(value: string | undefined): string | undefined {
@@ -97,7 +95,6 @@ function publicUser(user: Awaited<ReturnType<typeof authenticatedUser>>) {
     description: user.description,
     role: user.role,
     organization: user.organization,
-    version: user.version,
   };
 }
 
@@ -203,17 +200,13 @@ export function createLoginRouter(
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'No autenticado.',
         },
-        409: {
-          content: { 'application/json': { schema: ApiErrorSchema } },
-          description: 'Conflicto de versión.',
-        },
       },
     }),
     async (context) => {
       const user = await authenticatedUser(context.req.raw, context.env);
       const input = context.req.valid('json');
       const users = dependencies(context.env).users;
-      await users.save({ ...user, ...input }, input.version);
+      await users.save({ ...user, ...input });
       const updated = await users.findById(user.id);
       return context.json(
         {

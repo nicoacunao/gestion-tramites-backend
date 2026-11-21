@@ -11,7 +11,7 @@ export interface User {
   role: string;
   organization: string | null;
   active: boolean;
-  version: number;
+  lastSessionAt: string | null;
 }
 
 export interface AuthSession {

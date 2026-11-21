@@ -25,8 +25,8 @@ function userFromRow(row: TabularRow): User {
     description: nullableText(row, 'descripcion'),
     role: text(row, 'rol'),
     organization: nullableText(row, 'organizacion'),
-    active: row.activo === true || text(row, 'activo').toUpperCase() === 'TRUE',
-    version: typeof row.version === 'number' ? row.version : Number(row.version ?? 0),
+    active: row.flag_activo === true || text(row, 'flag_activo').toUpperCase() === 'TRUE',
+    lastSessionAt: nullableText(row, 'fecha_ultima_sesion'),
   };
 }
 
@@ -44,7 +44,7 @@ export class ExcelUserRepository implements UserRepository {
     return row ? userFromRow(row) : null;
   }
 
-  save(_user: User, _expectedVersion?: number): Promise<void> {
+  save(_user: User): Promise<void> {
     throw new Error('La modificación de usuarios no está expuesta por el login.');
   }
 }

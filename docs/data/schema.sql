@@ -35,6 +35,7 @@ CREATE TABLE usuario (
     descripcion         VARCHAR(500),
     rol                 VARCHAR(100) NOT NULL,
     organizacion        VARCHAR(150),
+    flag_activo         BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_ultima_sesion TIMESTAMPTZ,
     CONSTRAINT pk_usuario PRIMARY KEY (id_usuario),
     CONSTRAINT uq_usuario_rut UNIQUE (rut),

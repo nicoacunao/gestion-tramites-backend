@@ -87,9 +87,8 @@ try {
         id: string;
         rut: string;
         passwordHash: string;
-        version: string;
       }>(
-        `SELECT id_usuario::text AS id, rut, contrasena_hash AS "passwordHash", xmin::text AS version
+        `SELECT id_usuario::text AS id, rut, contrasena_hash AS "passwordHash"
          FROM usuario
          WHERE regexp_replace(upper(btrim(rut)), '[^0-9K]', '', 'g') =
                regexp_replace(upper($1), '[^0-9K]', '', 'g')`,
@@ -112,9 +111,9 @@ try {
       const upgradedHash = await hasher.hash(password);
       const updated = await database.query(
         `UPDATE usuario SET contrasena_hash = $2
-         WHERE id_usuario = $1::bigint AND xmin::text = $3
+         WHERE id_usuario = $1::bigint
          RETURNING id_usuario`,
-        [user.id, upgradedHash, user.version],
+        [user.id, upgradedHash],
       );
 
       if (!updated.rows[0]) {

@@ -61,7 +61,7 @@ function app(repo: ManagementRepository) {
       role: 'gestiones',
       organization: null,
       active: true,
-      version: 1,
+      lastSessionAt: null,
     }),
   });
   router.onError((error, context) => {

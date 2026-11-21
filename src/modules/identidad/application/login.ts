@@ -32,8 +32,9 @@ export async function login(
 
   if (!storedPasswordIsHash && dependencies.users.upgradePasswordHash) {
     const upgradedHash = await dependencies.passwords.hash(password);
-    await dependencies.users.upgradePasswordHash(user.id, upgradedHash, user.version);
+    await dependencies.users.upgradePasswordHash(user.id, upgradedHash);
   }
+  if (dependencies.users.touchLastSession) await dependencies.users.touchLastSession(user.id);
 
   return {
     session: await dependencies.sessions.issue(user.id),
