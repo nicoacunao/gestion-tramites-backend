@@ -93,34 +93,29 @@ describe('repositorios PostgreSQL de catálogos', () => {
     expect(call[0]).not.toMatch(/SET[\s\S]*\bversion\s*=/);
   });
 
-  it('parametriza filtros en los nuevos catálogos y deja IDs BIGINT como strings', async () => {
+  it('filtra gestiones específicas por gestión y deja IDs BIGINT como strings', async () => {
     const rows = [
       {
         id: '9007199254740993',
-        managementTypeId: 'patentes',
-        code: 'PROV',
-        name: 'Provisoria',
-        level: 'N2',
-        active: true,
-        backgrounds: [
-          { id: '1', name: 'Formulario de ingreso', level: 'N3', parentBackgroundId: null },
-          { id: '2', name: 'Certificado', level: 'N3', parentBackgroundId: null },
-        ],
+        managementId: '1001',
+        managementTypeId: '2',
+        managementTypeName: 'Solicitud de permiso',
+        level: 2,
+        responsibleUserId: '7',
+        responsibleName: 'Ana Pérez',
+        status: 'Pendiente',
+        fileUrl: null,
+        uploadedAt: '2026-11-20T12:00:00.000Z',
       },
     ];
     const db = database(rows);
-    const result = await new PostgresGestionesEspecificasRepository(db.executor).list(
-      "' OR true --",
-    );
+    const result = await new PostgresGestionesEspecificasRepository(db.executor).list('1001');
     expect(result[0]?.id).toBe('9007199254740993');
-    expect(db.query.mock.calls[0]?.[1]).toEqual(["' OR true --"]);
+    expect(db.query.mock.calls[0]?.[1]).toEqual(['1001']);
     expect(db.query.mock.calls[0]?.[0]).toContain('id_gestion_especifica::text');
-    expect(db.query.mock.calls[0]?.[0]).toContain('gestion_especifica_antecedente');
-    expect(db.query.mock.calls[0]?.[0]).toContain('ORDER BY gea.orden');
-    expect(result[0]?.backgrounds).toEqual([
-      { id: '1', name: 'Formulario de ingreso', level: 'N3', parentBackgroundId: null },
-      { id: '2', name: 'Certificado', level: 'N3', parentBackgroundId: null },
-    ]);
+    expect(db.query.mock.calls[0]?.[0]).toContain('WHERE ge.id_gestion = $1::bigint');
+    expect(db.query.mock.calls[0]?.[0]).not.toContain('gestion_especifica_antecedente');
+    expect(result[0]?.responsibleName).toBe('Ana Pérez');
   });
 });
 
@@ -144,27 +139,29 @@ describe('rutas de catálogos separados', () => {
     expect((await app.request('/items?categoria=desconocida')).status).toBe(400);
   });
 
-  it('expone el reemplazo de type-relations con un filtro y contrato explícitos', async () => {
+  it('expone las gestiones específicas de una gestión con un filtro explícito', async () => {
     const list = vi.fn().mockResolvedValue([
       {
         id: '1',
-        managementTypeId: 'patentes',
-        code: 'PROV',
-        name: 'Provisoria',
-        active: true,
-        backgrounds: [
-          { id: '2', name: 'Formulario de ingreso', level: 'N3', parentBackgroundId: null },
-        ],
+        managementId: '1001',
+        managementTypeId: '2',
+        managementTypeName: 'Solicitud de permiso',
+        level: 2,
+        responsibleUserId: '7',
+        responsibleName: 'Ana Pérez',
+        status: 'Pendiente',
+        fileUrl: null,
+        uploadedAt: '2026-11-20T12:00:00.000Z',
       },
     ]);
     const app = createGestionesEspecificasModule({ repository: { list }, authorize: () => true });
-    const response = await app.request('/items?managementTypeId=patentes');
+    const response = await app.request('/items?managementId=1001');
     expect(response.status).toBe(200);
-    expect(list).toHaveBeenCalledWith('patentes');
+    expect(list).toHaveBeenCalledWith('1001');
     expect(await response.json()).toMatchObject({
-      data: [{ id: '1', active: true, managementTypeId: 'patentes' }],
+      data: [{ id: '1', managementId: '1001', managementTypeId: '2' }],
     });
-    expect((await app.request('/items?managementTypeId=')).status).toBe(400);
+    expect((await app.request('/items')).status).toBe(400);
   });
 
   it('retira type-relations de la fachada legada sin afectar health', async () => {

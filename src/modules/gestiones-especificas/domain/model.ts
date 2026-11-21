@@ -1,16 +1,12 @@
-export interface SpecificManagementBackground {
-  id: string;
-  name: string;
-  level: 'N2' | 'N3' | 'N4';
-  parentBackgroundId: string | null;
-}
-
 export interface SpecificManagement {
   id: string;
+  managementId: string;
   managementTypeId: string;
-  code: string;
-  name: string;
-  level: 'N2';
-  active: boolean;
-  backgrounds: SpecificManagementBackground[];
+  managementTypeName: string;
+  level: number;
+  responsibleUserId: string;
+  responsibleName: string;
+  status: string;
+  fileUrl: string | null;
+  uploadedAt: string;
 }

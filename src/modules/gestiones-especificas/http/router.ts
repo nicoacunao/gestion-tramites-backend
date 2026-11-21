@@ -11,19 +11,15 @@ const responseSchema = z.object({
     z
       .object({
         id: z.string(),
+        managementId: z.string(),
         managementTypeId: z.string(),
-        code: z.string(),
-        name: z.string(),
-        level: z.literal('N2'),
-        active: z.boolean(),
-        backgrounds: z.array(
-          z.object({
-            id: z.string(),
-            name: z.string(),
-            level: z.enum(['N2', 'N3', 'N4']),
-            parentBackgroundId: z.string().nullable(),
-          }),
-        ),
+        managementTypeName: z.string(),
+        level: z.number().int().positive(),
+        responsibleUserId: z.string(),
+        responsibleName: z.string(),
+        status: z.string(),
+        fileUrl: z.string().nullable(),
+        uploadedAt: z.string(),
       })
       .openapi('SpecificManagement'),
   ),
@@ -40,7 +36,7 @@ export function createGestionesEspecificasRouter(
       tags: ['gestiones-especificas'],
       operationId: 'gestionesespecificasList',
       request: {
-        query: z.object({ managementTypeId: z.string().trim().min(1).max(80).optional() }),
+        query: z.object({ managementId: z.string().trim().regex(/^\d+$/).min(1) }),
       },
       responses: {
         200: {
@@ -62,7 +58,7 @@ export function createGestionesEspecificasRouter(
         typeof dependencies === 'function' ? dependencies(context.env) : dependencies;
       const items = await new GestionesEspecificasController(resolved).list(
         context.req.raw,
-        context.req.valid('query').managementTypeId,
+        context.req.valid('query').managementId,
       );
       return context.json(
         { data: Array.from(items), meta: { requestId: context.get('requestId') } },

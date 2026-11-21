@@ -3,29 +3,24 @@ import type { GestionesEspecificasRepository } from '../application/ports';
 import type { SpecificManagement } from '../domain/model';
 export class PostgresGestionesEspecificasRepository implements GestionesEspecificasRepository {
   constructor(private readonly database: SqlExecutor) {}
-  async list(managementTypeId?: string): Promise<readonly SpecificManagement[]> {
+  async list(managementId: string): Promise<readonly SpecificManagement[]> {
     const result = await this.database.query<SpecificManagement>(
-      `SELECT ge.id_gestion_especifica::text AS id, ge.id_tipo_gestion AS "managementTypeId",
-        ge.codigo AS code, ge.nombre AS name, ge.nivel AS level, ge.activo AS active,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', a.id_antecedente::text,
-              'name', a.nombre,
-              'level', gea.nivel,
-              'parentBackgroundId', gea.id_antecedente_padre::text
-            ) ORDER BY gea.orden
-          ) FILTER (WHERE a.id_antecedente IS NOT NULL),
-          '[]'::json
-        ) AS backgrounds
+      `SELECT ge.id_gestion_especifica::text AS id,
+        ge.id_gestion::text AS "managementId",
+        ge.id_tipo_gestion::text AS "managementTypeId",
+        tg.nombre AS "managementTypeName",
+        tg.nivel AS level,
+        ge.responsable::text AS "responsibleUserId",
+        concat_ws(' ', u.nombres, u.primer_apellido, u.segundo_apellido) AS "responsibleName",
+        ge.estado AS status,
+        ge.url_archivo AS "fileUrl",
+        ge.fecha_carga::text AS "uploadedAt"
       FROM gestion_especifica ge
-      LEFT JOIN gestion_especifica_antecedente gea
-        ON gea.id_gestion_especifica = ge.id_gestion_especifica
-      LEFT JOIN antecedente a ON a.id_antecedente = gea.id_antecedente
-      WHERE ($1::varchar IS NULL OR ge.id_tipo_gestion = $1)
-      GROUP BY ge.id_gestion_especifica, ge.id_tipo_gestion, ge.codigo, ge.nombre, ge.nivel, ge.activo
-      ORDER BY ge.nombre, ge.id_gestion_especifica`,
-      [managementTypeId ?? null],
+      JOIN tipo_gestion tg ON tg.id_tipo_gestion = ge.id_tipo_gestion
+      JOIN usuario u ON u.id_usuario = ge.responsable
+      WHERE ge.id_gestion = $1::bigint
+      ORDER BY tg.nivel, tg.nombre, ge.id_gestion_especifica`,
+      [managementId],
     );
     return result.rows;
   }

@@ -11,9 +11,9 @@ export type GestionesEspecificasDependenciesFactory = (
 ) => GestionesEspecificasDependencies;
 export class GestionesEspecificasController {
   constructor(private readonly dependencies: GestionesEspecificasDependencies) {}
-  async list(request: Request, managementTypeId?: string) {
+  async list(request: Request, managementId: string) {
     if (!(await this.dependencies.authorize(request, 'indagación')))
       throw new AppError('FORBIDDEN', 'No tienes permisos para administrar catálogos.', 403);
-    return new GestionesEspecificasService(this.dependencies.repository).list(managementTypeId);
+    return new GestionesEspecificasService(this.dependencies.repository).list(managementId);
   }
 }

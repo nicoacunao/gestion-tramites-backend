@@ -1242,47 +1242,49 @@
           "id": {
             "type": "string"
           },
+          "managementId": {
+            "type": "string"
+          },
           "managementTypeId": {
             "type": "string"
           },
-          "code": {
-            "type": "string"
-          },
-          "name": {
+          "managementTypeName": {
             "type": "string"
           },
           "level": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "responsibleUserId": {
+            "type": "string"
+          },
+          "responsibleName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "fileUrl": {
             "type": "string",
-            "enum": ["N2"]
+            "nullable": true
           },
-          "active": {
-            "type": "boolean"
-          },
-          "backgrounds": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "level": {
-                  "type": "string",
-                  "enum": ["N2", "N3", "N4"]
-                },
-                "parentBackgroundId": {
-                  "type": "string",
-                  "nullable": true
-                }
-              },
-              "required": ["id", "name", "level", "parentBackgroundId"]
-            }
+          "uploadedAt": {
+            "type": "string"
           }
         },
-        "required": ["id", "managementTypeId", "code", "name", "level", "active", "backgrounds"]
+        "required": [
+          "id",
+          "managementId",
+          "managementTypeId",
+          "managementTypeName",
+          "level",
+          "responsibleUserId",
+          "responsibleName",
+          "status",
+          "fileUrl",
+          "uploadedAt"
+        ]
       },
       "FileListResponse": {
         "type": "object",
@@ -3631,10 +3633,10 @@
             "schema": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 80
+              "pattern": "^\\d+$"
             },
-            "required": false,
-            "name": "managementTypeId",
+            "required": true,
+            "name": "managementId",
             "in": "query"
           }
         ],
