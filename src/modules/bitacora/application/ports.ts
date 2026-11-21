@@ -1,7 +1,7 @@
-import type { LogEntry } from '../domain/log-entry';
+import type { LogEntry, LogEntryInput } from '../domain/log-entry';
 
 export interface LogRepository {
   listByManagement(managementId: string): Promise<readonly LogEntry[]>;
   findById(id: string): Promise<LogEntry | null>;
-  append(entry: LogEntry): Promise<void>;
+  append(entry: LogEntryInput): Promise<LogEntry>;
 }

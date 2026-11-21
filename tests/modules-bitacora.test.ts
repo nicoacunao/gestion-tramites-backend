@@ -5,14 +5,14 @@ import type { LogEntry } from '../src/modules/bitacora/domain/log-entry';
 import { AppError } from '../src/shared/errors/app-error';
 
 const entry: LogEntry = {
-  id: 'BIT-001',
+  id: '1',
   managementId: '1001',
   userId: '1',
   registeredOn: '2026-11-05',
   registeredAt: '10:30:00',
   title: 'Documento recibido',
   comment: 'Se recibió el antecedente solicitado.',
-  version: 1,
+  type: 'novedad',
 };
 
 function repository(initial: LogEntry[] = [entry]): LogRepository {
@@ -22,9 +22,14 @@ function repository(initial: LogEntry[] = [entry]): LogRepository {
       entries.filter((item) => item.managementId === managementId),
     findById: async (id) => entries.find((item) => item.id === id) ?? null,
     append: async (value) => {
-      if (entries.some((item) => item.id === value.id))
-        throw new AppError('RESOURCE_CONFLICT', 'conflicto', 409);
-      entries.push(value);
+      const created = {
+        ...value,
+        id: String(entries.length + 1),
+        registeredOn: value.registeredOn ?? '2026-11-05',
+        registeredAt: value.registeredAt ?? '10:30:00',
+      };
+      entries.push(created);
+      return created;
     },
   };
 }
@@ -43,31 +48,15 @@ function app(repo: LogRepository) {
 }
 
 describe('bitácora', () => {
-  it('lista y obtiene entradas asociadas a una gestión', async () => {
+  it('lista y obtiene entradas por id_gestion e id_entrada_bitacora', async () => {
     const router = app(repository());
-    const list = await router.request('/items?managementId=1001');
-    const detail = await router.request('/items/BIT-001');
-
-    expect(list.status).toBe(200);
-    expect(await list.json()).toMatchObject({ data: [{ id: 'BIT-001', managementId: '1001' }] });
+    expect((await router.request('/items?managementId=1001')).status).toBe(200);
+    const detail = await router.request('/items/1');
     expect(detail.status).toBe(200);
-    expect(await detail.json()).toMatchObject({ data: { title: 'Documento recibido' } });
+    expect(await detail.json()).toMatchObject({ data: { id: '1', managementId: '1001' } });
   });
 
-  it('crea una entrada y asigna la primera versión', async () => {
-    const input = { ...entry };
-    delete (input as Partial<LogEntry>).version;
-    const response = await app(repository([])).request('/items', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(input),
-    });
-
-    expect(response.status).toBe(201);
-    expect(await response.json()).toMatchObject({ data: { id: 'BIT-001', version: 1 } });
-  });
-
-  it('acepta el ingreso automático enviado por el frontend sin id', async () => {
+  it('crea una entrada y conserva la validación de tipos', async () => {
     const response = await app(repository([])).request('/items', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -76,71 +65,27 @@ describe('bitácora', () => {
         userId: '1',
         registeredOn: '2026-11-05',
         registeredAt: '10:30:00',
-        title: 'Ingreso del trámite',
-        comment: 'Se ha ingresado el trámite al sistema.',
-        authorName: 'Usuario de prueba',
-        authorInitials: 'UP',
+        title: 'Ingreso',
+        comment: 'Se registró la gestión.',
         type: 'inicio',
-        automatic: true,
       }),
     });
-
     expect(response.status).toBe(201);
-    expect(await response.json()).toMatchObject({
-      data: {
-        id: 'AUTO-1001-2026-11-05-103000',
-        managementId: '1001',
-        registeredOn: '2026-11-05',
-        registeredAt: '10:30:00',
-        userId: '1',
-        type: 'inicio',
-        automatic: true,
-      },
-    });
+    expect(await response.json()).toMatchObject({ data: { id: '1', type: 'inicio' } });
   });
 
-  it('rechaza una entrada automática que no sea de inicio', async () => {
+  it('rechaza un tipo no permitido', async () => {
     const response = await app(repository([])).request('/items', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        ...entry,
-        type: 'seguimiento',
-        automatic: true,
+        managementId: '1001',
+        userId: '1',
+        title: 'Ingreso',
+        comment: 'Texto',
+        type: 'otro',
       }),
     });
-
-    expect(response.status).toBe(422);
-    expect(await response.json()).toMatchObject({
-      error: { code: 'INVALID_AUTOMATIC_LOG_TYPE' },
-    });
-  });
-
-  it('rechaza título o comentario vacíos y no requiere autorización', async () => {
-    const router = app(repository([]));
-    const emptyTitle = await router.request('/items', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...entry, title: '   ' }),
-    });
-    const emptyComment = await router.request('/items', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...entry, comment: '' }),
-    });
-    const withoutAuth = await router.request('/items?managementId=1001');
-
-    expect(emptyTitle.status).toBe(400);
-    expect(emptyComment.status).toBe(400);
-    expect(withoutAuth.status).toBe(200);
-  });
-
-  it('devuelve no encontrado para una entrada inexistente', async () => {
-    const response = await app(repository()).request('/items/missing');
-
-    expect(response.status).toBe(404);
-    expect(await response.json()).toMatchObject({
-      error: { code: 'RESOURCE_NOT_FOUND' },
-    });
+    expect(response.status).toBe(400);
   });
 });

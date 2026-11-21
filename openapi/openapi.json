@@ -834,78 +834,35 @@
         },
         "required": ["data", "meta"]
       },
-      "LogEntryListResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LogEntry"
-            }
-          },
-          "meta": {
-            "$ref": "#/components/schemas/ApiMeta"
-          }
-        },
-        "required": ["data", "meta"]
-      },
       "LogEntry": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "type": "string"
           },
           "managementId": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "type": "string"
           },
           "userId": {
             "type": "string",
-            "nullable": true,
-            "minLength": 1,
-            "maxLength": 100
+            "nullable": true
           },
           "registeredOn": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            "type": "string"
           },
           "registeredAt": {
-            "type": "string",
-            "pattern": "^\\d{2}:\\d{2}(:\\d{2})?$"
+            "type": "string"
           },
           "title": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
+            "type": "string"
           },
           "comment": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 1000
-          },
-          "authorName": {
-            "type": "string",
-            "nullable": true
-          },
-          "authorInitials": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "type": {
             "type": "string",
             "nullable": true,
             "enum": ["inicio", "novedad", "seguimiento", "contacto", null]
-          },
-          "automatic": {
-            "type": "boolean"
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true
           }
         },
         "required": [
@@ -916,28 +873,15 @@
           "registeredAt",
           "title",
           "comment",
-          "version"
+          "type"
         ]
-      },
-      "LogEntryResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/LogEntry"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/ApiMeta"
-          }
-        },
-        "required": ["data", "meta"]
       },
       "LogEntryWrite": {
         "type": "object",
         "properties": {
           "managementId": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "pattern": "^[1-9]\\d{0,18}$"
           },
           "title": {
             "type": "string",
@@ -955,19 +899,10 @@
             "enum": ["inicio", "novedad", "seguimiento", "contacto", null],
             "default": "novedad"
           },
-          "automatic": {
-            "type": "boolean",
-            "default": false
-          },
-          "id": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
-          },
           "userId": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "nullable": true,
+            "pattern": "^[1-9]\\d{0,18}$"
           },
           "registeredOn": {
             "type": "string",
@@ -2593,8 +2528,7 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "maxLength": 100
+              "pattern": "^[1-9]\\d{0,18}$"
             },
             "required": true,
             "name": "managementId",
@@ -2603,31 +2537,23 @@
         ],
         "responses": {
           "200": {
-            "description": "Entradas de bitácora de una gestión.",
+            "description": "Entradas de bitácora.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LogEntryListResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Una entrada no tiene código externo.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Código de gestión inválido.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LogEntry"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }
@@ -2652,37 +2578,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LogEntryResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Solicitud inválida.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Ya existe una entrada con ese identificador.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Usuario, gestión, fecha u hora inválidos.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/LogEntry"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }
@@ -2698,8 +2603,7 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "maxLength": 100
+              "pattern": "^[1-9]\\d{0,18}$"
             },
             "required": true,
             "name": "id",
@@ -2712,7 +2616,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LogEntryResponse"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/LogEntry"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }

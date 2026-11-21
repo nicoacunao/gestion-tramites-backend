@@ -1,3 +1,5 @@
+export type LogEntryType = 'inicio' | 'novedad' | 'seguimiento' | 'contacto';
+
 export interface LogEntry {
   id: string;
   managementId: string;
@@ -6,18 +8,10 @@ export interface LogEntry {
   registeredAt: string;
   title: string;
   comment: string;
-  authorName?: string | null;
-  authorInitials?: string | null;
-  type?: 'inicio' | 'novedad' | 'seguimiento' | 'contacto' | null;
-  automatic?: boolean;
-  version: number;
+  type: LogEntryType | null;
 }
 
-export type LogEntryInput = Omit<
-  LogEntry,
-  'id' | 'version' | 'authorName' | 'authorInitials' | 'type' | 'automatic'
-> & {
-  id?: string | undefined;
-  type: 'inicio' | 'novedad' | 'seguimiento' | 'contacto' | null;
-  automatic: boolean;
+export type LogEntryInput = Omit<LogEntry, 'id' | 'registeredOn' | 'registeredAt'> & {
+  registeredOn?: string;
+  registeredAt?: string;
 };
