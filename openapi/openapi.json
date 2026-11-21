@@ -440,22 +440,6 @@
         },
         "required": ["id", "parentId", "scopeId", "name", "level", "required"]
       },
-      "BackgroundCatalogItem": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 0
-          }
-        },
-        "required": ["id", "name", "version"]
-      },
       "StageCatalogItem": {
         "type": "object",
         "properties": {
@@ -1537,57 +1521,6 @@
         }
       }
     },
-    "/api/v1/catalogos/backgrounds": {
-      "get": {
-        "tags": ["antecedentes"],
-        "operationId": "catalogosListBackgrounds",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "enum": ["requerido", "complementario"]
-            },
-            "required": false,
-            "name": "categoria",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Catálogo.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BackgroundCatalogItem"
-                      }
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/ApiMeta"
-                    }
-                  },
-                  "required": ["data", "meta"]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin permiso.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/catalogos/stages": {
       "get": {
         "tags": ["etapas"],
@@ -2205,57 +2138,6 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ManagementType"
-                      }
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/ApiMeta"
-                    }
-                  },
-                  "required": ["data", "meta"]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin permiso.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/antecedentes/items": {
-      "get": {
-        "tags": ["antecedentes"],
-        "operationId": "antecedentesList",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "enum": ["requerido", "complementario"]
-            },
-            "required": false,
-            "name": "categoria",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Catálogo.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BackgroundCatalogItem"
                       }
                     },
                     "meta": {

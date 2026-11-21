@@ -16,7 +16,6 @@ import {
   createTiposGestionModule,
   postgresTiposGestionDependencies,
 } from './modules/tipos-gestion';
-import { createAntecedentesModule, postgresAntecedentesDependencies } from './modules/antecedentes';
 import { createEtapasModule, postgresEtapasDependencies } from './modules/etapas';
 import {
   createGestionesEspecificasModule,
@@ -44,7 +43,6 @@ export function createApp(): OpenAPIHono<AppEnv> {
   app.route('/api/v1/estaciones', createEstacionesModule(postgresEstacionesDependencies));
   app.route('/api/v1/ambitos', createAmbitosModule(postgresAmbitosDependencies));
   app.route('/api/v1/tipos-gestion', createTiposGestionModule(postgresTiposGestionDependencies));
-  app.route('/api/v1/antecedentes', createAntecedentesModule(postgresAntecedentesDependencies));
   app.route('/api/v1/etapas', createEtapasModule(postgresEtapasDependencies));
   app.route(
     '/api/v1/gestiones-especificas',

@@ -2,7 +2,6 @@ import type { AppBindings } from '../../shared/config/bindings';
 import { postgresEstacionesDependencies } from '../estaciones';
 import { postgresAmbitosDependencies } from '../ambitos';
 import { postgresTiposGestionDependencies } from '../tipos-gestion';
-import { postgresAntecedentesDependencies } from '../antecedentes';
 import { postgresEtapasDependencies } from '../etapas';
 import type { CatalogosDependencies } from './http/router';
 
@@ -11,7 +10,6 @@ export function postgresCatalogosDependencies(env: AppBindings): CatalogosDepend
   const stations = postgresEstacionesDependencies(env);
   const scopes = postgresAmbitosDependencies(env).repository;
   const types = postgresTiposGestionDependencies(env).repository;
-  const backgrounds = postgresAntecedentesDependencies(env).repository;
   const stages = postgresEtapasDependencies(env).repository;
   return {
     authorize: stations.authorize,
@@ -21,7 +19,6 @@ export function postgresCatalogosDependencies(env: AppBindings): CatalogosDepend
       saveStation: (station) => stations.repository.saveStation(station),
       listScopes: () => scopes.listScopes(),
       listManagementTypes: () => types.listManagementTypes(),
-      listBackgrounds: () => backgrounds.listBackgrounds(),
       listStages: () => stages.listStages(),
     },
   };

@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SqlExecutor } from '../src/infrastructure/persistence/postgres/connection';
 import { PostgresStationRepository } from '../src/modules/estaciones';
-import {
-  PostgresAntecedentesRepository,
-  createAntecedentesModule,
-} from '../src/modules/antecedentes';
 import { PostgresGestionesEspecificasRepository } from '../src/modules/gestiones-especificas';
 import { StationService } from '../src/modules/estaciones/application/service';
 import { createGestionesEspecificasModule } from '../src/modules/gestiones-especificas';
@@ -28,17 +24,6 @@ function database(rows: unknown[] = [stationRow]) {
 }
 
 describe('repositorios PostgreSQL de catálogos', () => {
-  it('filtra antecedentes por categoría y conserva los IDs como strings', async () => {
-    const db = database([{ id: '7', name: 'Certificado de matrimonio', version: '12' }]);
-    const result = await new PostgresAntecedentesRepository(db.executor).listBackgrounds(
-      'complementario',
-    );
-
-    expect(result).toEqual([{ id: '7', name: 'Certificado de matrimonio', version: 12 }]);
-    expect(db.query.mock.calls[0]?.[0]).toContain('WHERE ($1::varchar IS NULL OR categoria = $1)');
-    expect(db.query.mock.calls[0]?.[1]).toEqual(['complementario']);
-  });
-
   it('parametriza el identificador sin convertir BIGINT a number', async () => {
     const db = database();
     const id = "60001' OR 1=1 --";
@@ -120,25 +105,6 @@ describe('repositorios PostgreSQL de catálogos', () => {
 });
 
 describe('rutas de catálogos separados', () => {
-  it('expone el filtro de antecedentes complementarios con la respuesta estándar', async () => {
-    const list = vi
-      .fn()
-      .mockResolvedValue([{ id: '7', name: 'Certificado de matrimonio', version: 12 }]);
-    const app = createAntecedentesModule({
-      repository: { listBackgrounds: list },
-      authorize: () => true,
-    });
-    const response = await app.request('/items?categoria=complementario');
-
-    expect(response.status).toBe(200);
-    expect(list).toHaveBeenCalledWith('complementario');
-    expect(await response.json()).toMatchObject({
-      data: [{ id: '7', name: 'Certificado de matrimonio', version: 12 }],
-      meta: {},
-    });
-    expect((await app.request('/items?categoria=desconocida')).status).toBe(400);
-  });
-
   it('expone las gestiones específicas de una gestión con un filtro explícito', async () => {
     const list = vi.fn().mockResolvedValue([
       {
@@ -172,7 +138,6 @@ describe('rutas de catálogos separados', () => {
         saveStation: async () => {},
         listScopes: async () => [],
         listManagementTypes: async () => [],
-        listBackgrounds: async () => [],
         listStages: async () => [],
       },
       authorize: () => true,

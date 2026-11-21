@@ -14,7 +14,6 @@ import { PostgresStationRepository } from '../src/modules/estaciones/infrastruct
 import type { Station } from '../src/modules/estaciones/domain/station';
 import { PostgresAmbitosRepository } from '../src/modules/ambitos/infrastructure/postgres-repository';
 import { PostgresTiposGestionRepository } from '../src/modules/tipos-gestion/infrastructure/postgres-repository';
-import { PostgresAntecedentesRepository } from '../src/modules/antecedentes/infrastructure/postgres-repository';
 import { PostgresEtapasRepository } from '../src/modules/etapas/infrastructure/postgres-repository';
 
 const execute = promisify(execFile);
@@ -40,7 +39,6 @@ async function seed(database: Pool) {
   const largeId = '9007199254740993';
   for (const [table, column] of [
     ['usuario', 'id_usuario'],
-    ['antecedente', 'id_antecedente'],
     ['gestion', 'id_gestion'],
     ['entrada_bitacora', 'id_entrada_bitacora'],
   ]) {
@@ -62,17 +60,13 @@ async function seed(database: Pool) {
       'gestiones',
     ],
   );
-  await database.query('INSERT INTO ambito_gestion (codigo_ambito, nombre) VALUES ($1, $2)', [
-    'M',
-    'Municipal',
-  ]);
-  await database.query('INSERT INTO tipo_gestion (id_tipo_gestion, nombre) VALUES ($1, $2)', [
-    'patente',
-    'Patente',
-  ]);
-  const background = await database.query<{ id: string }>(
-    'INSERT INTO antecedente (nombre) VALUES ($1) RETURNING id_antecedente::text AS id',
-    ['Certificado'],
+  const scope = await database.query<{ id: string }>(
+    'INSERT INTO ambito_gestion (codigo, nombre) VALUES ($1, $2) RETURNING id_ambito_gestion::text AS id',
+    ['M', 'Municipal'],
+  );
+  await database.query(
+    'INSERT INTO tipo_gestion (id_ambito_gestion, nombre, nivel) VALUES ($1::bigint, $2, $3)',
+    [scope.rows[0]?.id, 'Patente', 1],
   );
   await database.query('INSERT INTO etapa (nombre, porcentaje, orden) VALUES ($1, $2, $3)', [
     'Final',
@@ -85,8 +79,7 @@ async function seed(database: Pool) {
     1,
   ]);
   assert.equal(user.rows[0]?.id, largeId);
-  assert.equal(background.rows[0]?.id, largeId);
-  return { userId: largeId, backgroundId: largeId };
+  return { userId: largeId };
 }
 
 async function verifyStations(database: Pool) {
@@ -126,29 +119,19 @@ async function verifyStations(database: Pool) {
   return inserted.id;
 }
 
-async function verifyCatalogs(database: Pool, largeId: string) {
+async function verifyCatalogs(database: Pool) {
   assert.deepEqual(
     (await new PostgresAmbitosRepository(database).listScopes()).map(({ code }) => code),
     ['M'],
   );
-  assert.deepEqual(
-    (await new PostgresTiposGestionRepository(database).listManagementTypes()).map(({ id }) => id),
-    ['patente'],
-  );
   assert.equal(
-    (await new PostgresAntecedentesRepository(database).listBackgrounds())[0]?.id,
-    largeId,
+    (await new PostgresTiposGestionRepository(database).listManagementTypes()).length,
+    1,
   );
   assert.deepEqual(
     (await new PostgresEtapasRepository(database).listStages()).map(({ order }) => order),
     [1, 2],
   );
-  const defaults = await database.query(
-    'SELECT etiqueta_segundo_nivel, requiere_seleccion_segundo_nivel_principal FROM tipo_gestion WHERE id_tipo_gestion = $1',
-    ['patente'],
-  );
-  assert.equal(defaults.rows[0]?.etiqueta_segundo_nivel, 'Gestión específica');
-  assert.equal(defaults.rows[0]?.requiere_seleccion_segundo_nivel_principal, false);
 }
 
 const directory = await mkdtemp('/tmp/gestion-tramites-pg-');
@@ -188,9 +171,9 @@ try {
     APP_ENV: 'development',
   });
   await database.query(await readFile(new URL('../docs/data/schema.sql', import.meta.url), 'utf8'));
-  const fixtures = await seed(database);
+  await seed(database);
   await verifyStations(database);
-  await verifyCatalogs(database, fixtures.backgroundId);
+  await verifyCatalogs(database);
   console.info(
     'PostgreSQL real: estaciones, catálogos, BIGINT, parámetros SQL, NULL, defaults y conflicto xmin verificados.',
   );

@@ -1,11 +1,5 @@
 import type { CatalogRepository } from '../application/ports';
-import type {
-  BackgroundCatalogItem,
-  ManagementScope,
-  ManagementType,
-  StageCatalogItem,
-  Station,
-} from '../domain/catalog';
+import type { ManagementScope, ManagementType, StageCatalogItem, Station } from '../domain/catalog';
 import type { TabularDataSource, TabularRow } from '../../../shared/persistence/tabular-repository';
 
 function text(row: TabularRow, key: string): string {
@@ -78,13 +72,6 @@ export class ExcelCatalogRepository implements CatalogRepository {
       name: text(row, 'nombre'),
       level: numberValue(row, 'nivel'),
       required: row.flag_requerida === true || text(row, 'flag_requerida').toUpperCase() === 'TRUE',
-    }));
-  }
-  async listBackgrounds(): Promise<readonly BackgroundCatalogItem[]> {
-    return (await this.source.readTable('tbl_antecedentes')).map((row) => ({
-      id: text(row, 'id_antecedente'),
-      name: text(row, 'nombre'),
-      version: numberValue(row, 'version'),
     }));
   }
   async listStages(): Promise<readonly StageCatalogItem[]> {

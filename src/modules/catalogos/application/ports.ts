@@ -1,10 +1,4 @@
-import type {
-  BackgroundCatalogItem,
-  ManagementScope,
-  ManagementType,
-  StageCatalogItem,
-  Station,
-} from '../domain/catalog';
+import type { ManagementScope, ManagementType, StageCatalogItem, Station } from '../domain/catalog';
 
 export interface CatalogRepository {
   listStations(): Promise<readonly Station[]>;
@@ -12,6 +6,5 @@ export interface CatalogRepository {
   saveStation(station: Station): Promise<Station | void>;
   listScopes(): Promise<readonly ManagementScope[]>;
   listManagementTypes(): Promise<readonly ManagementType[]>;
-  listBackgrounds(): Promise<readonly BackgroundCatalogItem[]>;
   listStages(): Promise<readonly StageCatalogItem[]>;
 }

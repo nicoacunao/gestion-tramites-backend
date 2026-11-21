@@ -10,14 +10,12 @@ describe('contrato OpenAPI', () => {
     expect(Object.keys(document.paths).sort()).toEqual(
       [
         '/api/v1/ambitos/items',
-        '/api/v1/antecedentes/items',
         '/api/v1/archivos/health',
         '/api/v1/archivos/items',
         '/api/v1/archivos/items/{id}',
         '/api/v1/bitacora/health',
         '/api/v1/bitacora/items',
         '/api/v1/bitacora/items/{id}',
-        '/api/v1/catalogos/backgrounds',
         '/api/v1/catalogos/health',
         '/api/v1/catalogos/items',
         '/api/v1/catalogos/items/{id}',

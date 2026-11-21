@@ -3,7 +3,6 @@ import type { AppEnv } from '../../../shared/config/bindings';
 import { createEstacionesModule } from '../../estaciones';
 import { createAmbitosModule } from '../../ambitos';
 import { createTiposGestionModule } from '../../tipos-gestion';
-import { createAntecedentesModule } from '../../antecedentes';
 import { createEtapasModule } from '../../etapas';
 import type { CatalogRepository } from '../application/ports';
 
@@ -26,7 +25,6 @@ export function createCatalogosRouter(
     '/',
     createTiposGestionModule(resolve, '/management-types', 'catalogosListManagementTypes'),
   );
-  router.route('/', createAntecedentesModule(resolve, '/backgrounds', 'catalogosListBackgrounds'));
   router.route('/', createEtapasModule(resolve, '/stages', 'catalogosListStages'));
   return router;
 }
