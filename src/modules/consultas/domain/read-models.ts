@@ -1,7 +1,5 @@
 export interface ManagementListItem {
   id: string;
-  code: string;
-  level: string;
   stationId: string;
   commune: string;
   responsibleName: string;
