@@ -725,98 +725,23 @@
           "uploadedAt"
         ]
       },
-      "FileListResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FileRecord"
-            }
-          },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "requestId": {
-                "type": "string"
-              }
-            },
-            "required": ["requestId"]
-          }
-        },
-        "required": ["data", "meta"]
-      },
       "FileRecord": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
-          "managementId": {
-            "type": "string"
-          },
-          "managementBackgroundId": {
-            "type": "string",
-            "nullable": true
-          },
-          "storageProvider": {
+          "managementSpecificId": {
             "type": "string"
           },
           "storageReference": {
             "type": "string"
           },
-          "fileName": {
-            "type": "string"
-          },
-          "mediaType": {
-            "type": "string"
-          },
-          "sizeBytes": {
-            "type": "number",
-            "minimum": 0
-          },
-          "uploadedByUserId": {
-            "type": "string"
-          },
           "uploadedAt": {
             "type": "string"
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 0
           }
         },
-        "required": [
-          "id",
-          "managementId",
-          "managementBackgroundId",
-          "storageProvider",
-          "storageReference",
-          "fileName",
-          "mediaType",
-          "sizeBytes",
-          "uploadedByUserId",
-          "uploadedAt",
-          "version"
-        ]
-      },
-      "FileResponse": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/FileRecord"
-          },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "requestId": {
-                "type": "string"
-              }
-            },
-            "required": ["requestId"]
-          }
-        },
-        "required": ["data", "meta"]
+        "required": ["id", "managementSpecificId", "storageReference", "uploadedAt"]
       },
       "LogEntry": {
         "type": "object",
@@ -2301,31 +2226,38 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "maxLength": 100
+              "pattern": "^[1-9]\\d{0,18}$"
             },
             "required": true,
-            "name": "managementId",
+            "name": "managementSpecificId",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Archivos de una gestión.",
+            "description": "Archivo de una gestión específica.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileListResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Consulta inválida.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "nullable": true
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FileRecord"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["requestId"]
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }
@@ -2341,8 +2273,7 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "maxLength": 100
+              "pattern": "^[1-9]\\d{0,18}$"
             },
             "required": true,
             "name": "id",
@@ -2351,11 +2282,26 @@
         ],
         "responses": {
           "200": {
-            "description": "Archivo.",
+            "description": "Archivo antecedente.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileResponse"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FileRecord"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["requestId"]
+                    }
+                  },
+                  "required": ["data", "meta"]
                 }
               }
             }

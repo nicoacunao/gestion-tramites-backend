@@ -1,9 +1,9 @@
 import type { FileRecord } from '../domain/file-record';
 
 export interface FileRepository {
-  listByManagement(managementId: string): Promise<readonly FileRecord[]>;
+  listByManagementSpecific(managementSpecificId: string): Promise<readonly FileRecord[]>;
   findById(id: string): Promise<FileRecord | null>;
-  saveMetadata(record: FileRecord, expectedVersion?: number): Promise<void>;
+  saveMetadata(record: FileRecord): Promise<FileRecord>;
 }
 
 export interface FileStorage {
