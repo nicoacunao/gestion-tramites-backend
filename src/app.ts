@@ -60,11 +60,7 @@ export function createApp(): OpenAPIHono<AppEnv> {
       version: '0.1.0',
       description: 'Contrato inicial. Solo contiene health checks por módulo.',
     },
-    servers: [
-      { url: 'http://localhost:8787', description: 'Desarrollo local' },
-      { url: 'https://replace-with-staging-domain.invalid', description: 'Staging' },
-      { url: 'https://replace-with-production-domain.invalid', description: 'Producción' },
-    ],
+    servers: [{ url: '/', description: 'Servidor actual' }],
   });
 
   app.notFound((context) =>

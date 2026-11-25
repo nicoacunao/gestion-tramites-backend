@@ -7,16 +7,8 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8787",
-      "description": "Desarrollo local"
-    },
-    {
-      "url": "https://replace-with-staging-domain.invalid",
-      "description": "Staging"
-    },
-    {
-      "url": "https://replace-with-production-domain.invalid",
-      "description": "Producción"
+      "url": "/",
+      "description": "Servidor actual"
     }
   ],
   "components": {
