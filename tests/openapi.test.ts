@@ -115,4 +115,22 @@ describe('contrato OpenAPI', () => {
 
     expect(document.paths['/api/v1/identidad/profile']?.put?.responses?.['409']).toBeDefined();
   });
+
+  it('responde validaciones Zod con el envelope estándar', async () => {
+    const response = await exports.default.fetch(
+      'http://localhost/api/v1/bitacora/items?managementId=invalid',
+      { headers: { 'x-request-id': 'test-validation-error' } },
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      exito: false,
+      mensaje: 'La solicitud contiene datos inválidos.',
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'La solicitud contiene datos inválidos.',
+      },
+      meta: { requestId: 'test-validation-error' },
+    });
+  });
 });

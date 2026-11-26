@@ -30,7 +30,22 @@ import { databaseMiddleware } from './shared/middleware/database';
 import { translateDatabaseError } from './infrastructure/persistence/postgres/errors';
 
 export function createApp(): OpenAPIHono<AppEnv> {
-  const app = new OpenAPIHono<AppEnv>();
+  const app = new OpenAPIHono<AppEnv>({
+    defaultHook: (result, context) => {
+      if (!result.success) {
+        const message = 'La solicitud contiene datos inválidos.';
+        return context.json(
+          {
+            exito: false as const,
+            mensaje: message,
+            error: { code: 'VALIDATION_ERROR', message },
+            meta: { requestId: context.get('requestId') },
+          },
+          400,
+        );
+      }
+    },
+  });
 
   app.use('*', requestContextMiddleware);
   app.use('*', corsMiddleware);
