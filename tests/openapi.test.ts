@@ -106,4 +106,13 @@ describe('contrato OpenAPI', () => {
     expect(document.paths['/api/v1/archivos/items']?.post?.responses?.['404']).toBeDefined();
     expect(document.paths['/api/v1/identidad/profile']?.put?.responses?.['404']).toBeDefined();
   });
+
+  it('documenta conflictos por datos únicos al actualizar el perfil', async () => {
+    const response = await exports.default.fetch('http://localhost/openapi.json');
+    const document = (await response.json()) as {
+      paths: Record<string, { put?: { responses?: Record<string, unknown> } }>;
+    };
+
+    expect(document.paths['/api/v1/identidad/profile']?.put?.responses?.['409']).toBeDefined();
+  });
 });

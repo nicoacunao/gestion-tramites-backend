@@ -83,6 +83,13 @@ export const ApiNotFoundResponse = {
   },
 } as const;
 
+export const ApiConflictResponse = {
+  409: {
+    content: { 'application/json': { schema: ApiErrorSchema } },
+    description: 'Conflicto con un recurso existente.',
+  },
+} as const;
+
 export interface PageMeta {
   page: number;
   pageSize: number;

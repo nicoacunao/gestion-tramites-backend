@@ -1116,6 +1116,16 @@
               }
             }
           },
+          "409": {
+            "description": "Conflicto con un recurso existente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Error inesperado del servidor.",
             "content": {

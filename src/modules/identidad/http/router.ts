@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import {
   ApiBadRequestResponse,
+  ApiConflictResponse,
   ApiInternalErrorResponse,
   ApiNotFoundResponse,
   ApiServiceUnavailableResponse,
@@ -212,6 +213,7 @@ export function createLoginRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiConflictResponse,
         ...ApiServiceUnavailableResponse,
         ...ApiNotFoundResponse,
         200: {
