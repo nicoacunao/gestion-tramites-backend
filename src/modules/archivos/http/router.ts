@@ -3,6 +3,7 @@ import {
   ApiBadRequestResponse,
   ApiErrorSchema,
   ApiInternalErrorResponse,
+  ApiServiceUnavailableResponse,
 } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { authenticatedUser } from '../../../shared/auth/request-auth';
@@ -38,6 +39,7 @@ export function createArchivosRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         401: {
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'No autenticado.',
@@ -78,6 +80,7 @@ export function createArchivosRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         401: {
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'No autenticado.',
@@ -124,6 +127,7 @@ export function createArchivosRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         201: {
           content: {
             'application/json': {
@@ -186,6 +190,7 @@ export function createArchivosRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         200: {
           content: {
             'application/octet-stream': { schema: z.string().openapi({ format: 'binary' }) },
@@ -207,7 +212,12 @@ export function createArchivosRouter(
       const record = await dependencies(c.env).repository.findById(c.req.valid('param').id);
       if (!record) throw new AppError('RESOURCE_NOT_FOUND', 'El archivo no existe.', 404);
       const body = await dependencies(c.env).storage.get(record.storageReference);
-      if (!body) throw new AppError('RESOURCE_NOT_FOUND', 'El archivo no existe en OneDrive.', 404);
+      if (!body)
+        throw new AppError(
+          'RESOURCE_NOT_FOUND',
+          'El archivo no existe en el servidor de almacenamiento.',
+          404,
+        );
       return new Response(body, {
         headers: {
           'content-type': 'application/octet-stream',

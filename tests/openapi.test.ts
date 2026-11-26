@@ -56,10 +56,12 @@ describe('contrato OpenAPI', () => {
     const notFound = operation?.responses?.['404'];
     const internalError = operation?.responses?.['500'];
     const badRequest = operation?.responses?.['400'];
+    const unavailable = operation?.responses?.['503'];
 
     expect(notFound?.content?.['application/json']?.schema).toBeDefined();
     expect(internalError?.content?.['application/json']?.schema).toBeDefined();
     expect(badRequest?.content?.['application/json']?.schema).toBeDefined();
+    expect(unavailable?.content?.['application/json']?.schema).toBeDefined();
     expect(operation?.responses?.['401']).toBeDefined();
   });
 

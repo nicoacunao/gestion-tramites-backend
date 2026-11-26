@@ -1,5 +1,6 @@
 import type { TabularDataSource, TabularRow } from '../../../shared/persistence/tabular-repository';
 import { AppError, NotImplementedAppError } from '../../../shared/errors/app-error';
+import { fetchExternal, readExternalJson } from '../../../shared/http/external-service';
 
 export interface ExcelGraphOptions {
   tenantId: string;
@@ -20,8 +21,20 @@ export class ExcelGraphUserDataSource implements TabularDataSource {
     const token = await this.accessToken();
     const baseUrl = `https://graph.microsoft.com/v1.0/drives/${this.options.driveId}/items/${this.options.workbookItemId}/workbook/tables/${encodeURIComponent(tableName)}`;
     const [columnsResponse, rowsResponse] = await Promise.all([
-      this.fetcher(`${baseUrl}/columns`, { headers: { Authorization: `Bearer ${token}` } }),
-      this.fetcher(`${baseUrl}/rows`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetchExternal(
+        this.fetcher,
+        `${baseUrl}/columns`,
+        { headers: { Authorization: `Bearer ${token}` } },
+        'EXCEL_GRAPH_UNAVAILABLE',
+        'No fue posible consultar los usuarios en Excel.',
+      ),
+      fetchExternal(
+        this.fetcher,
+        `${baseUrl}/rows`,
+        { headers: { Authorization: `Bearer ${token}` } },
+        'EXCEL_GRAPH_UNAVAILABLE',
+        'No fue posible consultar los usuarios en Excel.',
+      ),
     ]);
     if (!columnsResponse.ok || !rowsResponse.ok) {
       throw new AppError(
@@ -30,8 +43,12 @@ export class ExcelGraphUserDataSource implements TabularDataSource {
         503,
       );
     }
-    const columnsBody = (await columnsResponse.json()) as { value?: Array<{ name?: string }> };
-    const rowsBody = (await rowsResponse.json()) as { value?: Array<{ values?: unknown[][] }> };
+    const columnsBody = await readExternalJson<{
+      value?: Array<{ name?: string }>;
+    }>(columnsResponse, 'EXCEL_GRAPH_UNAVAILABLE', 'Excel devolvió una respuesta inválida.');
+    const rowsBody = await readExternalJson<{
+      value?: Array<{ values?: unknown[][] }>;
+    }>(rowsResponse, 'EXCEL_GRAPH_UNAVAILABLE', 'Excel devolvió una respuesta inválida.');
     const headers = (columnsBody.value ?? []).map((column) => column.name ?? '');
     return (rowsBody.value ?? []).flatMap((row) => {
       const values = row.values?.[0];
@@ -58,7 +75,8 @@ export class ExcelGraphUserDataSource implements TabularDataSource {
   }
 
   private async accessToken(): Promise<string> {
-    const response = await this.fetcher(
+    const response = await fetchExternal(
+      this.fetcher,
       `https://login.microsoftonline.com/${this.options.tenantId}/oauth2/v2.0/token`,
       {
         method: 'POST',
@@ -71,10 +89,16 @@ export class ExcelGraphUserDataSource implements TabularDataSource {
           scope: 'https://graph.microsoft.com/.default',
         }),
       },
+      'EXCEL_GRAPH_UNAVAILABLE',
+      'No fue posible autenticar contra Excel.',
     );
     if (!response.ok)
       throw new AppError('EXCEL_GRAPH_UNAVAILABLE', 'No fue posible autenticar contra Excel.', 503);
-    const body = (await response.json()) as { access_token?: string };
+    const body = await readExternalJson<{ access_token?: string }>(
+      response,
+      'EXCEL_GRAPH_UNAVAILABLE',
+      'Excel devolvió una respuesta inválida.',
+    );
     if (!body.access_token)
       throw new AppError('EXCEL_GRAPH_UNAVAILABLE', 'Excel no entregó un token de acceso.', 503);
     return body.access_token;

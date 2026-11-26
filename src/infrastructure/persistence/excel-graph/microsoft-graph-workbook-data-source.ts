@@ -1,4 +1,5 @@
 import { AppError } from '../../../shared/errors/app-error';
+import { fetchExternal, readExternalJson } from '../../../shared/http/external-service';
 import type { TabularDataSource, TabularRow } from '../../../shared/persistence/tabular-repository';
 
 export interface MicrosoftGraphWorkbookOptions {
@@ -18,7 +19,8 @@ export class MicrosoftGraphWorkbookDataSource implements TabularDataSource {
     if (this.options.authMode !== 'delegated-refresh-token') {
       throw new AppError('EXCEL_GRAPH_NOT_CONFIGURED', 'Excel Graph requiere OAuth delegado.', 503);
     }
-    const response = await fetch(
+    const response = await fetchExternal(
+      fetch,
       `https://login.microsoftonline.com/${this.options.tenantId}/oauth2/v2.0/token`,
       {
         method: 'POST',
@@ -31,6 +33,8 @@ export class MicrosoftGraphWorkbookDataSource implements TabularDataSource {
           scope: 'https://graph.microsoft.com/.default',
         }),
       },
+      'EXCEL_GRAPH_UNAVAILABLE',
+      'No fue posible autenticar contra Excel Graph.',
     );
     if (!response.ok)
       throw new AppError(
@@ -38,7 +42,11 @@ export class MicrosoftGraphWorkbookDataSource implements TabularDataSource {
         'No fue posible autenticar contra Excel Graph.',
         503,
       );
-    const body = (await response.json()) as { access_token?: string };
+    const body = await readExternalJson<{ access_token?: string }>(
+      response,
+      'EXCEL_GRAPH_UNAVAILABLE',
+      'Excel Graph devolvió una respuesta inválida.',
+    );
     if (!body.access_token)
       throw new AppError(
         'EXCEL_GRAPH_UNAVAILABLE',
@@ -49,7 +57,8 @@ export class MicrosoftGraphWorkbookDataSource implements TabularDataSource {
   }
 
   private async request(path: string, init?: RequestInit): Promise<unknown> {
-    const response = await fetch(
+    const response = await fetchExternal(
+      fetch,
       `https://graph.microsoft.com/v1.0/drives/${encodeURIComponent(this.options.driveId)}/items/${encodeURIComponent(this.options.workbookItemId)}/workbook${path}`,
       {
         ...init,
@@ -59,6 +68,8 @@ export class MicrosoftGraphWorkbookDataSource implements TabularDataSource {
           ...(init?.headers ?? {}),
         },
       },
+      'EXCEL_GRAPH_UNAVAILABLE',
+      'No fue posible comunicarse con Excel Graph.',
     );
     if (!response.ok)
       throw new AppError(
@@ -66,7 +77,13 @@ export class MicrosoftGraphWorkbookDataSource implements TabularDataSource {
         `Excel Graph respondió HTTP ${response.status}.`,
         503,
       );
-    return response.status === 204 ? undefined : response.json();
+    return response.status === 204
+      ? undefined
+      : readExternalJson<unknown>(
+          response,
+          'EXCEL_GRAPH_UNAVAILABLE',
+          'Excel Graph devolvió una respuesta inválida.',
+        );
   }
 
   async readTable(tableName: string): Promise<readonly TabularRow[]> {

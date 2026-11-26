@@ -62,6 +62,13 @@ export const ApiForbiddenResponse = {
   },
 } as const;
 
+export const ApiServiceUnavailableResponse = {
+  503: {
+    content: { 'application/json': { schema: ApiErrorSchema } },
+    description: 'Servicio requerido temporalmente no disponible.',
+  },
+} as const;
+
 export interface PageMeta {
   page: number;
   pageSize: number;

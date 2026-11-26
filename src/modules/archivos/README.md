@@ -5,11 +5,11 @@ fuente tabular de datos.
 
 - Health: `GET /api/v1/archivos/health`.
 
-El flujo actual de carga es multipart (`POST /api/v1/archivos/items`), guarda
-la referencia en `gestion_especifica.url_archivo`, almacena el contenido en OneDrive y permite
-descargarlo mediante `GET /api/v1/archivos/items/{id}/download`. La decisión
-sobre validación de extensiones/MIME, límite de 10 MB, preview y reemplazo
-transaccional queda pendiente; por ahora no se modifica ese flujo.
+El flujo de carga es multipart (`POST /api/v1/archivos/items`) y almacena la
+referencia en `gestion_especifica.url_archivo`. La carga y descarga quedan
+temporalmente deshabilitadas con una respuesta 503 hasta que esté disponible el
+servidor propio de archivos y se defina su contrato de integración. No se usan
+servicios Microsoft para almacenar archivos.
 
 La operación se identifica mediante `id_gestion_especifica` y
 `storageReference` es la referencia opaca real del archivo almacenado.

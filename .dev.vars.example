@@ -6,5 +6,3 @@ GRAPH_AUTH_MODE=delegated-refresh-token
 GRAPH_TENANT_ID=replace-with-tenant-id
 GRAPH_CLIENT_ID=replace-with-client-id
 GRAPH_DRIVE_ID=replace-with-onedrive-drive-id
-ONEDRIVE_DRIVE_ID=replace-with-onedrive-drive-id
-ONEDRIVE_ROOT_PATH=gestion-tramites
