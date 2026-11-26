@@ -144,7 +144,16 @@ export function createArchivosRouter(
     }),
     async (c) => {
       await authenticatedUser(c.req.raw, c.env);
-      const form = await c.req.raw.formData();
+      let form: FormData;
+      try {
+        form = await c.req.raw.formData();
+      } catch {
+        throw new AppError(
+          'INVALID_MULTIPART',
+          'La solicitud debe incluir un archivo y enviarse como multipart/form-data.',
+          400,
+        );
+      }
       const file = form.get('file');
       const managementSpecificId = String(form.get('managementSpecificId') ?? '');
       if (!(file instanceof File) || !/^[1-9]\d{0,18}$/.test(managementSpecificId))
