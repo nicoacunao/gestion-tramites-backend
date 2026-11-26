@@ -172,7 +172,19 @@ export class PostgresStationRepository implements StationRepository {
       await client.query('COMMIT');
       return result;
     } catch (error) {
-      await client.query('ROLLBACK');
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error(
+          JSON.stringify({
+            level: 'error',
+            event: 'postgres_transaction_rollback_failed',
+            originalErrorName: error instanceof Error ? error.name : typeof error,
+            rollbackErrorName:
+              rollbackError instanceof Error ? rollbackError.name : typeof rollbackError,
+          }),
+        );
+      }
       throw error;
     } finally {
       client.release();
