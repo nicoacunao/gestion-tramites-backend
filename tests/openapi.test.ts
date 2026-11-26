@@ -86,4 +86,24 @@ describe('contrato OpenAPI', () => {
     expect(operation?.responses?.['422']).toBeDefined();
     expect(operation?.responses?.['503']).toBeDefined();
   });
+
+  it('documenta recursos ausentes en etapas, archivos y perfil', async () => {
+    const response = await exports.default.fetch('http://localhost/openapi.json');
+    const document = (await response.json()) as {
+      paths: Record<
+        string,
+        {
+          get?: { responses?: Record<string, unknown> };
+          post?: { responses?: Record<string, unknown> };
+          put?: { responses?: Record<string, unknown> };
+        }
+      >;
+    };
+
+    expect(
+      document.paths['/api/v1/gestiones/items/{id}/stages']?.get?.responses?.['404'],
+    ).toBeDefined();
+    expect(document.paths['/api/v1/archivos/items']?.post?.responses?.['404']).toBeDefined();
+    expect(document.paths['/api/v1/identidad/profile']?.put?.responses?.['404']).toBeDefined();
+  });
 });

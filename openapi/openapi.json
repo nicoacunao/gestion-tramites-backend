@@ -1106,6 +1106,16 @@
               }
             }
           },
+          "404": {
+            "description": "El recurso solicitado no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Error inesperado del servidor.",
             "content": {
@@ -2322,6 +2332,16 @@
               }
             }
           },
+          "404": {
+            "description": "El recurso solicitado no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Error inesperado del servidor.",
             "content": {
@@ -3208,6 +3228,16 @@
           },
           "401": {
             "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso solicitado no existe.",
             "content": {
               "application/json": {
                 "schema": {

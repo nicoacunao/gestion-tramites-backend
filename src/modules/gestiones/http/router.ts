@@ -3,6 +3,7 @@ import {
   ApiBadRequestResponse,
   ApiForbiddenResponse,
   ApiInternalErrorResponse,
+  ApiNotFoundResponse,
   ApiServiceUnavailableResponse,
   ApiUnauthorizedResponse,
 } from '../../../shared/api/schemas';
@@ -275,6 +276,7 @@ export function createGestionesRouter(
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
         ...ApiServiceUnavailableResponse,
+        ...ApiNotFoundResponse,
         ...ApiUnauthorizedResponse,
         ...ApiForbiddenResponse,
         200: {

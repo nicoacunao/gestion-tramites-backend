@@ -3,6 +3,7 @@ import {
   ApiBadRequestResponse,
   ApiErrorSchema,
   ApiInternalErrorResponse,
+  ApiNotFoundResponse,
   ApiServiceUnavailableResponse,
 } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
@@ -128,6 +129,7 @@ export function createArchivosRouter(
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
         ...ApiServiceUnavailableResponse,
+        ...ApiNotFoundResponse,
         201: {
           content: {
             'application/json': {

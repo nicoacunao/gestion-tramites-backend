@@ -76,6 +76,13 @@ export const ApiUnprocessableEntityResponse = {
   },
 } as const;
 
+export const ApiNotFoundResponse = {
+  404: {
+    content: { 'application/json': { schema: ApiErrorSchema } },
+    description: 'El recurso solicitado no existe.',
+  },
+} as const;
+
 export interface PageMeta {
   page: number;
   pageSize: number;
