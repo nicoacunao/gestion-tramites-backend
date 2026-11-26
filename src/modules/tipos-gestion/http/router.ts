@@ -1,5 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { ApiInternalErrorResponse } from '../../../shared/api/schemas';
+import { ApiBadRequestResponse, ApiInternalErrorResponse } from '../../../shared/api/schemas';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import {
@@ -39,6 +39,7 @@ export function createTiposGestionRouter(
       operationId,
       responses: {
         ...ApiInternalErrorResponse,
+        ...ApiBadRequestResponse,
         200: {
           content: { 'application/json': { schema: responseSchema } },
           description: 'Catálogo.',

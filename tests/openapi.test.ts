@@ -55,9 +55,11 @@ describe('contrato OpenAPI', () => {
     const operation = document.paths['/api/v1/archivos/items/{id}']?.get;
     const notFound = operation?.responses?.['404'];
     const internalError = operation?.responses?.['500'];
+    const badRequest = operation?.responses?.['400'];
 
     expect(notFound?.content?.['application/json']?.schema).toBeDefined();
     expect(internalError?.content?.['application/json']?.schema).toBeDefined();
+    expect(badRequest?.content?.['application/json']?.schema).toBeDefined();
     expect(operation?.responses?.['401']).toBeDefined();
   });
 });

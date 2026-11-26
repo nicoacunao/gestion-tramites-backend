@@ -1,5 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { ApiInternalErrorResponse } from '../../../shared/api/schemas';
+import { ApiBadRequestResponse, ApiInternalErrorResponse } from '../../../shared/api/schemas';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { authenticatedUser } from '../../../shared/auth/request-auth';
@@ -66,6 +66,7 @@ export function createBitacoraRouter(
       request: { query: z.object({ managementId: z.string().regex(/^[1-9]\d{0,18}$/) }) },
       responses: {
         ...ApiInternalErrorResponse,
+        ...ApiBadRequestResponse,
         200: {
           content: { 'application/json': { schema: LogEntryListResponseSchema } },
           description: 'Entradas de bitácora.',
@@ -93,6 +94,7 @@ export function createBitacoraRouter(
       request: { params: z.object({ id: z.string().regex(/^[1-9]\d{0,18}$/) }) },
       responses: {
         ...ApiInternalErrorResponse,
+        ...ApiBadRequestResponse,
         200: {
           content: { 'application/json': { schema: LogEntryResponseSchema } },
           description: 'Entrada de bitácora.',
@@ -120,6 +122,7 @@ export function createBitacoraRouter(
       request: { body: { content: { 'application/json': { schema: LogEntryWriteSchema } } } },
       responses: {
         ...ApiInternalErrorResponse,
+        ...ApiBadRequestResponse,
         201: {
           content: { 'application/json': { schema: LogEntryResponseSchema } },
           description: 'Entrada creada.',

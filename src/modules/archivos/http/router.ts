@@ -1,5 +1,9 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { ApiErrorSchema, ApiInternalErrorResponse } from '../../../shared/api/schemas';
+import {
+  ApiBadRequestResponse,
+  ApiErrorSchema,
+  ApiInternalErrorResponse,
+} from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { authenticatedUser } from '../../../shared/auth/request-auth';
 import { AppError } from '../../../shared/errors/app-error';
@@ -33,6 +37,7 @@ export function createArchivosRouter(
       request: { query: z.object({ managementSpecificId: IdSchema }) },
       responses: {
         ...ApiInternalErrorResponse,
+        ...ApiBadRequestResponse,
         401: {
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'No autenticado.',
@@ -72,6 +77,7 @@ export function createArchivosRouter(
       request: { params: z.object({ id: IdSchema }) },
       responses: {
         ...ApiInternalErrorResponse,
+        ...ApiBadRequestResponse,
         401: {
           content: { 'application/json': { schema: ApiErrorSchema } },
           description: 'No autenticado.',
@@ -117,6 +123,7 @@ export function createArchivosRouter(
       },
       responses: {
         ...ApiInternalErrorResponse,
+        ...ApiBadRequestResponse,
         201: {
           content: {
             'application/json': {
@@ -169,6 +176,7 @@ export function createArchivosRouter(
       request: { params: z.object({ id: IdSchema }) },
       responses: {
         ...ApiInternalErrorResponse,
+        ...ApiBadRequestResponse,
         200: {
           content: {
             'application/octet-stream': { schema: z.string().openapi({ format: 'binary' }) },

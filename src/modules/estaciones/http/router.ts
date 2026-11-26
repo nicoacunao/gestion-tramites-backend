@@ -1,5 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { ApiInternalErrorResponse } from '../../../shared/api/schemas';
+import { ApiBadRequestResponse, ApiInternalErrorResponse } from '../../../shared/api/schemas';
 import { ApiErrorSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import {
@@ -29,6 +29,7 @@ const stationListRoute = createRoute({
   },
   responses: {
     ...ApiInternalErrorResponse,
+    ...ApiBadRequestResponse,
     200: {
       content: { 'application/json': { schema: StationListResponseSchema } },
       description: 'Estaciones.',
@@ -52,6 +53,7 @@ const stationCreateRoute = createRoute({
   request: { body: { content: { 'application/json': { schema: StationWriteSchema } } } },
   responses: {
     ...ApiInternalErrorResponse,
+    ...ApiBadRequestResponse,
     201: {
       content: { 'application/json': { schema: StationResponseSchema } },
       description: 'Estación creada.',
@@ -80,6 +82,7 @@ const stationDetailRoute = createRoute({
   request: { params: z.object({ id: z.string().min(1) }) },
   responses: {
     ...ApiInternalErrorResponse,
+    ...ApiBadRequestResponse,
     200: {
       content: { 'application/json': { schema: StationResponseSchema } },
       description: 'Estación.',
@@ -110,6 +113,7 @@ const stationUpdateRoute = createRoute({
   },
   responses: {
     ...ApiInternalErrorResponse,
+    ...ApiBadRequestResponse,
     200: {
       content: { 'application/json': { schema: StationResponseSchema } },
       description: 'Estación actualizada.',

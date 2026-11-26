@@ -41,6 +41,13 @@ export const ApiInternalErrorResponse = {
   },
 } as const;
 
+export const ApiBadRequestResponse = {
+  400: {
+    content: { 'application/json': { schema: ApiErrorSchema } },
+    description: 'Solicitud inválida.',
+  },
+} as const;
+
 export interface PageMeta {
   page: number;
   pageSize: number;
