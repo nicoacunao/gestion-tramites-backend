@@ -13,6 +13,7 @@ describe('contrato OpenAPI', () => {
         '/api/v1/archivos/health',
         '/api/v1/archivos/items',
         '/api/v1/archivos/items/{id}',
+        '/api/v1/archivos/items/{id}/download',
         '/api/v1/bitacora/health',
         '/api/v1/bitacora/items',
         '/api/v1/bitacora/items/{id}',
@@ -41,5 +42,22 @@ describe('contrato OpenAPI', () => {
         '/api/v1/tipos-gestion/items',
       ].sort(),
     );
+  });
+
+  it('documenta las respuestas de error del módulo de archivos con el contrato común', async () => {
+    const response = await exports.default.fetch('http://localhost/openapi.json');
+    const document = (await response.json()) as {
+      paths: Record<
+        string,
+        { get?: { responses?: Record<string, { content?: Record<string, { schema?: unknown }> }> } }
+      >;
+    };
+    const operation = document.paths['/api/v1/archivos/items/{id}']?.get;
+    const notFound = operation?.responses?.['404'];
+    const internalError = operation?.responses?.['500'];
+
+    expect(notFound?.content?.['application/json']?.schema).toBeDefined();
+    expect(internalError?.content?.['application/json']?.schema).toBeDefined();
+    expect(operation?.responses?.['401']).toBeDefined();
   });
 });
