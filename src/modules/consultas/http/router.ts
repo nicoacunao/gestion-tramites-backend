@@ -1,4 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { ApiInternalErrorResponse } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import { AppError } from '../../../shared/errors/app-error';
@@ -25,6 +26,7 @@ export function createConsultasModule(
       tags: ['consultas'],
       operationId: 'consultasStationSummary',
       responses: {
+        ...ApiInternalErrorResponse,
         200: {
           content: {
             'application/json': {
@@ -83,6 +85,7 @@ export function createConsultasModule(
         }),
       },
       responses: {
+        ...ApiInternalErrorResponse,
         200: {
           content: {
             'application/json': {
@@ -152,6 +155,7 @@ export function createConsultasModule(
         body: { content: { 'multipart/form-data': { schema: z.object({ file: z.any() }) } } },
       },
       responses: {
+        ...ApiInternalErrorResponse,
         200: {
           content: {
             'application/json': {

@@ -34,6 +34,13 @@ export const ApiErrorSchema = z
   })
   .openapi('ApiError');
 
+export const ApiInternalErrorResponse = {
+  500: {
+    content: { 'application/json': { schema: ApiErrorSchema } },
+    description: 'Error inesperado del servidor.',
+  },
+} as const;
+
 export interface PageMeta {
   page: number;
   pageSize: number;

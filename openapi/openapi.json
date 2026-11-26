@@ -916,6 +916,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -950,6 +960,16 @@
           },
           "401": {
             "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1045,6 +1065,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1082,6 +1112,16 @@
           },
           "401": {
             "description": "No autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1190,6 +1230,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -1255,6 +1305,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1307,6 +1367,16 @@
           },
           "404": {
             "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1390,6 +1460,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1427,6 +1507,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1478,6 +1568,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1515,6 +1615,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1597,6 +1707,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -1632,6 +1752,16 @@
                     }
                   },
                   "required": ["exito", "mensaje", "meta"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -1680,6 +1810,16 @@
           },
           "404": {
             "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1746,6 +1886,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1788,6 +1938,16 @@
                     }
                   },
                   "required": ["exito", "mensaje", "meta"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -1863,6 +2023,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -1928,6 +2098,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1980,6 +2160,16 @@
           },
           "404": {
             "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2063,6 +2253,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -2100,6 +2300,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2151,6 +2361,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -2188,6 +2408,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2254,6 +2484,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2341,6 +2581,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -2396,6 +2646,16 @@
               "application/json": {
                 "schema": {
                   "nullable": true
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -2473,6 +2733,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -2508,6 +2778,16 @@
                     }
                   },
                   "required": ["exito", "mensaje", "meta"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -2556,6 +2836,16 @@
           },
           "404": {
             "description": "No encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2653,6 +2943,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2791,6 +3091,16 @@
           },
           "403": {
             "description": "Sin permiso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2942,6 +3252,16 @@
           },
           "422": {
             "description": "Archivo inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
             "content": {
               "application/json": {
                 "schema": {

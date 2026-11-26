@@ -1,4 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { ApiInternalErrorResponse } from '../../../shared/api/schemas';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { AppError } from '../../../shared/errors/app-error';
@@ -116,6 +117,7 @@ export function createGestionesRouter(
       operationId: 'gestionesList',
       request: { query: z.object({ assignedToMe: z.enum(['true', 'false']).default('false') }) },
       responses: {
+        ...ApiInternalErrorResponse,
         200: {
           content: { 'application/json': { schema: listResponse } },
           description: 'Gestiones.',
@@ -145,6 +147,7 @@ export function createGestionesRouter(
       operationId: 'gestionesGet',
       request: { params: z.object({ id: z.string().regex(/^[1-9]\d*$/) }) },
       responses: {
+        ...ApiInternalErrorResponse,
         200: { content: { 'application/json': { schema: response } }, description: 'Gestión.' },
         404: {
           content: { 'application/json': { schema: ApiErrorSchema } },
@@ -175,6 +178,7 @@ export function createGestionesRouter(
       operationId: 'gestionesCreate',
       request: { body: { content: { 'application/json': { schema: ManagementWriteSchema } } } },
       responses: {
+        ...ApiInternalErrorResponse,
         201: {
           content: { 'application/json': { schema: response } },
           description: 'Gestión creada.',
@@ -208,6 +212,7 @@ export function createGestionesRouter(
         body: { content: { 'application/json': { schema: ManagementWriteSchema } } },
       },
       responses: {
+        ...ApiInternalErrorResponse,
         200: {
           content: { 'application/json': { schema: response } },
           description: 'Gestión actualizada.',
@@ -245,6 +250,7 @@ export function createGestionesRouter(
       operationId: 'gestionesListStages',
       request: { params: z.object({ id: z.string().regex(/^[1-9]\d*$/) }) },
       responses: {
+        ...ApiInternalErrorResponse,
         200: {
           content: {
             'application/json': {

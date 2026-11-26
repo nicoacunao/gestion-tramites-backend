@@ -1,4 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { ApiInternalErrorResponse } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { authenticatedUser } from '../../../shared/auth/request-auth';
 import { AppError } from '../../../shared/errors/app-error';
@@ -31,6 +32,7 @@ export function createArchivosRouter(
       operationId: 'archivosList',
       request: { query: z.object({ managementSpecificId: IdSchema }) },
       responses: {
+        ...ApiInternalErrorResponse,
         200: {
           content: {
             'application/json': {
@@ -65,6 +67,7 @@ export function createArchivosRouter(
       operationId: 'archivosGet',
       request: { params: z.object({ id: IdSchema }) },
       responses: {
+        ...ApiInternalErrorResponse,
         200: {
           content: {
             'application/json': {
