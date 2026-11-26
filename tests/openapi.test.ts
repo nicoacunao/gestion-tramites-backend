@@ -69,12 +69,30 @@ describe('contrato OpenAPI', () => {
   it('documenta autenticación y autorización en las operaciones de gestiones', async () => {
     const response = await exports.default.fetch('http://localhost/openapi.json');
     const document = (await response.json()) as {
-      paths: Record<string, { get?: { responses?: Record<string, unknown> } }>;
+      paths: Record<
+        string,
+        {
+          get?: { responses?: Record<string, unknown> };
+          post?: { responses?: Record<string, unknown> };
+        }
+      >;
     };
     const operation = document.paths['/api/v1/gestiones/items']?.get;
 
     expect(operation?.responses?.['401']).toBeDefined();
     expect(operation?.responses?.['403']).toBeDefined();
+    for (const path of [
+      '/api/v1/ambitos/items',
+      '/api/v1/tipos-gestion/items',
+      '/api/v1/etapas/items',
+      '/api/v1/gestiones-especificas/items',
+      '/api/v1/consultas/stations/summary',
+      '/api/v1/consultas/stations',
+    ])
+      expect(document.paths[path]?.get?.responses?.['401']).toBeDefined();
+    expect(
+      document.paths['/api/v1/consultas/stations/import']?.post?.responses?.['401'],
+    ).toBeDefined();
   });
 
   it('documenta validaciones semánticas de la bitácora como HTTP 422', async () => {

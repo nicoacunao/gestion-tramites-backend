@@ -1665,6 +1665,16 @@
               }
             }
           },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "403": {
             "description": "Sin permiso.",
             "content": {
@@ -1739,6 +1749,16 @@
               }
             }
           },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "403": {
             "description": "Sin permiso.",
             "content": {
@@ -1805,6 +1825,16 @@
           },
           "400": {
             "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2788,6 +2818,16 @@
               }
             }
           },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "403": {
             "description": "Sin permiso.",
             "content": {
@@ -2862,6 +2902,16 @@
               }
             }
           },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "403": {
             "description": "Sin permiso.",
             "content": {
@@ -2928,6 +2978,16 @@
           },
           "400": {
             "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3014,6 +3074,16 @@
           },
           "400": {
             "description": "Filtro inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3845,6 +3915,16 @@
               }
             }
           },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "403": {
             "description": "Sin permiso.",
             "content": {
@@ -4005,6 +4085,16 @@
           },
           "400": {
             "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4176,6 +4266,16 @@
           },
           "400": {
             "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
             "content": {
               "application/json": {
                 "schema": {

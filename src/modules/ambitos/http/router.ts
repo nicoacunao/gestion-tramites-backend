@@ -3,6 +3,7 @@ import {
   ApiBadRequestResponse,
   ApiInternalErrorResponse,
   ApiServiceUnavailableResponse,
+  ApiUnauthorizedResponse,
 } from '../../../shared/api/schemas';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
@@ -36,6 +37,7 @@ export function createAmbitosRouter(
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
         ...ApiServiceUnavailableResponse,
+        ...ApiUnauthorizedResponse,
         200: {
           content: { 'application/json': { schema: responseSchema } },
           description: 'Catálogo.',

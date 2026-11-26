@@ -3,6 +3,7 @@ import {
   ApiBadRequestResponse,
   ApiInternalErrorResponse,
   ApiServiceUnavailableResponse,
+  ApiUnauthorizedResponse,
 } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
@@ -33,6 +34,7 @@ export function createConsultasModule(
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
         ...ApiServiceUnavailableResponse,
+        ...ApiUnauthorizedResponse,
         200: {
           content: {
             'application/json': {
@@ -94,6 +96,7 @@ export function createConsultasModule(
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
         ...ApiServiceUnavailableResponse,
+        ...ApiUnauthorizedResponse,
         200: {
           content: {
             'application/json': {
@@ -166,6 +169,7 @@ export function createConsultasModule(
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
         ...ApiServiceUnavailableResponse,
+        ...ApiUnauthorizedResponse,
         200: {
           content: {
             'application/json': {

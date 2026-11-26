@@ -23,11 +23,6 @@ export async function authorizeRequest(
   env: AppBindings,
   requiredRole: string,
 ): Promise<boolean> {
-  try {
-    const user = await authenticatedUser(request, env);
-    return user.role === requiredRole || user.role === 'Administrador';
-  } catch (error) {
-    if (error instanceof AppError && error.status === 403) return false;
-    return false;
-  }
+  const user = await authenticatedUser(request, env);
+  return user.role === requiredRole || user.role === 'Administrador';
 }
