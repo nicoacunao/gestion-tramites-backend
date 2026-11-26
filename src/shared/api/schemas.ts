@@ -48,6 +48,20 @@ export const ApiBadRequestResponse = {
   },
 } as const;
 
+export const ApiUnauthorizedResponse = {
+  401: {
+    content: { 'application/json': { schema: ApiErrorSchema } },
+    description: 'Autenticación requerida o inválida.',
+  },
+} as const;
+
+export const ApiForbiddenResponse = {
+  403: {
+    content: { 'application/json': { schema: ApiErrorSchema } },
+    description: 'Sin permiso para realizar esta operación.',
+  },
+} as const;
+
 export interface PageMeta {
   page: number;
   pageSize: number;

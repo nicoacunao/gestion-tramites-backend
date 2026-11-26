@@ -62,4 +62,15 @@ describe('contrato OpenAPI', () => {
     expect(badRequest?.content?.['application/json']?.schema).toBeDefined();
     expect(operation?.responses?.['401']).toBeDefined();
   });
+
+  it('documenta autenticación y autorización en las operaciones de gestiones', async () => {
+    const response = await exports.default.fetch('http://localhost/openapi.json');
+    const document = (await response.json()) as {
+      paths: Record<string, { get?: { responses?: Record<string, unknown> } }>;
+    };
+    const operation = document.paths['/api/v1/gestiones/items']?.get;
+
+    expect(operation?.responses?.['401']).toBeDefined();
+    expect(operation?.responses?.['403']).toBeDefined();
+  });
 });

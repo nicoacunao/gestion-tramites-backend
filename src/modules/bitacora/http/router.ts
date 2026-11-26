@@ -1,5 +1,9 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { ApiBadRequestResponse, ApiInternalErrorResponse } from '../../../shared/api/schemas';
+import {
+  ApiBadRequestResponse,
+  ApiInternalErrorResponse,
+  ApiUnauthorizedResponse,
+} from '../../../shared/api/schemas';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
 import { authenticatedUser } from '../../../shared/auth/request-auth';
@@ -123,6 +127,7 @@ export function createBitacoraRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiUnauthorizedResponse,
         201: {
           content: { 'application/json': { schema: LogEntryResponseSchema } },
           description: 'Entrada creada.',
