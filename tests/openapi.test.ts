@@ -75,4 +75,14 @@ describe('contrato OpenAPI', () => {
     expect(operation?.responses?.['401']).toBeDefined();
     expect(operation?.responses?.['403']).toBeDefined();
   });
+
+  it('documenta validaciones semánticas de la bitácora como HTTP 422', async () => {
+    const response = await exports.default.fetch('http://localhost/openapi.json');
+    const document = (await response.json()) as {
+      paths: Record<string, { post?: { responses?: Record<string, unknown> } }>;
+    };
+    const operation = document.paths['/api/v1/bitacora/items']?.post;
+
+    expect(operation?.responses?.['422']).toBeDefined();
+  });
 });

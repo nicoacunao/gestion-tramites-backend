@@ -3,6 +3,7 @@ import {
   ApiBadRequestResponse,
   ApiInternalErrorResponse,
   ApiUnauthorizedResponse,
+  ApiUnprocessableEntityResponse,
 } from '../../../shared/api/schemas';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
 import type { AppEnv } from '../../../shared/config/bindings';
@@ -71,6 +72,7 @@ export function createBitacoraRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiUnprocessableEntityResponse,
         200: {
           content: { 'application/json': { schema: LogEntryListResponseSchema } },
           description: 'Entradas de bitácora.',
@@ -99,6 +101,7 @@ export function createBitacoraRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiUnprocessableEntityResponse,
         200: {
           content: { 'application/json': { schema: LogEntryResponseSchema } },
           description: 'Entrada de bitácora.',
@@ -127,6 +130,7 @@ export function createBitacoraRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiUnprocessableEntityResponse,
         ...ApiUnauthorizedResponse,
         201: {
           content: { 'application/json': { schema: LogEntryResponseSchema } },

@@ -69,6 +69,13 @@ export const ApiServiceUnavailableResponse = {
   },
 } as const;
 
+export const ApiUnprocessableEntityResponse = {
+  422: {
+    content: { 'application/json': { schema: ApiErrorSchema } },
+    description: 'Los datos no cumplen las reglas de validación.',
+  },
+} as const;
+
 export interface PageMeta {
   page: number;
   pageSize: number;
