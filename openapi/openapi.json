@@ -926,6 +926,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -980,6 +990,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1095,6 +1115,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1152,6 +1182,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1280,6 +1320,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -1348,6 +1398,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1427,6 +1487,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1520,6 +1590,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1577,6 +1657,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1648,6 +1738,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1705,6 +1805,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1827,6 +1937,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -1898,6 +2018,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1990,6 +2120,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2096,6 +2236,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -2174,6 +2324,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2273,6 +2433,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -2341,6 +2511,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2420,6 +2600,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2513,6 +2703,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -2570,6 +2770,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2641,6 +2851,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -2698,6 +2918,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2774,6 +3004,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3277,6 +3517,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -3348,6 +3598,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3430,6 +3690,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3547,6 +3817,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3705,6 +3985,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3876,6 +4166,16 @@
           },
           "500": {
             "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
             "content": {
               "application/json": {
                 "schema": {

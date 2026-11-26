@@ -1,5 +1,9 @@
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
-import { ApiBadRequestResponse, ApiInternalErrorResponse } from '../../../shared/api/schemas';
+import {
+  ApiBadRequestResponse,
+  ApiInternalErrorResponse,
+  ApiServiceUnavailableResponse,
+} from '../../../shared/api/schemas';
 import { z } from '@hono/zod-openapi';
 import { AppError } from '../../../shared/errors/app-error';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
@@ -43,6 +47,7 @@ const route = createRoute({
   responses: {
     ...ApiInternalErrorResponse,
     ...ApiBadRequestResponse,
+    ...ApiServiceUnavailableResponse,
     200: {
       content: { 'application/json': { schema: LoginResponseSchema } },
       description: 'Autenticación exitosa.',
@@ -165,6 +170,7 @@ export function createLoginRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         200: {
           content: {
             'application/json': {
@@ -205,6 +211,7 @@ export function createLoginRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         200: {
           content: {
             'application/json': {
@@ -248,6 +255,7 @@ export function createLoginRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         200: {
           content: {
             'application/json': {

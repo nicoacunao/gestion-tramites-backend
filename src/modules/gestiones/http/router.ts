@@ -3,6 +3,7 @@ import {
   ApiBadRequestResponse,
   ApiForbiddenResponse,
   ApiInternalErrorResponse,
+  ApiServiceUnavailableResponse,
   ApiUnauthorizedResponse,
 } from '../../../shared/api/schemas';
 import { ApiErrorSchema, ApiMetaSchema } from '../../../shared/api/schemas';
@@ -124,6 +125,7 @@ export function createGestionesRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         ...ApiUnauthorizedResponse,
         ...ApiForbiddenResponse,
         200: {
@@ -157,6 +159,7 @@ export function createGestionesRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         ...ApiUnauthorizedResponse,
         ...ApiForbiddenResponse,
         200: { content: { 'application/json': { schema: response } }, description: 'Gestión.' },
@@ -191,6 +194,7 @@ export function createGestionesRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         ...ApiUnauthorizedResponse,
         ...ApiForbiddenResponse,
         201: {
@@ -228,6 +232,7 @@ export function createGestionesRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         ...ApiUnauthorizedResponse,
         ...ApiForbiddenResponse,
         200: {
@@ -269,6 +274,7 @@ export function createGestionesRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         ...ApiUnauthorizedResponse,
         ...ApiForbiddenResponse,
         200: {

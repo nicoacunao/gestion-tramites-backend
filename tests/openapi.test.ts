@@ -84,5 +84,6 @@ describe('contrato OpenAPI', () => {
     const operation = document.paths['/api/v1/bitacora/items']?.post;
 
     expect(operation?.responses?.['422']).toBeDefined();
+    expect(operation?.responses?.['503']).toBeDefined();
   });
 });

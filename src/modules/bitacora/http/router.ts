@@ -2,6 +2,7 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import {
   ApiBadRequestResponse,
   ApiInternalErrorResponse,
+  ApiServiceUnavailableResponse,
   ApiUnauthorizedResponse,
   ApiUnprocessableEntityResponse,
 } from '../../../shared/api/schemas';
@@ -72,6 +73,7 @@ export function createBitacoraRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         ...ApiUnprocessableEntityResponse,
         200: {
           content: { 'application/json': { schema: LogEntryListResponseSchema } },
@@ -101,6 +103,7 @@ export function createBitacoraRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         ...ApiUnprocessableEntityResponse,
         200: {
           content: { 'application/json': { schema: LogEntryResponseSchema } },
@@ -130,6 +133,7 @@ export function createBitacoraRouter(
       responses: {
         ...ApiInternalErrorResponse,
         ...ApiBadRequestResponse,
+        ...ApiServiceUnavailableResponse,
         ...ApiUnprocessableEntityResponse,
         ...ApiUnauthorizedResponse,
         201: {
