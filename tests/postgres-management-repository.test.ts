@@ -57,4 +57,23 @@ describe('PostgresManagementRepository', () => {
     expect(query.mock.calls[0]?.[0]).toContain('INSERT INTO gestion');
     expect(query.mock.calls[0]?.[0]).not.toContain('codigo');
   });
+
+  it('traduce un UPDATE sin filas afectadas a recurso no encontrado', async () => {
+    const query = vi.fn().mockResolvedValue({ rows: [] });
+    const repository = new PostgresManagementRepository({ query } as never);
+
+    await expect(
+      repository.save({
+        id: '10',
+        stationId: '60001',
+        responsibleUserId: '1',
+        openedOn: '2026-07-02',
+        estimatedCompletionOn: null,
+        lastReviewedOn: null,
+        priority: 'Alta',
+        status: 'Borrador',
+        requesterName: 'Ana',
+      }),
+    ).rejects.toMatchObject({ code: 'RESOURCE_NOT_FOUND', status: 404 });
+  });
 });

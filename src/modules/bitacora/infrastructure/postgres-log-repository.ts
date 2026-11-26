@@ -1,4 +1,5 @@
 import type { SqlExecutor } from '../../../infrastructure/persistence/postgres/connection';
+import { AppError } from '../../../shared/errors/app-error';
 import type { LogRepository } from '../application/ports';
 import type { LogEntry, LogEntryInput } from '../domain/log-entry';
 
@@ -51,7 +52,8 @@ export class PostgresLogRepository implements LogRepository {
         entry.type ?? null,
       ],
     );
-    if (!result.rows[0]) throw new Error('No se pudo registrar la entrada.');
+    if (!result.rows[0])
+      throw new AppError('LOG_SAVE_FAILED', 'No se pudo registrar la entrada.', 500);
     return result.rows[0];
   }
 }

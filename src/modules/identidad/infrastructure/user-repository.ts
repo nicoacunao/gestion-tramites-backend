@@ -1,6 +1,7 @@
 import type { UserRepository } from '../application/ports';
 import type { User } from '../domain/user';
 import type { TabularDataSource, TabularRow } from '../../../shared/persistence/tabular-repository';
+import { NotImplementedAppError } from '../../../shared/errors/app-error';
 
 function text(row: TabularRow, key: string): string {
   const value = row[key];
@@ -45,6 +46,6 @@ export class ExcelUserRepository implements UserRepository {
   }
 
   save(_user: User): Promise<void> {
-    throw new Error('La modificación de usuarios no está expuesta por el login.');
+    throw new NotImplementedAppError('identidad.users.save');
   }
 }

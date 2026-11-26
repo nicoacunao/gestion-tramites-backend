@@ -1,4 +1,5 @@
 import type { TabularDataSource, TabularRow } from '../../../shared/persistence/tabular-repository';
+import { AppError, NotImplementedAppError } from '../../../shared/errors/app-error';
 
 export interface ExcelGraphOptions {
   tenantId: string;
@@ -23,8 +24,10 @@ export class ExcelGraphUserDataSource implements TabularDataSource {
       this.fetcher(`${baseUrl}/rows`, { headers: { Authorization: `Bearer ${token}` } }),
     ]);
     if (!columnsResponse.ok || !rowsResponse.ok) {
-      throw new Error(
-        `Excel Graph respondió HTTP ${columnsResponse.ok ? rowsResponse.status : columnsResponse.status}.`,
+      throw new AppError(
+        'EXCEL_GRAPH_UNAVAILABLE',
+        'No fue posible consultar los usuarios en Excel.',
+        503,
       );
     }
     const columnsBody = (await columnsResponse.json()) as { value?: Array<{ name?: string }> };
@@ -51,7 +54,7 @@ export class ExcelGraphUserDataSource implements TabularDataSource {
   }
 
   upsertRow(_tableName: string, _row: TabularRow, _expectedVersion?: number): Promise<void> {
-    throw new Error('La escritura de usuarios en Excel aún no está habilitada.');
+    throw new NotImplementedAppError('excel.users.write');
   }
 
   private async accessToken(): Promise<string> {
@@ -69,9 +72,11 @@ export class ExcelGraphUserDataSource implements TabularDataSource {
         }),
       },
     );
-    if (!response.ok) throw new Error(`Microsoft OAuth respondió HTTP ${response.status}.`);
+    if (!response.ok)
+      throw new AppError('EXCEL_GRAPH_UNAVAILABLE', 'No fue posible autenticar contra Excel.', 503);
     const body = (await response.json()) as { access_token?: string };
-    if (!body.access_token) throw new Error('Microsoft OAuth no devolvió access_token.');
+    if (!body.access_token)
+      throw new AppError('EXCEL_GRAPH_UNAVAILABLE', 'Excel no entregó un token de acceso.', 503);
     return body.access_token;
   }
 }

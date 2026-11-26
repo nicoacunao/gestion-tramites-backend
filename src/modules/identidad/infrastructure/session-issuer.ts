@@ -1,5 +1,6 @@
 import type { AuthSession } from '../domain/user';
 import type { SessionIssuer } from '../application/ports';
+import { AppError } from '../../../shared/errors/app-error';
 
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
 const HMAC_IMPORT_ALGORITHM = { name: 'HMAC', hash: { name: 'SHA-256' } } as const;
@@ -16,7 +17,8 @@ export class HmacSessionIssuer implements SessionIssuer {
   ) {}
 
   async issue(userId: string): Promise<AuthSession> {
-    if (!this.secret) throw new Error('AUTH_TOKEN_SECRET no está configurado.');
+    if (!this.secret)
+      throw new AppError('IDENTITY_NOT_CONFIGURED', 'La autenticación no está configurada.', 503);
     const expiresAt = new Date(this.now() + SESSION_TTL_SECONDS * 1000).toISOString();
     const payload = encode(JSON.stringify({ sub: userId, exp: expiresAt }));
     const key = await crypto.subtle.importKey(

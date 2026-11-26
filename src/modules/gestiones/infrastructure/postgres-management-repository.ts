@@ -1,4 +1,5 @@
 import type { SqlExecutor } from '../../../infrastructure/persistence/postgres/connection';
+import { AppError } from '../../../shared/errors/app-error';
 import type { ManagementRepository } from '../application/ports';
 import type {
   Management,
@@ -71,7 +72,11 @@ export class PostgresManagementRepository implements ManagementRepository {
            RETURNING ${projection}`,
           values,
         );
-    if (!result.rows[0]) throw new Error('La gestión no pudo ser guardada.');
+    if (!result.rows[0]) {
+      if (input.id)
+        throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
+      throw new AppError('MANAGEMENT_SAVE_FAILED', 'La gestión no pudo ser guardada.', 500);
+    }
     return result.rows[0];
   }
 
@@ -132,7 +137,8 @@ export class PostgresManagementRepository implements ManagementRepository {
         input.notes ?? null,
       ],
     );
-    if (!result.rows[0]) throw new Error('La etapa no pudo ser creada.');
+    if (!result.rows[0])
+      throw new AppError('STAGE_SAVE_FAILED', 'La etapa no pudo ser creada.', 500);
     return result.rows[0];
   }
 }

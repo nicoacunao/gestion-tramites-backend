@@ -151,7 +151,8 @@ export class PostgresStationRepository implements StationRepository {
         );
         if (wasExisting) updated += 1;
         else created += 1;
-        if (!result.rows[0]) throw new Error('La estación no fue persistida.');
+        if (!result.rows[0])
+          throw new AppError('STATION_SAVE_FAILED', 'La estación no fue persistida.', 500);
       }
       const listed = await client.query<StationRow>(
         `SELECT ${STATION_COLUMNS} FROM estacion ORDER BY id_estacion`,

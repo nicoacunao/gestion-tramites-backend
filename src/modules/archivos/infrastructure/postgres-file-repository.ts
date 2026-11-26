@@ -1,4 +1,5 @@
 import type { SqlExecutor } from '../../../infrastructure/persistence/postgres/connection';
+import { AppError } from '../../../shared/errors/app-error';
 import type { FileRepository } from '../application/ports';
 import type { FileRecord } from '../domain/file-record';
 
@@ -39,7 +40,8 @@ export class PostgresFileRepository implements FileRepository {
          fecha_carga::text AS "uploadedAt"`,
       [record.managementSpecificId, record.storageReference],
     );
-    if (!result.rows[0]) throw new Error('La gestión específica no existe.');
+    if (!result.rows[0])
+      throw new AppError('RESOURCE_NOT_FOUND', 'La gestión específica no existe.', 404);
     return result.rows[0];
   }
 }
