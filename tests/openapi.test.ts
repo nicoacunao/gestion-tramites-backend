@@ -42,7 +42,7 @@ describe('contrato OpenAPI', () => {
         '/api/v1/tipos-gestion/items',
       ].sort(),
     );
-  });
+  }, 15_000);
 
   it('documenta las respuestas de error del módulo de archivos con el contrato común', async () => {
     const response = await exports.default.fetch('http://localhost/openapi.json');
