@@ -20,8 +20,8 @@ export const StationWriteSchema = StationSchema.openapi('StationWrite');
 export const StationUpdateSchema = StationWriteSchema.openapi('StationUpdate');
 
 export const StationResponseSchema = z
-  .object({ data: StationSchema, meta: ApiMetaSchema })
+  .object({ exito: z.literal(true), mensaje: StationSchema, meta: ApiMetaSchema })
   .openapi('StationResponse');
 export const StationListResponseSchema = z
-  .object({ data: z.array(StationSchema), meta: ApiMetaSchema })
+  .object({ exito: z.literal(true), mensaje: z.array(StationSchema), meta: ApiMetaSchema })
   .openapi('StationListResponse');

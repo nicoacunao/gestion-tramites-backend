@@ -66,6 +66,8 @@ export function createApp(): OpenAPIHono<AppEnv> {
   app.notFound((context) =>
     context.json(
       {
+        exito: false,
+        mensaje: 'El recurso solicitado no existe.',
         error: {
           code: 'RESOURCE_NOT_FOUND',
           message: 'El recurso solicitado no existe.',
@@ -109,6 +111,8 @@ export function createApp(): OpenAPIHono<AppEnv> {
 
     return context.json(
       {
+        exito: false,
+        mensaje: appError.message,
         error: {
           code: appError.code,
           message: appError.message,

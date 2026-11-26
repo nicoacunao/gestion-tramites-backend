@@ -19,8 +19,16 @@ const LogEntrySchema = z
     type: TypeSchema.nullable(),
   })
   .openapi('LogEntry');
-const LogEntryResponseSchema = z.object({ data: LogEntrySchema, meta: ApiMetaSchema });
-const LogEntryListResponseSchema = z.object({ data: z.array(LogEntrySchema), meta: ApiMetaSchema });
+const LogEntryResponseSchema = z.object({
+  exito: z.literal(true),
+  mensaje: LogEntrySchema,
+  meta: ApiMetaSchema,
+});
+const LogEntryListResponseSchema = z.object({
+  exito: z.literal(true),
+  mensaje: z.array(LogEntrySchema),
+  meta: ApiMetaSchema,
+});
 const LogEntryWriteSchema = z
   .object({
     managementId: z.string().regex(/^[1-9]\d{0,18}$/),
@@ -64,7 +72,14 @@ export function createBitacoraRouter(
     }),
     async (c) => {
       const entries = await controller.list(c.env, c.req.valid('query').managementId);
-      return c.json({ data: Array.from(entries), meta: { requestId: c.get('requestId') } }, 200);
+      return c.json(
+        {
+          exito: true as const,
+          mensaje: Array.from(entries),
+          meta: { requestId: c.get('requestId') },
+        },
+        200,
+      );
     },
   );
   router.openapi(
@@ -87,7 +102,10 @@ export function createBitacoraRouter(
     }),
     async (c) => {
       const entry = await controller.get(c.env, c.req.valid('param').id);
-      return c.json({ data: entry, meta: { requestId: c.get('requestId') } }, 200);
+      return c.json(
+        { exito: true as const, mensaje: entry, meta: { requestId: c.get('requestId') } },
+        200,
+      );
     },
   );
   router.openapi(
@@ -118,7 +136,10 @@ export function createBitacoraRouter(
         registeredOn: input.registeredOn ?? now.toISOString().slice(0, 10),
         registeredAt: input.registeredAt ?? now.toISOString().slice(11, 19),
       });
-      return c.json({ data: entry, meta: { requestId: c.get('requestId') } }, 201);
+      return c.json(
+        { exito: true as const, mensaje: entry, meta: { requestId: c.get('requestId') } },
+        201,
+      );
     },
   );
   return router;

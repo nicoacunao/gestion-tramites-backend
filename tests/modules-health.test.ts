@@ -11,7 +11,8 @@ describe('health checks por módulo', () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      data: { module: moduleName, status: 'ok' },
+      exito: true,
+      mensaje: { module: moduleName, status: 'ok' },
       meta: { requestId: `test-${moduleName}` },
     });
   });

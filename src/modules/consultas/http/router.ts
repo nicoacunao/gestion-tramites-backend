@@ -28,7 +28,11 @@ export function createConsultasModule(
         200: {
           content: {
             'application/json': {
-              schema: z.object({ data: z.array(summary), meta: ApiMetaSchema }),
+              schema: z.object({
+                exito: z.literal(true),
+                mensaje: z.array(summary),
+                meta: ApiMetaSchema,
+              }),
             },
           },
           description: 'Resumen de estaciones.',
@@ -45,7 +49,8 @@ export function createConsultasModule(
         throw new AppError('FORBIDDEN', 'No tienes permisos para consultar.', 403);
       return c.json(
         {
-          data: Array.from(await resolved.queries.summarizeStations()),
+          exito: true as const,
+          mensaje: Array.from(await resolved.queries.summarizeStations()),
           meta: { requestId: c.get('requestId') },
         },
         200,
@@ -82,7 +87,8 @@ export function createConsultasModule(
           content: {
             'application/json': {
               schema: z.object({
-                data: z.array(stationData),
+                exito: z.literal(true),
+                mensaje: z.array(stationData),
                 meta: ApiMetaSchema.extend({
                   page: z.number(),
                   pageSize: z.number(),
@@ -111,7 +117,8 @@ export function createConsultasModule(
       );
       return c.json(
         {
-          data: result.stations.map((item) => ({
+          exito: true as const,
+          mensaje: result.stations.map((item) => ({
             stationId: item.id,
             legalName: item.legalName,
             address: item.address,
@@ -149,7 +156,8 @@ export function createConsultasModule(
           content: {
             'application/json': {
               schema: z.object({
-                data: z.array(stationData),
+                exito: z.literal(true),
+                mensaje: z.array(stationData),
                 meta: ApiMetaSchema.extend({
                   created: z.number(),
                   updated: z.number(),
@@ -198,7 +206,8 @@ export function createConsultasModule(
       );
       return c.json(
         {
-          data: result.stations.map((item) => ({
+          exito: true as const,
+          mensaje: result.stations.map((item) => ({
             stationId: item.id,
             legalName: item.legalName,
             address: item.address,

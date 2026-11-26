@@ -53,7 +53,10 @@ describe('bitácora', () => {
     expect((await router.request('/items?managementId=1001')).status).toBe(200);
     const detail = await router.request('/items/1');
     expect(detail.status).toBe(200);
-    expect(await detail.json()).toMatchObject({ data: { id: '1', managementId: '1001' } });
+    expect(await detail.json()).toMatchObject({
+      exito: true,
+      mensaje: { id: '1', managementId: '1001' },
+    });
   });
 
   it('crea una entrada y conserva la validación de tipos', async () => {
@@ -71,7 +74,10 @@ describe('bitácora', () => {
       }),
     });
     expect(response.status).toBe(201);
-    expect(await response.json()).toMatchObject({ data: { id: '1', type: 'inicio' } });
+    expect(await response.json()).toMatchObject({
+      exito: true,
+      mensaje: { id: '1', type: 'inicio' },
+    });
   });
 
   it('rechaza un tipo no permitido', async () => {

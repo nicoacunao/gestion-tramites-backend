@@ -33,7 +33,9 @@ export function createArchivosRouter(
       responses: {
         200: {
           content: {
-            'application/json': { schema: z.object({ data: z.array(FileSchema), meta }) },
+            'application/json': {
+              schema: z.object({ exito: z.literal(true), mensaje: z.array(FileSchema), meta }),
+            },
           },
           description: 'Archivo de una gestión específica.',
         },
@@ -45,7 +47,14 @@ export function createArchivosRouter(
       const records = await resolved.repository.listByManagementSpecific(
         c.req.valid('query').managementSpecificId,
       );
-      return c.json({ data: Array.from(records), meta: { requestId: c.get('requestId') } }, 200);
+      return c.json(
+        {
+          exito: true as const,
+          mensaje: Array.from(records),
+          meta: { requestId: c.get('requestId') },
+        },
+        200,
+      );
     },
   );
   app.openapi(
@@ -57,7 +66,11 @@ export function createArchivosRouter(
       request: { params: z.object({ id: IdSchema }) },
       responses: {
         200: {
-          content: { 'application/json': { schema: z.object({ data: FileSchema, meta }) } },
+          content: {
+            'application/json': {
+              schema: z.object({ exito: z.literal(true), mensaje: FileSchema, meta }),
+            },
+          },
           description: 'Archivo antecedente.',
         },
         404: {
@@ -70,7 +83,10 @@ export function createArchivosRouter(
       await authenticatedUser(c.req.raw, c.env);
       const record = await dependencies(c.env).repository.findById(c.req.valid('param').id);
       if (!record) throw new AppError('RESOURCE_NOT_FOUND', 'El archivo no existe.', 404);
-      return c.json({ data: record, meta: { requestId: c.get('requestId') } }, 200);
+      return c.json(
+        { exito: true as const, mensaje: record, meta: { requestId: c.get('requestId') } },
+        200,
+      );
     },
   );
   app.post('/items', async (c) => {
@@ -92,7 +108,10 @@ export function createArchivosRouter(
       storageReference: reference,
       uploadedAt: new Date().toISOString(),
     });
-    return c.json({ data: record, meta: { requestId: c.get('requestId') } }, 201);
+    return c.json(
+      { exito: true as const, mensaje: record, meta: { requestId: c.get('requestId') } },
+      201,
+    );
   });
   app.get('/items/:id/download', async (c) => {
     await authenticatedUser(c.req.raw, c.env);

@@ -8,7 +8,8 @@ import {
 } from './controller';
 
 const responseSchema = z.object({
-  data: z.array(
+  exito: z.literal(true),
+  mensaje: z.array(
     z.object({ id: z.string(), code: z.string(), name: z.string() }).openapi('ManagementScope'),
   ),
   meta: ApiMetaSchema,
@@ -42,7 +43,11 @@ export function createAmbitosRouter(
         typeof dependencies === 'function' ? dependencies(context.env) : dependencies;
       const items = await new AmbitosController(resolved).list(context.req.raw);
       return context.json(
-        { data: Array.from(items), meta: { requestId: context.get('requestId') } },
+        {
+          exito: true as const,
+          mensaje: Array.from(items),
+          meta: { requestId: context.get('requestId') },
+        },
         200,
       );
     },

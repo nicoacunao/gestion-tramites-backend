@@ -34,7 +34,8 @@ export function createModuleHealthRouter(moduleName: string): OpenAPIHono<AppEnv
   router.openapi(route, (context) =>
     context.json(
       {
-        data: {
+        exito: true as const,
+        mensaje: {
           module: moduleName,
           status: 'ok' as const,
         },

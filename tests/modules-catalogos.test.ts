@@ -56,7 +56,8 @@ describe('catálogos de estaciones', () => {
     const response = await app(repository()).request('/items', { headers: auth });
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
-      data: [{ id: '60001', legalName: station.legalName }],
+      exito: true,
+      mensaje: [{ id: '60001', legalName: station.legalName }],
       meta: {},
     });
   });
@@ -68,7 +69,10 @@ describe('catálogos de estaciones', () => {
       body: JSON.stringify({ ...station }),
     });
     expect(response.status).toBe(201);
-    expect(await response.json()).toMatchObject({ data: { estado: 'No', id: '60001' } });
+    expect(await response.json()).toMatchObject({
+      exito: true,
+      mensaje: { estado: 'No', id: '60001' },
+    });
   });
 
   it('rechaza un body inválido y una solicitud sin autorización', async () => {

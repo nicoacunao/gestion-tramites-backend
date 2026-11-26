@@ -97,8 +97,16 @@ export function createGestionesRouter(
     if (!(await deps.authorize(request, 'gestiones')))
       throw new AppError('FORBIDDEN', 'No tienes permisos para gestionar gestiones.', 403);
   };
-  const response = z.object({ data: ManagementSchema, meta: ApiMetaSchema });
-  const listResponse = z.object({ data: z.array(ManagementSchema), meta: ApiMetaSchema });
+  const response = z.object({
+    exito: z.literal(true),
+    mensaje: ManagementSchema,
+    meta: ApiMetaSchema,
+  });
+  const listResponse = z.object({
+    exito: z.literal(true),
+    mensaje: z.array(ManagementSchema),
+    meta: ApiMetaSchema,
+  });
 
   router.openapi(
     createRoute({
@@ -121,7 +129,8 @@ export function createGestionesRouter(
       const user = query.assignedToMe === 'true' ? await deps.authenticate(c.req.raw) : undefined;
       return c.json(
         {
-          data: Array.from(await deps.repository.list(user?.id), presentManagement),
+          exito: true as const,
+          mensaje: Array.from(await deps.repository.list(user?.id), presentManagement),
           meta: { requestId: c.get('requestId') },
         },
         200,
@@ -149,7 +158,11 @@ export function createGestionesRouter(
       const item = await deps.repository.findById(c.req.valid('param').id);
       if (!item) throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
       return c.json(
-        { data: presentManagement(item), meta: { requestId: c.get('requestId') } },
+        {
+          exito: true as const,
+          mensaje: presentManagement(item),
+          meta: { requestId: c.get('requestId') },
+        },
         200,
       );
     },
@@ -175,7 +188,11 @@ export function createGestionesRouter(
       if (!item)
         throw new AppError('MANAGEMENT_SAVE_FAILED', 'La gestión no pudo ser guardada.', 500);
       return c.json(
-        { data: presentManagement(item), meta: { requestId: c.get('requestId') } },
+        {
+          exito: true as const,
+          mensaje: presentManagement(item),
+          meta: { requestId: c.get('requestId') },
+        },
         201,
       );
     },
@@ -211,7 +228,11 @@ export function createGestionesRouter(
       if (!item)
         throw new AppError('MANAGEMENT_SAVE_FAILED', 'La gestión no pudo ser guardada.', 500);
       return c.json(
-        { data: presentManagement(item), meta: { requestId: c.get('requestId') } },
+        {
+          exito: true as const,
+          mensaje: presentManagement(item),
+          meta: { requestId: c.get('requestId') },
+        },
         200,
       );
     },
@@ -227,7 +248,11 @@ export function createGestionesRouter(
         200: {
           content: {
             'application/json': {
-              schema: z.object({ data: z.array(StageSchema), meta: ApiMetaSchema }),
+              schema: z.object({
+                exito: z.literal(true),
+                mensaje: z.array(StageSchema),
+                meta: ApiMetaSchema,
+              }),
             },
           },
           description: 'Etapas.',
@@ -242,7 +267,8 @@ export function createGestionesRouter(
         throw new AppError('RESOURCE_NOT_FOUND', 'La gestión solicitada no existe.', 404);
       return c.json(
         {
-          data: Array.from(await deps.repository.listStages(id)),
+          exito: true as const,
+          mensaje: Array.from(await deps.repository.listStages(id)),
           meta: { requestId: c.get('requestId') },
         },
         200,

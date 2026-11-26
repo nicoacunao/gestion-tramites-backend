@@ -15,13 +15,16 @@ export const ModuleHealthDataSchema = z
 
 export const ModuleHealthResponseSchema = z
   .object({
-    data: ModuleHealthDataSchema,
+    exito: z.literal(true),
+    mensaje: ModuleHealthDataSchema,
     meta: ApiMetaSchema,
   })
   .openapi('ModuleHealthResponse');
 
 export const ApiErrorSchema = z
   .object({
+    exito: z.literal(false),
+    mensaje: z.string().openapi({ example: 'El recurso solicitado no existe.' }),
     error: z.object({
       code: z.string().openapi({ example: 'RESOURCE_NOT_FOUND' }),
       message: z.string().openapi({ example: 'El recurso solicitado no existe.' }),

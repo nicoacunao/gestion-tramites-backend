@@ -79,7 +79,10 @@ describe('gestiones', () => {
     );
     const response = await router.request('/items/1001', { headers: { 'x-role': 'gestiones' } });
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ data: { id: '1001', status: 'Ingresado' } });
+    expect(await response.json()).toMatchObject({
+      exito: true,
+      mensaje: { id: '1001', status: 'Ingresado' },
+    });
   });
 
   it('crea una gestión sin código y retorna el id generado', async () => {
@@ -99,7 +102,10 @@ describe('gestiones', () => {
       }),
     });
     expect(response.status).toBe(201);
-    expect(await response.json()).toMatchObject({ data: { id: '1001', status: 'Borrador' } });
+    expect(await response.json()).toMatchObject({
+      exito: true,
+      mensaje: { id: '1001', status: 'Borrador' },
+    });
   });
 
   it('rechaza un id de gestión no numérico', async () => {

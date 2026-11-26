@@ -9,6 +9,8 @@ describe('errores HTTP', () => {
 
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({
+      exito: false,
+      mensaje: 'El recurso solicitado no existe.',
       error: {
         code: 'RESOURCE_NOT_FOUND',
         message: 'El recurso solicitado no existe.',

@@ -125,7 +125,8 @@ describe('rutas de catálogos separados', () => {
     expect(response.status).toBe(200);
     expect(list).toHaveBeenCalledWith('1001');
     expect(await response.json()).toMatchObject({
-      data: [{ id: '1', managementId: '1001', managementTypeId: '2' }],
+      exito: true,
+      mensaje: [{ id: '1', managementId: '1001', managementTypeId: '2' }],
     });
     expect((await app.request('/items')).status).toBe(400);
   });

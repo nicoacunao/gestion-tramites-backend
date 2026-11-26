@@ -15,7 +15,8 @@ const LoginRequestSchema = z
 
 const LoginResponseSchema = z
   .object({
-    data: z.object({
+    exito: z.literal(true),
+    mensaje: z.object({
       accessToken: z.string(),
       expiresAt: z.string().datetime(),
       user: z.object({
@@ -116,7 +117,8 @@ export function createLoginRouter(
       stage = 'serialize-success-response';
       return context.json(
         {
-          data: {
+          exito: true as const,
+          mensaje: {
             accessToken: result.session.token,
             expiresAt: result.session.expiresAt,
             user: result.user,
@@ -161,7 +163,11 @@ export function createLoginRouter(
         200: {
           content: {
             'application/json': {
-              schema: z.object({ data: publicUserSchema, meta: ApiMetaSchema }),
+              schema: z.object({
+                exito: z.literal(true),
+                mensaje: publicUserSchema,
+                meta: ApiMetaSchema,
+              }),
             },
           },
           description: 'Perfil.',
@@ -175,7 +181,11 @@ export function createLoginRouter(
     async (context) => {
       const user = await authenticatedUser(context.req.raw, context.env);
       return context.json(
-        { data: publicUser(user), meta: { requestId: context.get('requestId') } },
+        {
+          exito: true as const,
+          mensaje: publicUser(user),
+          meta: { requestId: context.get('requestId') },
+        },
         200,
       );
     },
@@ -191,7 +201,11 @@ export function createLoginRouter(
         200: {
           content: {
             'application/json': {
-              schema: z.object({ data: publicUserSchema, meta: ApiMetaSchema }),
+              schema: z.object({
+                exito: z.literal(true),
+                mensaje: publicUserSchema,
+                meta: ApiMetaSchema,
+              }),
             },
           },
           description: 'Perfil actualizado.',
@@ -210,7 +224,8 @@ export function createLoginRouter(
       const updated = await users.findById(user.id);
       return context.json(
         {
-          data: publicUser(updated ?? { ...user, ...input }),
+          exito: true as const,
+          mensaje: publicUser(updated ?? { ...user, ...input }),
           meta: { requestId: context.get('requestId') },
         },
         200,
@@ -227,7 +242,11 @@ export function createLoginRouter(
         200: {
           content: {
             'application/json': {
-              schema: z.object({ data: z.array(publicUserSchema), meta: ApiMetaSchema }),
+              schema: z.object({
+                exito: z.literal(true),
+                mensaje: z.array(publicUserSchema),
+                meta: ApiMetaSchema,
+              }),
             },
           },
           description: 'Responsables disponibles.',
@@ -245,7 +264,8 @@ export function createLoginRouter(
         throw new AppError('NOT_IMPLEMENTED', 'El listado de usuarios no está disponible.', 503);
       return context.json(
         {
-          data: Array.from((await users.list()).map(publicUser)),
+          exito: true as const,
+          mensaje: Array.from((await users.list()).map(publicUser)),
           meta: { requestId: context.get('requestId') },
         },
         200,

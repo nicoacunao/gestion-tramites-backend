@@ -60,7 +60,8 @@ describe('POST /login de identidad', () => {
     });
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
-      data: { accessToken: 'signed-token', user: { id: 'u-1', role: 'analista' } },
+      exito: true,
+      mensaje: { accessToken: 'signed-token', user: { id: 'u-1', role: 'analista' } },
     });
   });
 

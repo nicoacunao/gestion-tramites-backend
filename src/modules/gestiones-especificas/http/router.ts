@@ -7,7 +7,8 @@ import {
   type GestionesEspecificasDependenciesFactory,
 } from './controller';
 const responseSchema = z.object({
-  data: z.array(
+  exito: z.literal(true),
+  mensaje: z.array(
     z
       .object({
         id: z.string(),
@@ -61,7 +62,11 @@ export function createGestionesEspecificasRouter(
         context.req.valid('query').managementId,
       );
       return context.json(
-        { data: Array.from(items), meta: { requestId: context.get('requestId') } },
+        {
+          exito: true as const,
+          mensaje: Array.from(items),
+          meta: { requestId: context.get('requestId') },
+        },
         200,
       );
     },

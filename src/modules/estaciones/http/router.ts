@@ -140,7 +140,8 @@ export function createEstacionesRouter(
     async (context) =>
       context.json(
         {
-          data: Array.from(
+          exito: true as const,
+          mensaje: Array.from(
             await controller(context.env).list(context.req.raw, context.req.valid('query')),
           ),
           meta: { requestId: context.get('requestId') },
@@ -153,7 +154,11 @@ export function createEstacionesRouter(
     async (context) =>
       context.json(
         {
-          data: await controller(context.env).get(context.req.raw, context.req.valid('param').id),
+          exito: true as const,
+          mensaje: await controller(context.env).get(
+            context.req.raw,
+            context.req.valid('param').id,
+          ),
           meta: { requestId: context.get('requestId') },
         },
         200,
@@ -164,7 +169,8 @@ export function createEstacionesRouter(
     async (context) =>
       context.json(
         {
-          data: await controller(context.env).create(context.req.raw, context.req.valid('json')),
+          exito: true as const,
+          mensaje: await controller(context.env).create(context.req.raw, context.req.valid('json')),
           meta: { requestId: context.get('requestId') },
         },
         201,
@@ -175,7 +181,8 @@ export function createEstacionesRouter(
     async (context) =>
       context.json(
         {
-          data: await controller(context.env).update(
+          exito: true as const,
+          mensaje: await controller(context.env).update(
             context.req.raw,
             context.req.valid('param').id,
             context.req.valid('json'),

@@ -16,14 +16,18 @@
       "ModuleHealthResponse": {
         "type": "object",
         "properties": {
-          "data": {
+          "exito": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "mensaje": {
             "$ref": "#/components/schemas/ModuleHealthData"
           },
           "meta": {
             "$ref": "#/components/schemas/ApiMeta"
           }
         },
-        "required": ["data", "meta"]
+        "required": ["exito", "mensaje", "meta"]
       },
       "ModuleHealthData": {
         "type": "object",
@@ -52,6 +56,14 @@
       "ApiError": {
         "type": "object",
         "properties": {
+          "exito": {
+            "type": "boolean",
+            "enum": [false]
+          },
+          "mensaje": {
+            "type": "string",
+            "example": "El recurso solicitado no existe."
+          },
           "error": {
             "type": "object",
             "properties": {
@@ -73,12 +85,16 @@
             "$ref": "#/components/schemas/ApiMeta"
           }
         },
-        "required": ["error", "meta"]
+        "required": ["exito", "mensaje", "error", "meta"]
       },
       "LoginResponse": {
         "type": "object",
         "properties": {
-          "data": {
+          "exito": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "mensaje": {
             "type": "object",
             "properties": {
               "accessToken": {
@@ -123,7 +139,7 @@
             "$ref": "#/components/schemas/ApiMeta"
           }
         },
-        "required": ["data", "meta"]
+        "required": ["exito", "mensaje", "meta"]
       },
       "LoginRequest": {
         "type": "object",
@@ -197,7 +213,11 @@
       "StationListResponse": {
         "type": "object",
         "properties": {
-          "data": {
+          "exito": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "mensaje": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Station"
@@ -207,7 +227,7 @@
             "$ref": "#/components/schemas/ApiMeta"
           }
         },
-        "required": ["data", "meta"]
+        "required": ["exito", "mensaje", "meta"]
       },
       "Station": {
         "type": "object",
@@ -268,14 +288,18 @@
       "StationResponse": {
         "type": "object",
         "properties": {
-          "data": {
+          "exito": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "mensaje": {
             "$ref": "#/components/schemas/Station"
           },
           "meta": {
             "$ref": "#/components/schemas/ApiMeta"
           }
         },
-        "required": ["data", "meta"]
+        "required": ["exito", "mensaje", "meta"]
       },
       "StationWrite": {
         "type": "object",
@@ -908,14 +932,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "$ref": "#/components/schemas/UserProfile"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -992,14 +1020,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "$ref": "#/components/schemas/UserProfile"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1029,7 +1061,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/UserProfile"
@@ -1039,7 +1075,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1370,7 +1406,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ManagementScope"
@@ -1380,7 +1420,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1410,7 +1450,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ManagementType"
@@ -1420,7 +1464,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1450,7 +1494,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/StageCatalogItem"
@@ -1460,7 +1508,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1531,7 +1579,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/Management"
@@ -1541,7 +1593,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1568,14 +1620,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "$ref": "#/components/schemas/Management"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1606,14 +1662,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "$ref": "#/components/schemas/Management"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1661,14 +1721,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "$ref": "#/components/schemas/Management"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -1709,7 +1773,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ManagementStage"
@@ -1719,7 +1787,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2011,7 +2079,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ManagementScope"
@@ -2021,7 +2093,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2051,7 +2123,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ManagementType"
@@ -2061,7 +2137,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2091,7 +2167,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/StageCatalogItem"
@@ -2101,7 +2181,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2143,7 +2223,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/SpecificManagement"
@@ -2153,7 +2237,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2233,7 +2317,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/FileRecord"
@@ -2249,7 +2337,7 @@
                       "required": ["requestId"]
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2280,7 +2368,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "$ref": "#/components/schemas/FileRecord"
                     },
                     "meta": {
@@ -2293,7 +2385,7 @@
                       "required": ["requestId"]
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2363,7 +2455,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/LogEntry"
@@ -2373,7 +2469,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2400,14 +2496,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "$ref": "#/components/schemas/LogEntry"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2438,14 +2538,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "$ref": "#/components/schemas/LogEntry"
                     },
                     "meta": {
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2504,7 +2608,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -2538,7 +2646,7 @@
                       "$ref": "#/components/schemas/ApiMeta"
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2591,7 +2699,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -2672,7 +2784,7 @@
                       ]
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
@@ -2716,7 +2828,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -2809,7 +2925,7 @@
                       ]
                     }
                   },
-                  "required": ["data", "meta"]
+                  "required": ["exito", "mensaje", "meta"]
                 }
               }
             }
