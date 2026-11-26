@@ -5,9 +5,13 @@ import { createApp } from '../src/app';
 describe('contrato OpenAPI', () => {
   it('publica las rutas declaradas por los módulos', async () => {
     const response = await exports.default.fetch('http://localhost/openapi.json');
-    const document = (await response.json()) as { paths: Record<string, unknown> };
+    const document = (await response.json()) as {
+      info: { description: string };
+      paths: Record<string, unknown>;
+    };
 
     expect(response.status).toBe(200);
+    expect(document.info.description).toContain('recursos funcionales');
     expect(Object.keys(document.paths).sort()).toEqual(
       [
         '/api/v1/ambitos/items',

@@ -73,7 +73,8 @@ export function createApp(): OpenAPIHono<AppEnv> {
     info: {
       title: 'API Gestión de Trámites',
       version: '0.1.0',
-      description: 'Contrato inicial. Solo contiene health checks por módulo.',
+      description:
+        'Contrato de la API de gestión de trámites, incluidos los recursos funcionales y los health checks por módulo.',
     },
     servers: [{ url: '/', description: 'Servidor actual' }],
   });
