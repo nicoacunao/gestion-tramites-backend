@@ -1,5 +1,6 @@
 import { exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
+import { createApp } from '../src/app';
 
 describe('contrato OpenAPI', () => {
   it('publica las rutas declaradas por los módulos', async () => {
@@ -131,6 +132,29 @@ describe('contrato OpenAPI', () => {
         message: 'La solicitud contiene datos inválidos.',
       },
       meta: { requestId: 'test-validation-error' },
+    });
+  });
+
+  it('normaliza excepciones inesperadas y oculta su mensaje interno', async () => {
+    const app = createApp();
+    app.get('/__test-error', () => {
+      throw new Error('detalle interno que no debe exponerse');
+    });
+    const response = await app.request(
+      'http://localhost/__test-error',
+      { headers: { 'x-request-id': 'test-internal-error' } },
+      { APP_ENV: 'test' } as never,
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      exito: false,
+      mensaje: 'Ocurrió un error inesperado.',
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Ocurrió un error inesperado.',
+      },
+      meta: { requestId: 'test-internal-error' },
     });
   });
 });
