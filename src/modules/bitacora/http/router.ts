@@ -146,15 +146,14 @@ export function createBitacoraRouter(
       const input = c.req.valid('json');
       let userId = input.userId;
       if (!userId) userId = (await authenticatedUser(c.req.raw, c.env)).id;
-      const now = new Date();
       const entry = await controller.create(c.env, {
         managementId: input.managementId,
         title: input.title,
         comment: input.comment,
         type: input.type ?? null,
         userId,
-        registeredOn: input.registeredOn ?? now.toISOString().slice(0, 10),
-        registeredAt: input.registeredAt ?? now.toISOString().slice(11, 19),
+        ...(input.registeredOn !== undefined ? { registeredOn: input.registeredOn } : {}),
+        ...(input.registeredAt !== undefined ? { registeredAt: input.registeredAt } : {}),
       });
       return c.json(
         { exito: true as const, mensaje: entry, meta: { requestId: c.get('requestId') } },

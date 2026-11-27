@@ -3,7 +3,10 @@ import type { LogEntry, LogEntryInput } from '../domain/log-entry';
 import type { LogRepository } from './ports';
 
 export class BitacoraService {
-  constructor(private readonly repository: LogRepository) {}
+  constructor(
+    private readonly repository: LogRepository,
+    private readonly clock: () => Date = () => new Date(),
+  ) {}
 
   list(managementId: string): Promise<readonly LogEntry[]> {
     this.assertId(
@@ -46,8 +49,18 @@ export class BitacoraService {
       !['inicio', 'novedad', 'seguimiento', 'contacto'].includes(input.type)
     )
       throw new AppError('INVALID_LOG_TYPE', 'El tipo de entrada no es válido.', 422);
-    const registeredOn = input.registeredOn ?? new Date().toISOString().slice(0, 10);
-    const registeredAt = input.registeredAt ?? new Date().toISOString().slice(11, 19);
+    const localNow =
+      input.registeredOn === undefined || input.registeredAt === undefined
+        ? this.getSantiagoDateTime(this.clock())
+        : undefined;
+    const registeredOn = input.registeredOn ?? localNow?.registeredOn;
+    const registeredAt = input.registeredAt ?? localNow?.registeredAt;
+    if (!registeredOn || !registeredAt)
+      throw new AppError(
+        'INVALID_LOG_TIMESTAMP',
+        'La fecha y hora de la entrada no son válidas.',
+        422,
+      );
     if (
       !/^\d{4}-\d{2}-\d{2}$/.test(registeredOn) ||
       !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(registeredAt)
@@ -58,6 +71,24 @@ export class BitacoraService {
         422,
       );
     return this.repository.append({ ...input, registeredOn, registeredAt });
+  }
+
+  private getSantiagoDateTime(date: Date): { registeredOn: string; registeredAt: string } {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Santiago',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(date);
+    const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+    return {
+      registeredOn: `${values.year}-${values.month}-${values.day}`,
+      registeredAt: `${values.hour}:${values.minute}:${values.second}`,
+    };
   }
 
   private assertId(value: string, code: string, message: string): void {

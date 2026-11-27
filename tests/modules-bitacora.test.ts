@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createBitacoraRouter } from '../src/modules/bitacora/http/router';
 import type { LogRepository } from '../src/modules/bitacora/application/ports';
 import type { LogEntry } from '../src/modules/bitacora/domain/log-entry';
+import { BitacoraService } from '../src/modules/bitacora/application/service';
 import { AppError } from '../src/shared/errors/app-error';
 
 const entry: LogEntry = {
@@ -48,6 +49,28 @@ function app(repo: LogRepository) {
 }
 
 describe('bitácora', () => {
+  it('usa la hora de America/Santiago cuando la fecha y hora no vienen informadas', async () => {
+    let appended: Parameters<LogRepository['append']>[0] | undefined;
+    const repo: LogRepository = {
+      ...repository([]),
+      append: async (value) => {
+        appended = value;
+        return { ...entry, ...value };
+      },
+    };
+    const service = new BitacoraService(repo, () => new Date('2026-07-15T15:30:45.000Z'));
+
+    await service.create({
+      managementId: '1001',
+      userId: '1',
+      title: 'Ingreso',
+      comment: 'Se registró la gestión.',
+      type: 'inicio',
+    });
+
+    expect(appended).toMatchObject({ registeredOn: '2026-07-15', registeredAt: '11:30:45' });
+  });
+
   it('lista y obtiene entradas por id_gestion e id_entrada_bitacora', async () => {
     const router = app(repository());
     expect((await router.request('/items?managementId=1001')).status).toBe(200);
