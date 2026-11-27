@@ -1,11 +1,12 @@
 import type {
   Management,
   ManagementInput,
-  ManagementBackground,
-  ManagementBackgroundCreateInput,
-  CompleteManagementInput,
   ManagementStage,
   ManagementStageCreateInput,
+  ManagementStageUpdateInput,
+  ManagementSpecific,
+  ManagementSpecificCreateInput,
+  ManagementSpecificUpdateInput,
 } from '../domain/management';
 
 export interface ManagementRepository {
@@ -13,22 +14,14 @@ export interface ManagementRepository {
   findById(id: string): Promise<Management | null>;
   save(management: ManagementInput, expectedVersion?: number): Promise<Management | void>;
   listStages(managementId: string): Promise<readonly ManagementStage[]>;
+  listSpecifics?(managementId: string): Promise<readonly ManagementSpecific[]>;
+  createSpecific?(
+    managementId: string,
+    input: ManagementSpecificCreateInput,
+  ): Promise<ManagementSpecific>;
+  findSpecific?(id: string): Promise<ManagementSpecific | null>;
+  updateSpecific?(id: string, input: ManagementSpecificUpdateInput): Promise<ManagementSpecific>;
   createStage?(managementId: string, input: ManagementStageCreateInput): Promise<ManagementStage>;
   findStage?(id: string): Promise<ManagementStage | null>;
-  createComplete?(input: CompleteManagementInput): Promise<Management>;
-  createBackground?(
-    managementId: string,
-    input: ManagementBackgroundCreateInput,
-  ): Promise<ManagementBackground>;
-  listBackgrounds?(managementId: string): Promise<readonly ManagementBackground[]>;
-  updateBackground?(
-    id: string,
-    input: ManagementBackground,
-    expectedVersion: number,
-  ): Promise<ManagementBackground>;
-  updateStage?(
-    id: string,
-    input: ManagementStage,
-    expectedVersion: number,
-  ): Promise<ManagementStage>;
+  updateStage?(id: string, input: ManagementStageUpdateInput): Promise<ManagementStage>;
 }

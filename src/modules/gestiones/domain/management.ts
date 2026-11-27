@@ -22,19 +22,57 @@ export interface Management {
   priority: ManagementPriority;
   status: ManagementStatus;
   requesterName: string;
-  version?: number;
-  managementTypeId?: string;
-  scopeCode?: string;
-  level?: ManagementLevel;
-  sequence?: number;
+  scopeCode?: string | null;
+  level?: ManagementLevel | null;
+  sequence?: number | null;
   stationName?: string | null;
   legalName?: string | null;
   responsibleName?: string | null;
+  managementTypeName?: string | null;
+  scopeName?: string | null;
+  code?: string | null;
+  trafficLight?: 'al-dia' | 'proximo-vencer' | 'atrasado';
+  trafficLightLabel?: string;
+  codigo?: string | null;
+  nivel?: ManagementLevel | null;
+  ambito?: string | null;
+  codigoAmbito?: string | null;
+  correlativo?: number | null;
+  semaforo?: 'al-dia' | 'proximo-vencer' | 'atrasado';
+  semaforoEtiqueta?: string;
   commune?: string | null;
   address?: string | null;
   legalRut?: string | null;
   legalRepresentative?: string | null;
   legalRepresentativeRut?: string | null;
+}
+
+export interface ManagementSpecific {
+  id: string;
+  managementId: string;
+  parentSpecificManagementId: string | null;
+  managementTypeId: string;
+  managementTypeName: string;
+  level: number;
+  required: boolean;
+  responsibleUserId: string;
+  responsibleName: string;
+  status: string;
+  fileUrl: string | null;
+  uploadedAt: string;
+}
+
+export interface ManagementSpecificCreateInput {
+  managementTypeId: string;
+  responsibleUserId?: string | null;
+  status?: string;
+  fileReference?: string | null;
+}
+
+export interface ManagementSpecificUpdateInput {
+  responsibleUserId: string | null;
+  status: string;
+  fileReference: string | null;
 }
 
 export interface ManagementStage {
@@ -62,32 +100,12 @@ export interface ManagementStageCreateInput {
   notes?: string | null;
 }
 
-export interface ManagementBackground {
-  id: string;
-  managementId: string;
-  parentManagementBackgroundId: string | null;
-  managementTypeId: string;
-  backgroundId: string;
-  level: Exclude<ManagementLevel, 'N1'>;
-  required: boolean;
-  responsibleUserId: string | null;
+export interface ManagementStageUpdateInput {
   status: string;
-  fileReference: string | null;
-  uploadedAt: string | null;
-  version: number;
+  estimatedOn: string | null;
+  completedOn: string | null;
+  responsibleUserId: string | null;
+  notes: string | null;
 }
-
-export interface ManagementBackgroundCreateInput extends Partial<
-  Omit<ManagementBackground, 'id' | 'version'>
-> {
-  name: string;
-  category?: 'requerido' | 'complementario' | 'adicional';
-  parentBackgroundId?: string | null;
-}
-
-export type CompleteManagementInput = ManagementInput & {
-  creationMode?: 'principal' | 'subtramite';
-  specificManagementId?: string | null;
-};
 
 export type ManagementInput = Omit<Management, 'id'> & { id?: string };

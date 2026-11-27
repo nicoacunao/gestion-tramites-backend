@@ -23,6 +23,89 @@ describe('PostgresManagementRepository', () => {
     await repository.findById('10');
     expect(query.mock.calls[0]?.[0]).toContain('g.id_gestion = $1::bigint');
     expect(query.mock.calls[0]?.[0]).not.toContain('g.codigo');
+    expect(query.mock.calls[0]?.[0]).toContain('row_number() OVER');
+    expect(query.mock.calls[0]?.[0]).toContain('ORDER BY g.fecha_apertura, g.id_gestion');
+    expect(query.mock.calls[0]?.[0]).toContain("'Próximo a vencer'");
+  });
+
+  it('crea una gestión específica asignando al responsable de la gestión por defecto', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ level: 1 }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: '51',
+            managementId: '10',
+            managementTypeId: '4',
+            managementTypeName: 'Patente comercial',
+            level: 1,
+            required: true,
+            responsibleUserId: '1',
+            responsibleName: 'Ana Pérez',
+            status: 'Pendiente',
+            fileUrl: null,
+            uploadedAt: '2026-11-26T12:00:00Z',
+          },
+        ],
+      });
+    const repository = new PostgresManagementRepository({ query } as never);
+    const result = await repository.createSpecific('10', { managementTypeId: '4' });
+
+    expect(result.id).toBe('51');
+    expect(query.mock.calls[1]?.[0]).toContain('INSERT INTO gestion_especifica');
+    expect(query.mock.calls[1]?.[0]).toContain(
+      "COALESCE(NULLIF($3, '')::bigint, g.id_usuario_responsable)",
+    );
+    expect(query.mock.calls[1]?.[1]).toEqual(['10', '4', null, 'Pendiente', null]);
+  });
+
+  it('exige archivo al crear una gestión específica de nivel superior a 1', async () => {
+    const query = vi.fn().mockResolvedValue({ rows: [{ level: 2 }] });
+    const repository = new PostgresManagementRepository({ query } as never);
+
+    await expect(repository.createSpecific('10', { managementTypeId: '4' })).rejects.toMatchObject({
+      code: 'SPECIFIC_MANAGEMENT_FILE_REQUIRED',
+      status: 422,
+    });
+    expect(query).toHaveBeenCalledTimes(1);
+  });
+
+  it('actualiza la instancia específica y registra cuándo cambia el archivo', async () => {
+    const query = vi.fn().mockResolvedValue({ rows: [{ id: '51', status: 'Recibido' }] });
+    const repository = new PostgresManagementRepository({ query } as never);
+    await repository.updateSpecific('51', {
+      responsibleUserId: null,
+      status: 'Recibido',
+      fileReference: 'documento.pdf',
+    });
+
+    expect(query.mock.calls[0]?.[0]).toContain('UPDATE gestion_especifica SET');
+    expect(query.mock.calls[0]?.[0]).toContain('url_archivo IS DISTINCT FROM $4');
+    expect(query.mock.calls[0]?.[1]).toEqual(['51', null, 'Recibido', 'documento.pdf']);
+  });
+
+  it('actualiza una etapa sin usar una columna de versión que no existe en el esquema', async () => {
+    const query = vi.fn().mockResolvedValue({ rows: [{ id: '12', status: 'Completado' }] });
+    const repository = new PostgresManagementRepository({ query } as never);
+    await repository.updateStage('12', {
+      status: 'Completado',
+      estimatedOn: '2026-11-20',
+      completedOn: '2026-11-25',
+      responsibleUserId: null,
+      notes: null,
+    });
+
+    expect(query.mock.calls[0]?.[0]).toContain('UPDATE etapa_gestion SET');
+    expect(query.mock.calls[0]?.[0]).not.toContain('version');
+    expect(query.mock.calls[0]?.[1]).toEqual([
+      '12',
+      'Completado',
+      '2026-11-20',
+      '2026-11-25',
+      null,
+      null,
+    ]);
   });
 
   it('inserta la gestión sin código y retorna el id generado', async () => {

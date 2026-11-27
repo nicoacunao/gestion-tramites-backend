@@ -114,4 +114,88 @@ describe('gestiones', () => {
     });
     expect(response.status).toBe(400);
   });
+
+  it('crea y edita una etapa de una gestión con validación de fechas', async () => {
+    const repo = repository();
+    const stage = {
+      id: '30',
+      managementId: '1001',
+      stageId: '4',
+      stageName: 'Ingreso',
+      percentage: 30,
+      status: 'Pendiente',
+      estimatedOn: '2026-07-10',
+      completedOn: null,
+      responsible: null,
+      responsibleUserId: null,
+      notes: null,
+    };
+    repo.createStage = async () => stage;
+    repo.findStage = async () => stage;
+    repo.updateStage = async (_id, input) => ({ ...stage, ...input });
+    const router = app(repo);
+    const created = await router.request('/items/1001/stages', {
+      method: 'POST',
+      headers: { 'x-role': 'gestiones', 'content-type': 'application/json' },
+      body: JSON.stringify({ stageId: '4', estimatedOn: '2026-07-10', completedOn: null }),
+    });
+    expect(created.status).toBe(201);
+    expect(await created.json()).toMatchObject({ mensaje: { id: '30', managementId: '1001' } });
+
+    const invalid = await router.request('/stages/30', {
+      method: 'PUT',
+      headers: { 'x-role': 'gestiones', 'content-type': 'application/json' },
+      body: JSON.stringify({
+        status: 'Completado',
+        estimatedOn: '2026-07-10',
+        completedOn: '2026-07-09',
+        responsibleUserId: null,
+        notes: null,
+      }),
+    });
+    expect(invalid.status).toBe(422);
+  });
+
+  it('crea y actualiza un antecedente como instancia de gestión específica', async () => {
+    const repo = repository();
+    const specific = {
+      id: '91',
+      managementId: '1001',
+      parentSpecificManagementId: null,
+      managementTypeId: '12',
+      managementTypeName: 'Permiso de obra',
+      level: 1,
+      required: true,
+      responsibleUserId: '1',
+      responsibleName: 'Test User',
+      status: 'Pendiente',
+      fileUrl: null,
+      uploadedAt: '2026-07-02T12:00:00Z',
+    };
+    repo.createSpecific = async () => specific;
+    repo.findSpecific = async () => specific;
+    repo.updateSpecific = async (_id, input) => ({
+      ...specific,
+      status: input.status,
+      fileUrl: input.fileReference,
+    });
+    const router = app(repo);
+    const created = await router.request('/items/1001/backgrounds', {
+      method: 'POST',
+      headers: { 'x-role': 'gestiones', 'content-type': 'application/json' },
+      body: JSON.stringify({ managementTypeId: '12' }),
+    });
+    expect(created.status).toBe(201);
+    expect(await created.json()).toMatchObject({
+      mensaje: { id: '91', backgroundId: '12', required: true, level: 'N1' },
+    });
+
+    const updated = await router.request('/backgrounds/91', {
+      method: 'PUT',
+      headers: { 'x-role': 'gestiones', 'content-type': 'application/json' },
+      body: JSON.stringify({ responsibleUserId: null, status: 'Recibido', fileReference: null }),
+    });
+    expect(updated.status).toBe(200);
+    expect(await updated.json()).toMatchObject({ mensaje: { status: 'Recibido' } });
+  });
 });

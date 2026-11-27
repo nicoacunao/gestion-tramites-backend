@@ -559,6 +559,69 @@
           "legalRepresentativeRut": {
             "type": "string",
             "nullable": true
+          },
+          "managementTypeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "level": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^N[1-9]\\d*$"
+          },
+          "scopeCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "scopeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "sequence": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "trafficLight": {
+            "type": "string",
+            "enum": ["al-dia", "proximo-vencer", "atrasado"]
+          },
+          "trafficLightLabel": {
+            "type": "string"
+          },
+          "codigo": {
+            "type": "string",
+            "nullable": true
+          },
+          "nivel": {
+            "type": "string",
+            "nullable": true
+          },
+          "ambito": {
+            "type": "string",
+            "nullable": true
+          },
+          "codigoAmbito": {
+            "type": "string",
+            "nullable": true
+          },
+          "correlativo": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "semaforo": {
+            "type": "string",
+            "enum": ["al-dia", "proximo-vencer", "atrasado"]
+          },
+          "semaforoEtiqueta": {
+            "type": "string"
           }
         },
         "required": [
@@ -689,6 +752,64 @@
           "responsible",
           "responsibleUserId",
           "notes"
+        ]
+      },
+      "ManagementBackground": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "managementId": {
+            "type": "string"
+          },
+          "parentManagementBackgroundId": {
+            "type": "string",
+            "nullable": true
+          },
+          "managementTypeId": {
+            "type": "string"
+          },
+          "backgroundId": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string",
+            "pattern": "^N[1-9]\\d*$"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "responsibleUserId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "fileReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "uploadedAt": {
+            "type": "string"
+          },
+          "managementTypeName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "managementId",
+          "parentManagementBackgroundId",
+          "managementTypeId",
+          "backgroundId",
+          "level",
+          "required",
+          "responsibleUserId",
+          "status",
+          "fileReference",
+          "uploadedAt",
+          "managementTypeName"
         ]
       },
       "SpecificManagement": {
@@ -2374,6 +2495,690 @@
           },
           "404": {
             "description": "El recurso solicitado no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesCreateStage",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "stageId": {
+                    "type": "string",
+                    "pattern": "^[1-9]\\d*$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["Pendiente", "En curso", "Completado"],
+                    "default": "Pendiente"
+                  },
+                  "estimatedOn": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "completedOn": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "responsibleUserId": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^[1-9]\\d*$"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 300
+                  }
+                },
+                "required": ["stageId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Etapa asociada a la gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
+                      "$ref": "#/components/schemas/ManagementStage"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["exito", "mensaje", "meta"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso para realizar esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Gestión no encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Fechas inválidas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/stages/{id}": {
+      "put": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesUpdateStage",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["Pendiente", "En curso", "Completado"]
+                  },
+                  "estimatedOn": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "completedOn": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "responsibleUserId": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^[1-9]\\d*$"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 300
+                  }
+                },
+                "required": ["status", "estimatedOn", "completedOn", "responsibleUserId", "notes"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Etapa actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
+                      "$ref": "#/components/schemas/ManagementStage"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["exito", "mensaje", "meta"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso para realizar esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Etapa no encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Fechas inválidas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/items/{id}/backgrounds": {
+      "get": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesListBackgrounds",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Antecedentes asociados a la gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementBackground"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["exito", "mensaje", "meta"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso para realizar esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El recurso solicitado no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesCreateBackground",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "managementTypeId": {
+                    "type": "string",
+                    "pattern": "^[1-9]\\d*$"
+                  },
+                  "responsibleUserId": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^[1-9]\\d*$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 30
+                  },
+                  "fileReference": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 500
+                  }
+                },
+                "required": ["managementTypeId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Antecedente asociado a la gestión.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
+                      "$ref": "#/components/schemas/ManagementBackground"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["exito", "mensaje", "meta"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso para realizar esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Gestión o tipo no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "El tipo específico requiere un archivo asociado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado del servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio requerido temporalmente no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/gestiones/backgrounds/{id}": {
+      "put": {
+        "tags": ["gestiones"],
+        "operationId": "gestionesUpdateBackground",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "responsibleUserId": {
+                    "type": "string",
+                    "nullable": true,
+                    "pattern": "^[1-9]\\d*$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 30
+                  },
+                  "fileReference": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 500
+                  }
+                },
+                "required": ["responsibleUserId", "status", "fileReference"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Antecedente actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exito": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "mensaje": {
+                      "$ref": "#/components/schemas/ManagementBackground"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ApiMeta"
+                    }
+                  },
+                  "required": ["exito", "mensaje", "meta"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permiso para realizar esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Antecedente no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "El tipo específico requiere un archivo asociado.",
             "content": {
               "application/json": {
                 "schema": {
