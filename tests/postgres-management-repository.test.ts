@@ -60,11 +60,26 @@ describe('PostgresManagementRepository', () => {
     expect(query.mock.calls[1]?.[1]).toEqual(['10', '4', null, 'Pendiente', null]);
   });
 
-  it('exige archivo al crear una gestión específica de nivel superior a 1', async () => {
+  it('permite crear una instancia N2 pendiente sin archivo', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ level: 2 }] })
+      .mockResolvedValueOnce({ rows: [{ id: '52', status: 'Pendiente', fileUrl: null }] });
+    const repository = new PostgresManagementRepository({ query } as never);
+    await repository.createSpecific('10', { managementTypeId: '4' });
+
+    expect(query).toHaveBeenCalledTimes(2);
+    expect(query.mock.calls[1]?.[0]).toContain('INSERT INTO gestion_especifica');
+    expect(query.mock.calls[1]?.[1]).toEqual(['10', '4', null, 'Pendiente', null]);
+  });
+
+  it('exige archivo al marcar como recibido una gestión específica N2+', async () => {
     const query = vi.fn().mockResolvedValue({ rows: [{ level: 2 }] });
     const repository = new PostgresManagementRepository({ query } as never);
 
-    await expect(repository.createSpecific('10', { managementTypeId: '4' })).rejects.toMatchObject({
+    await expect(
+      repository.createSpecific('10', { managementTypeId: '4', status: 'Recibido' }),
+    ).rejects.toMatchObject({
       code: 'SPECIFIC_MANAGEMENT_FILE_REQUIRED',
       status: 422,
     });

@@ -168,7 +168,7 @@ COMMENT ON COLUMN gestion_especifica.responsable IS
 'Usuario responsable de esta gestión específica. Por defecto debe ser el responsable de gestion, salvo asignación explícita a otro usuario.';
 
 COMMENT ON COLUMN gestion_especifica.url_archivo IS
-'Archivo antecedente. Debe ser obligatorio para tipos de gestión con nivel mayor que 1; esta regla requiere validación de aplicación o trigger.';
+'Archivo antecedente. Para tipos de gestión con nivel mayor que 1 debe informarse al marcar el estado como recibido o recibido conforme; puede estar vacío en otros estados.';
 
 COMMENT ON COLUMN tipo_gestion.id_gestion_padre IS
 'Padre jerárquico. Es NULL únicamente para tipos de nivel 1.';

@@ -3039,7 +3039,7 @@
             }
           },
           "422": {
-            "description": "El tipo específico requiere un archivo asociado.",
+            "description": "Referencias inválidas o antecedente N2+ recibido sin archivo.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3178,7 +3178,7 @@
             }
           },
           "422": {
-            "description": "El tipo específico requiere un archivo asociado.",
+            "description": "Referencias inválidas o antecedente N2+ recibido sin archivo.",
             "content": {
               "application/json": {
                 "schema": {

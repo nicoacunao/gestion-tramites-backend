@@ -626,7 +626,7 @@ export function createGestionesRouter(
         },
         422: {
           content: { 'application/json': { schema: ApiErrorSchema } },
-          description: 'El tipo específico requiere un archivo asociado.',
+          description: 'Referencias inválidas o antecedente N2+ recibido sin archivo.',
         },
       },
     }),
@@ -694,7 +694,7 @@ export function createGestionesRouter(
         },
         422: {
           content: { 'application/json': { schema: ApiErrorSchema } },
-          description: 'El tipo específico requiere un archivo asociado.',
+          description: 'Referencias inválidas o antecedente N2+ recibido sin archivo.',
         },
       },
     }),
@@ -712,10 +712,14 @@ export function createGestionesRouter(
       if (!existing)
         throw new AppError('RESOURCE_NOT_FOUND', 'El antecedente de la gestión no existe.', 404);
       const input: ManagementSpecificUpdateInput = c.req.valid('json');
-      if (existing.level > 1 && !input.fileReference)
+      if (
+        existing.level > 1 &&
+        ['Recibido', 'Recibido conforme'].includes(input.status) &&
+        !input.fileReference
+      )
         throw new AppError(
           'SPECIFIC_MANAGEMENT_FILE_REQUIRED',
-          'Este tipo de gestión específica requiere un archivo asociado.',
+          'Para marcar este antecedente como recibido debes asociar un archivo.',
           422,
         );
       const item = await deps.repository.updateSpecific(id, input);

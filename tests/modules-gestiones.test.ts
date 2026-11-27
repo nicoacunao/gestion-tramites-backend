@@ -164,7 +164,7 @@ describe('gestiones', () => {
       parentSpecificManagementId: null,
       managementTypeId: '12',
       managementTypeName: 'Permiso de obra',
-      level: 1,
+      level: 2,
       required: true,
       responsibleUserId: '1',
       responsibleName: 'Test User',
@@ -187,15 +187,22 @@ describe('gestiones', () => {
     });
     expect(created.status).toBe(201);
     expect(await created.json()).toMatchObject({
-      mensaje: { id: '91', backgroundId: '12', required: true, level: 'N1' },
+      mensaje: { id: '91', backgroundId: '12', required: true, level: 'N2' },
     });
 
     const updated = await router.request('/backgrounds/91', {
       method: 'PUT',
       headers: { 'x-role': 'gestiones', 'content-type': 'application/json' },
-      body: JSON.stringify({ responsibleUserId: null, status: 'Recibido', fileReference: null }),
+      body: JSON.stringify({ responsibleUserId: null, status: 'Pendiente', fileReference: null }),
     });
     expect(updated.status).toBe(200);
-    expect(await updated.json()).toMatchObject({ mensaje: { status: 'Recibido' } });
+    expect(await updated.json()).toMatchObject({ mensaje: { status: 'Pendiente' } });
+
+    const receivedWithoutFile = await router.request('/backgrounds/91', {
+      method: 'PUT',
+      headers: { 'x-role': 'gestiones', 'content-type': 'application/json' },
+      body: JSON.stringify({ responsibleUserId: null, status: 'Recibido', fileReference: null }),
+    });
+    expect(receivedWithoutFile.status).toBe(422);
   });
 });

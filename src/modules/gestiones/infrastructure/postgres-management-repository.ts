@@ -173,10 +173,15 @@ export class PostgresManagementRepository implements ManagementRepository {
     );
     if (!typeResult.rows[0])
       throw new AppError('RESOURCE_NOT_FOUND', 'El tipo de gestión específica no existe.', 404);
-    if (typeResult.rows[0].level > 1 && !input.fileReference)
+    const status = input.status ?? 'Pendiente';
+    if (
+      typeResult.rows[0].level > 1 &&
+      ['Recibido', 'Recibido conforme'].includes(status) &&
+      !input.fileReference
+    )
       throw new AppError(
         'SPECIFIC_MANAGEMENT_FILE_REQUIRED',
-        'Este tipo de gestión específica requiere un archivo asociado.',
+        'Para marcar este antecedente como recibido debes asociar un archivo.',
         422,
       );
     const result = await this.database.query<ManagementSpecific>(
